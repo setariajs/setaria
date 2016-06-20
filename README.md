@@ -1,2 +1,0 @@
-# setaria.js
-WebFramework

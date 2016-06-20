@@ -41,11 +41,10 @@ var _http = new function(){
     var _defaultErrorHandler = function(jqXHR, textStatus, errorThrown){
         var errorMsg;
         var msgList = [];
-
         if (textStatus === "timeout"){
             errorMsg = new SystemMessage("SESYSM005E");
         }else{
-            errorMsg = new SystemMessage("SESYSM002E");
+            errorMsg = jqXHR.statusText;
         }
         msgList.push(errorMsg);
         _ui.showMessage(msgList, "error");

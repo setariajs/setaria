@@ -20,7 +20,7 @@ var ViewModelController = function(configFilePath, completeHandler){
             var node = document.createElement("script");
             node.type = "text/javascript";
             node.charset = "utf-8";
-            node.src = filePath;
+            node.src = filePath + "?" + _config.createCacheTokenForHTML();
             node.addEventListener("load", function(){
                 handler.call(null, window[viewModelClass]);
             }.bind(this), false);

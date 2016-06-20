@@ -1,0 +1,6 @@
+{
+    "[pageID]":{
+        "template": "[htmlPath]",
+        "viewModelClass": "[ViewModelClassPath]"
+    }
+}

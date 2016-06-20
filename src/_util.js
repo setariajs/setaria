@@ -426,7 +426,7 @@ var _util = new function(){
     function getFileContent(filePath, dataType){
         var ret = null;
         var context = new HTTPContext();
-        context.url = _config.CONTEXT_ROOT + filePath;
+        context.url = filePath + "?_=" + _config.createCacheTokenForHTML();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.success = function(res){
