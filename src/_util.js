@@ -7,7 +7,6 @@
  */
 var _util = new function(){
     "use strict";
-
     /**
      * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
      * of an array-like value.
@@ -426,7 +425,7 @@ var _util = new function(){
     function getFileContent(filePath, dataType){
         var ret = null;
         var context = new HTTPContext();
-        context.url = filePath + "?_=" + _config.createCacheTokenForHTML();
+        context.url = filePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.success = function(res){

@@ -25,30 +25,6 @@
     this.start = start;
 
     /**
-     * 添加token至引用的script文件
-     *
-     * @protected
-     */
-    // var appendTokenOnImportFile = function(){
-    //     var token = _config.createCacheTokenForHTML();
-    //     // css
-    //     $("link").each(function(){
-    //         var cssHref = this.getAttribute("href");
-    //         if (this.getAttribute("type") === "text/css"){
-    //             this.setAttribute("href", cssHref + "?" + token);
-    //         }
-    //     });
-    //     // script
-    //     $.each(document.scripts, function(){
-    //         var srcAttr = this.getAttribute("src");
-    //         if (!_util.isEmpty(srcAttr)){
-    //             this.setAttribute("src", srcAttr + "?" + token);
-    //         }
-    //     });
-    // };
-    // this.appendTokenOnImportFile = appendTokenOnImportFile;
-
-    /**
      * Customize Dispatcher
      *
      * @public
@@ -61,7 +37,7 @@
     this.dispatcher = dispatcher;
 
     /**
-     * Dispatcher
+     * Default Dispatcher
      *
      * @protected
      */
