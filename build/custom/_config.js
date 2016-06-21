@@ -101,7 +101,7 @@ var _config = new function(){
      * @const
      * @return {Function} 缓存值
      */
-    this.createCacheTokenForHTML = function(){
+    this.createCacheToken = function(){
         return this.APP_REVISION;
     };
 };

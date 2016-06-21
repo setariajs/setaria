@@ -581,30 +581,6 @@ var _message = new function(){
     this.start = start;
 
     /**
-     * 添加token至引用的script文件
-     *
-     * @protected
-     */
-    // var appendTokenOnImportFile = function(){
-    //     var token = _config.createCacheTokenForHTML();
-    //     // css
-    //     $("link").each(function(){
-    //         var cssHref = this.getAttribute("href");
-    //         if (this.getAttribute("type") === "text/css"){
-    //             this.setAttribute("href", cssHref + "?" + token);
-    //         }
-    //     });
-    //     // script
-    //     $.each(document.scripts, function(){
-    //         var srcAttr = this.getAttribute("src");
-    //         if (!_util.isEmpty(srcAttr)){
-    //             this.setAttribute("src", srcAttr + "?" + token);
-    //         }
-    //     });
-    // };
-    // this.appendTokenOnImportFile = appendTokenOnImportFile;
-
-    /**
      * Customize Dispatcher
      *
      * @public
@@ -617,7 +593,7 @@ var _message = new function(){
     this.dispatcher = dispatcher;
 
     /**
-     * Dispatcher
+     * Default Dispatcher
      *
      * @protected
      */
@@ -787,7 +763,6 @@ var _url = new function(){
  */
 var _util = new function(){
     "use strict";
-
     /**
      * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
      * of an array-like value.
@@ -1206,7 +1181,7 @@ var _util = new function(){
     function getFileContent(filePath, dataType){
         var ret = null;
         var context = new HTTPContext();
-        context.url = filePath + "?_=" + _config.createCacheTokenForHTML();
+        context.url = filePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.success = function(res){
@@ -1451,7 +1426,7 @@ var ViewModelController = function(configFilePath, completeHandler){
             var node = document.createElement("script");
             node.type = "text/javascript";
             node.charset = "utf-8";
-            node.src = filePath + "?" + _config.createCacheTokenForHTML();
+            node.src = filePath + "?_=" + _config.createCacheToken();
             node.addEventListener("load", function(){
                 handler.call(null, window[viewModelClass]);
             }.bind(this), false);
