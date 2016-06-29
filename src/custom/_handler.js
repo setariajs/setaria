@@ -39,13 +39,37 @@ var _handler = new function(){
      * @param {Object} evt 事件Event对象
      */
     function doFinally(evt){
-    	// 阻止FORM提交事件
-    	if (evt && evt.target &&
-                (evt.target.nodeName === "FORM" ||
-                    (evt.target.nodeName === "A" &&
-                        evt.target.href.lastIndexOf("#") === evt.target.href.length - 1))){
-    		evt.preventDefault();
-    	}
+        if (isNeedPrevent(evt)){
+            // 取消事件的默认动作
+            evt.preventDefault();
+        }
     }
     this.doFinally = doFinally;
+
+    /**
+     * 判断当前事件执行后是否需要继续执行后续处理
+     *
+     * @param  {Object}  evt 事件Event对象
+     * @return {boolean} true则需要阻止后续处理
+     */
+    function isNeedPrevent(evt){
+        var ret = false;
+        var domNode = null;
+
+        if (evt && evt.target){
+            if (evt.target.nodeName === "FORM"){
+                ret = true;
+            }else if (evt.target.nodeName === "A" &&
+                evt.target.lastIndexOf("#") === evt.target.href.length - 1){
+                ret = true;
+            }else if ($(evt.target).parents("a").length > 0){
+                domNode = $(evt.target).parents("a")[0];
+                if (domNode.href.lastIndexOf("#") === domNode.href.length - 1){
+                    ret = true;
+                }
+            }
+        }
+
+        return ret;
+    }
 };
