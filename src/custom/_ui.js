@@ -243,10 +243,10 @@ var _ui = new function(){
         if (!_util.isEmpty(viewModelTemplateUrl)){
             viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
             // 在指定区域刷新取得的HTML文本
-            $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML).promise().done(function(){
-                handler();
-            });
+            $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
         }
+        // 调用回调函数
+        handler();
     };
     this.updateHTML = updateHTML;
 
