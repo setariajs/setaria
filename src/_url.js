@@ -8,6 +8,12 @@
  */
 var _url = new function(){
 
+    /**
+     * 用于分割Hash
+     *
+     * @private
+     * @type {string}
+     */
     var _SPLIT_CHAR = "/";
 
     /**
@@ -59,10 +65,20 @@ var _url = new function(){
     var setUrlParameter = function(uri, paramObj){
         var ret = uri;
         var separator = "";
+        var hashString = "";
+        var hashIndex = 0;
 
         if (!_util.isEmpty(uri)){
-            separator = uri.indexOf("?") !== -1 ? "&" : "?";
+            hashIndex = uri.indexOf("#");
+            if (hashIndex !== -1){
+                hashString = uri.substring(hashIndex);
+                ret = uri.substring(0, hashIndex);
+            }
+            separator = ret.indexOf("?") !== -1 ? "&" : "?";
             ret += separator + $.param(paramObj);
+            if (!_util.isEmpty(hashString)){
+                ret += hashString;
+            }
         }
 
         return ret;
