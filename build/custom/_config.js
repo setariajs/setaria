@@ -72,6 +72,14 @@ var _config = new function(){
     this.SRC_ROOT_DIR = "js/";
 
     /**
+     * 系统业务画面显示区域
+     *
+     * @const
+     * @type {string}
+     */
+    this.MAIN_AREA_ID = "_sys_container";
+
+    /**
      * 模式窗口控件ID
      *
      * @const

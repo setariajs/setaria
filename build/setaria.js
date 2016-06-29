@@ -198,17 +198,25 @@ var _html = new function(){
      *
      * @private
      * @param  {string}   eventName 事件名称
-     * @param  {string}   selector  JQuery的选择器
+     * @param  {Object}   selector  JQuery的选择器
      * @param  {Function} handler   事件触发后的回调函数
-     * @param  {*}        data      传递回调函数的值
      */
-    var _bindEvent = function(eventName, selector, handler, data){
-        // 如果事件已经绑定，先解绑
-        $(document).off(eventName, selector);
+    var _bindEvent = function(eventName, selector, handler){
         // 绑定事件
-        $(document).on(eventName, selector, data, function(evt){
+        selector.on(eventName, function(evt){
             _action.doAction(handler, evt);
         });
+    };
+
+    /**
+     * 移除指定DOM节点上对应的事件处理函数
+     *
+     * @private
+     * @param  {string}   eventName 事件名称
+     * @param  {Object}   selector  JQuery的选择器
+     */
+    var _unBindEvent = function(eventName, selector){
+        selector.off(eventName);
     };
 
     /**
@@ -389,10 +397,7 @@ var _html = new function(){
      * @param  {Function}   handler     事件处理函数
      */
     function bindEventById(id, eventName, handler){
-        if (!_util.isEmpty(id)){
-            id = (id.indexOf("#") === 0) ? id : "#" + id;
-            _bindEvent(eventName, id, handler);
-        }
+        _bindEvent(eventName, _byId(id), handler);
     }
     this.bindEventById = bindEventById;
 
@@ -400,16 +405,26 @@ var _html = new function(){
      * 使用DOM Name进行DOM事件绑定
      *
      * @public
-     * @param  {string}   name       DOM Name
-     * @param  {string}   eventName  事件名称
-     * @param  {Action}   handler    处理Action实体
+     * @param  {string}    name       DOM Name
+     * @param  {string}    eventName  事件名称
+     * @param  {Function}  handler    事件处理函数
      */
     function bindEventByName(name, eventName, handler){
-        if (!_util.isEmpty(name)){
-            _bindEvent(eventName, "[name='" + name + "']", handler);
-        }
+        _bindEvent(eventName, $("[name='" + name + "']"), handler);
     }
     this.bindEventByName = bindEventByName;
+
+    /**
+     * 解除指定DOM节点的事件处理
+     *
+     * @public
+     * @param  {string}    name       DOM Name
+     * @param  {string}    eventName  事件名称
+     */
+    function unBindEventById(id, eventName){
+        _unBindEvent(eventName, _byId(id));
+    }
+    this.unBindEventById = unBindEventById;
 };
 /**
  * HTTP基础通信模块

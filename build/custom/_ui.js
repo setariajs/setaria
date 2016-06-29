@@ -245,7 +245,7 @@ var _ui = new function(){
             // 在指定区域刷新取得的HTML文本
             $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
         }
-
+        // 调用回调函数
         handler();
     };
     this.updateHTML = updateHTML;
