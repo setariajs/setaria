@@ -43,71 +43,7 @@ var _ui = new function(){
      * @param  {Object} param 模式化窗口设置参数
      */
     function _showModalDialog(param){
-        var dialogWidget = $("#_area_message_dialog");
-        var dialogTitle = $("#_area_message_title");
-        var dialogText = $("#_area_message_text");
-        var errorStyle = "alert-error";
-        var okButtonId = "_area_message_dialog_ok_button";
-        var cancelButtonId = "_area_message_dialog_cancel_button";
-        if (!(dialogWidget.data('bs.modal') || {}).isShown){
-            var modalParam = {
-                "show": true
-            };
-            // 设定标题
-            dialogTitle.html(param.title);
-            // 设定内容
-            dialogText.html(param.message);
-            // 设定类型
-            param.type = param.type ? param.type : "info";
-            dialogTitle.removeClass(errorStyle);
-            dialogText.removeClass(errorStyle);
-            if (param.type === "error"){
-                dialogTitle.addClass(errorStyle);
-                dialogText.addClass(errorStyle);
-                _html.hide(okButtonId);
-            }else{
-                _html.show(okButtonId);
-            }
-            if (param.cancelOnly === false){
-                // 绑定确认按钮事件
-                $("#" + okButtonId).one("click", function(){
-                    dialogWidget.modal("hide");
-                    if (param.doneCallback){
-                        dialogWidget.one("hidden.bs.modal", {
-                            "closeMode": true
-                        },function(event){
-                            if (event.data.closeMode){
-                                param.doneCallback.call(param);
-                            }
-                        });
-                    }
-                });
-            }else{
-                // 隐藏确认按钮
-                _html.hide(okButtonId);
-            }
-
-            if (param.cancelCallback){
-                modalParam.keyboard = false;
-                modalParam.backdrop = "static";
-            }
-            // 设定取消按钮的Label
-            _html.byId(cancelButtonId).innerText = param.cancelText;
-            // 绑定关闭按钮事件
-            $("#" + cancelButtonId).one("click", function(){
-                dialogWidget.modal("hide");
-                if (param.cancelCallback){
-                    dialogWidget.one("hidden.bs.modal", {
-                        "closeMode": false
-                    },function(event){
-                        if (!event.data.closeMode){
-                            param.cancelCallback.call(param);
-                        }
-                    });
-                }
-            });
-            dialogWidget.modal(modalParam);
-        }
+        alert("Dialog -> title :: " + param.title + ", message :: " + param.message);
     }
 
     /**

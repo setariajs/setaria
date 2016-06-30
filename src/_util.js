@@ -424,8 +424,23 @@ var _util = new function(){
      */
     function getFileContent(filePath, dataType){
         var ret = null;
+        var contextPath = window.location.pathname;
+        var configContent = null;
+        var pathIndex = 0;
+        var fileAbsolutePath = window.location.origin;
         var context = new HTTPContext();
-        context.url = filePath + "?_=" + _config.createCacheToken();
+
+        // 取得配置文件绝对路径
+        if (!_util.isEmpty(contextPath) && contextPath !== "/"){
+            contextPath = contextPath.substring(1);
+            pathIndex = contextPath.indexOf("/");
+            if (pathIndex !== -1){
+                contextPath = "/" + contextPath.substring(0, pathIndex + 1);
+            }
+        }
+        fileAbsolutePath += contextPath + filePath;
+
+        context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.success = function(res){

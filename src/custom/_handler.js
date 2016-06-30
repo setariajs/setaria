@@ -26,7 +26,7 @@ var _handler = new function(){
      * @param {Object} evt 事件Event对象
      */
     function doCatch(e, evt){
-        e = e.message ? e : new SystemMessage("SESYSM003E");
+        e = e.message ? e : new SystemMessage("SESYSM002E");
         // 在画面显示错误
         _ui.showMessage(e, "error");
     }
