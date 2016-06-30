@@ -7,6 +7,12 @@
  */
 var _config = new function(){
 
+    /**
+     * 系统消息文件路径
+     *
+     * @const
+     * @type {String}
+     */
     this.SYSMESSAGE_FILE = "src/custom/sysmessage.json";
 
     /**
