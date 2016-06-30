@@ -94,7 +94,7 @@ var _ui = new function(){
                 };
             }
             // 在画面显示消息
-            showDialog({
+            this.showDialog({
                 "title": type !== "error" ? "消息" : "错误",
                 "type": type,
                 "message": messageArr.join(""),
@@ -130,7 +130,7 @@ var _ui = new function(){
             handler(false);
         };
         // 显示模态窗口
-        showDialog({
+        this.showDialog({
             "title": title,
             "message": message,
             "doneText": doneText,
