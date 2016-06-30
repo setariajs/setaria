@@ -36,6 +36,17 @@ var _ui = new function(){
     };
 
     /**
+     * 显示模式化确认窗口
+     *
+     * @protected
+     * @param  {Object} param 模式化窗口设置参数
+     */
+    function showDialog(param){
+        alert("Dialog -> title :: " + param.title + ", message :: " + param.message);
+    }
+    this.showDialog = showDialog;
+
+    /**
      * 切换mask的显示／隐藏
      *
      * @param {Boolean} isDisp 是否显示标志位
@@ -82,17 +93,15 @@ var _ui = new function(){
                     handler();
                 };
             }
-            // TODO 简单的实现？
-            alert("Message -> title :: " + (type !== "error" ? "消息" : "错误") + ", message :: " + messageArr.join(""));
             // 在画面显示消息
-            // _showModalDialog({
-            //     "title": type !== "error" ? "消息" : "错误",
-            //     "type": type,
-            //     "message": messageArr.join(""),
-            //     "cancelText": "关闭",
-            //     "cancelCallback": cancelCallback,
-            //     "cancelOnly": true
-            // });
+            showDialog({
+                "title": type !== "error" ? "消息" : "错误",
+                "type": type,
+                "message": messageArr.join(""),
+                "cancelText": "关闭",
+                "cancelCallback": cancelCallback,
+                "cancelOnly": true
+            });
         }
     }
     this.showMessage = showMessage;
@@ -120,18 +129,16 @@ var _ui = new function(){
         var cancelCallback = function(){
             handler(false);
         };
-        // TODO 简单的实现？
-        alert("Dialog -> title :: " + title + ", message :: " + message);
         // 显示模态窗口
-        // _showModalDialog({
-        //     "title": title,
-        //     "message": message,
-        //     "doneText": doneText,
-        //     "cancelText": cancelText,
-        //     "doneCallback": doneCallback,
-        //     "cancelCallback": cancelCallback,
-        //     "cancelOnly": cancelOnly
-        // });
+        showDialog({
+            "title": title,
+            "message": message,
+            "doneText": doneText,
+            "cancelText": cancelText,
+            "doneCallback": doneCallback,
+            "cancelCallback": cancelCallback,
+            "cancelOnly": cancelOnly
+        });
     }
     this.showModalDialog = showModalDialog;
 
