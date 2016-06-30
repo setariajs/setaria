@@ -40,6 +40,33 @@ var _action = new function(){
     this.doAction = doAction;
 };
 /**
+ * 系统设定信息模块。
+ *
+ * @namespace
+ * @version 1.0
+ * @author HanL
+ */
+var _config = new function(){
+
+    /**
+     * 系统消息文件路径
+     *
+     * @const
+     * @type {String}
+     */
+    this.SYSMESSAGE_FILE = "src/config/sysmessage.json";
+
+    /**
+     * 取得本地配置文件时所使用的缓存值
+     *
+     * @const
+     * @return {Function} 缓存值
+     */
+    this.createCacheToken = function(){
+        return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
+    };
+};
+/**
  * 公共数据保存模块
  *
  * @namespace
@@ -171,6 +198,81 @@ var _globalParam = new function(){
         _clear(key);
     }
     this.clear = clear;
+};
+/**
+ * 事件处理的句柄
+ *
+ * @namespace
+ * @version 1.0
+ * @author HanL
+ */
+var _handler = new function(){
+
+    /**
+     * 事件处理的前处理句柄
+     * 每个事件处理执行前会被调用
+     *
+     * @public
+     * @param {Object} evt 事件Event对象
+     */
+    function doPreProcess(evt){
+    }
+    this.doPreProcess = doPreProcess;
+
+    /**
+     * 在事件处理发生异常时的句柄函数
+     *
+     * @public
+     * @param {Object} e   异常对象
+     * @param {Object} evt 事件Event对象
+     */
+    function doCatch(e, evt){
+        e = e.message ? e : new SystemMessage("SESYSM002E");
+        // 在画面显示错误
+        _ui.showMessage(e, "error");
+    }
+    this.doCatch = doCatch;
+
+    /**
+     * 事件处理的后处理句柄
+     *
+     * @public
+     * @param {Object} evt 事件Event对象
+     */
+    function doFinally(evt){
+        if (isNeedPrevent(evt)){
+            // 取消事件的默认动作
+            evt.preventDefault();
+        }
+    }
+    this.doFinally = doFinally;
+
+    /**
+     * 判断当前事件执行后是否需要继续执行后续处理
+     *
+     * @param  {Object}  evt 事件Event对象
+     * @return {boolean} true则需要阻止后续处理
+     */
+    function isNeedPrevent(evt){
+        var ret = false;
+        var domNode = null;
+
+        if (evt && evt.target){
+            if (evt.target.nodeName === "FORM"){
+                ret = true;
+            }else if (evt.target.nodeName === "A" &&
+                evt.target.lastIndexOf("#") === evt.target.href.length - 1){
+                ret = true;
+            }else if ($(evt.target).parents("a").length > 0){
+                domNode = $(evt.target).parents("a")[0];
+                if (domNode.href.lastIndexOf("#") === domNode.href.length - 1){
+                    ret = true;
+                }
+            }
+        }
+
+        return ret;
+    }
 };
 /**
  * HTML基本功能处理模块
@@ -509,6 +611,38 @@ var _http = new function(){
     this.doSync = doSync;
 };
 /**
+ * log输出模块
+ *
+ * @namespace
+ * @version 1.0
+ * @author HanL
+ */
+var _log = new function(){
+    /**
+     * 输出debug级别的log
+     *
+     * @public
+     * @param {Anything} obj 输出的对象
+     */
+    function debug(obj){
+        console.log(obj);
+    }
+    this.debug = debug;
+
+    /**
+     * 输出error级别的log
+     *
+     * @public
+     * @param {Anything} exception 异常对象
+     */
+    function error(exception){
+        var msgId = exception.messageId;
+        msgId = _util.isEmpty(msgId) ? "" : msgId + " ";
+        console.error(msgId + exception);
+    }
+    this.error = error;
+};
+/**
  * 消息管理模块
  *
  * @namespace
@@ -516,6 +650,50 @@ var _http = new function(){
  * @author HanL
  */
 var _message = new function(){
+
+    /**
+     * 消息缓存
+     *
+     * @private
+     * @type {Object}
+     */
+    var message = null;
+
+    /**
+     * 系统消息缓存
+     *
+     * @private
+     * @type {Object}
+     */
+    var systemMessage = null;
+
+    /**
+     * 根据指定消息ID取得消息内容
+     *
+     * @private
+     * @param  {string} id 消息ID
+     * @return {string} 消息内容
+     */
+    var _getMessage = function(id){
+        if (_util.isEmpty(message)){
+            message = _util.getFileContent(_config.MESSAGE_FILE, "json");
+        }
+        return message[id];
+    };
+
+    /**
+     * 根据指定系统消息ID取得系统消息内容
+     *
+     * @private
+     * @param  {string} id 系统消息ID
+     * @return {string} 系统消息内容
+     */
+    var _getSysMessage = function(id){
+        if (_util.isEmpty(systemMessage)){
+            systemMessage = _util.getFileContent(_config.SYSMESSAGE_FILE, "json");
+        }
+        return systemMessage[id];
+    };
 
     /**
      * 使用参数填充自定义的消息模版
@@ -543,7 +721,7 @@ var _message = new function(){
      * @return {String}  消息字符串
      */
     function getMessage(id, parameters){
-        var template = _messages[id];
+        var template = _getMessage(id);
         if (!template){
             return "没有找到指定的消息. (id=" + id + ", parameters=" + parameters + ")";
         }
@@ -561,7 +739,7 @@ var _message = new function(){
      * @return {string}  系统消息字符串
      */
     function getSystemMessage(id, parameters){
-        var template = _sysmessages[id];
+        var template = _getSysMessage(id);
         if (!template){
             return "message not found. (id=" + id + ", parameters=" + parameters + ")";
         }
@@ -578,11 +756,38 @@ var _message = new function(){
  var _setaria = new function(){
 
     /**
+     * 取得配置信息
+     *
+     * @private
+     */
+    var _loadConfig = function(){
+        $("script").each(function(){
+            var dataConfig = $(this).attr("data-config");
+
+            if (!_util.isEmpty(dataConfig)){
+                // 取得配置文件内容
+                configContent = _util.getFileContent(dataConfig, "json");
+                // 无法取得配置文件的场合
+                if (_util.isEmpty(configContent)){
+                    _ui.showMessage(new SystemMessage("SESYSM003E"));
+                }else{
+                    // 复制配置信息
+                    $.each(configContent, function(key, value){
+                        _config[key] = value;
+                    });
+                }
+            }
+        });
+    };
+
+    /**
      * 启动函数
      *
      * @public
      */
     var start = function(){
+        // 取得配置信息
+        _loadConfig();
         // 更新引用文件的缓存
         // this.appendTokenOnImportFile();
         // 加载viewModel
@@ -625,6 +830,216 @@ var _message = new function(){
     this.defaultDispatcher = defaultDispatcher;
  };
 /**
+ * 复杂UI功能模块
+ *
+ * @namespace
+ * @version 1.0
+ * @author HanL
+ */
+var _ui = new function(){
+    /**
+     * HTML换行Tag
+     *
+     * @private
+     * @const
+     * @type {string}
+     */
+    var HTML_TAG_BREAK = "<br\>";
+
+    /**
+     * 当前mask的状态
+     *
+     * @private
+     * @type {boolean}
+     */
+    var _processingStatus = false;
+
+    /**
+     * 根据DOM节点ID取得对应的JQuery的DOM对象
+     *
+     * @private
+     * @param  {string} id DOM ID
+     * @return {Object} JQuery的DOM对象
+     */
+    var _byId = function(id){
+        id = id.indexOf("#") === 0 ? id : "#" + id;
+        return $(id);
+    };
+
+    /**
+     * 显示模式化确认窗口
+     *
+     * @private
+     *
+     * @param  {Object} param 模式化窗口设置参数
+     */
+    function _showModalDialog(param){
+        alert("Dialog -> title :: " + param.title + ", message :: " + param.message);
+    }
+
+    /**
+     * 切换mask的显示／隐藏
+     *
+     * @param {Boolean} isDisp 是否显示标志位
+     * @public
+     */
+    function toggleProcessing(isDisp){
+        var loadingNode = $("#" + _config.LOADING_ID);
+        if (isDisp){
+            loadingNode.show();
+        }else{
+            loadingNode.hide();
+        }
+    }
+    this.toggleProcessing = toggleProcessing;
+
+    /**
+     * 在画面中显示指定的消息
+     *
+     * @public
+     * @param  {(Array | Message | string)} messageObject 指定的消息
+     * @param  {string}                     type          消息类型, info 正常 error 错误
+     * @param  {Function}                   handler       关闭按钮点击时的回调函数
+     */
+    function showMessage(messageObject, type, handler){
+        var messageArr = [];
+        var messageId = "";
+        var messageContent = "";
+        var cancelCallback = null;
+        if (!_util.isEmpty(messageObject)){
+            // 指定的消息是数组的场合
+            if (_util.isArray(messageObject)){
+                $.each(messageObject, function(index, item){
+                    // messageId = item.messageId || item.id || "";
+                    messageArr.push(!!item.message ? item.message : item);
+                    messageArr.push(HTML_TAG_BREAK);
+                });
+            // 指定的消息是对象的场合
+            }else {
+                messageId = messageObject.messageId || "";
+                messageArr.push(_util.isObject(messageObject) ? messageObject.message : messageObject);
+            }
+            if (_util.isFunction(handler)){
+                cancelCallback = function(){
+                    handler();
+                };
+            }
+            // 在画面显示消息
+            _showModalDialog({
+                "title": type !== "error" ? "消息" : "错误",
+                "type": type,
+                "message": messageArr.join(""),
+                "cancelText": "关闭",
+                "cancelCallback": cancelCallback,
+                "cancelOnly": true
+            });
+        }
+    }
+    this.showMessage = showMessage;
+
+    /**
+     * 显示模态窗口
+     *
+     * @public
+     * @param  {string}   title      窗口的标题
+     * @param  {string}   message    窗口的内容
+     * @param  {Function} handler    确认和取消按钮点击后的回调函数
+     * @param  {string}   cancelText 取消按钮的显示文字，默认为［取消］
+     * @param  {string}   doneText   确认按钮的显示文字，默认为［确认］
+     */
+    function showModalDialog(title, message, handler, cancelText, doneText){
+        title = _util.isEmpty(title) ? "确认窗口" : title;
+        cancelOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
+        doneText = doneText || "确认";
+        cancelText = cancelText || "取消";
+        // 确认按钮点击后的回调函数
+        var doneCallback = function(){
+            handler(true);
+        };
+        // 取消按钮点击后的回调函数
+        var cancelCallback = function(){
+            handler(false);
+        };
+        // 显示模态窗口
+        _showModalDialog({
+            "title": title,
+            "message": message,
+            "doneText": doneText,
+            "cancelText": cancelText,
+            "doneCallback": doneCallback,
+            "cancelCallback": cancelCallback,
+            "cancelOnly": cancelOnly
+        });
+    }
+    this.showModalDialog = showModalDialog;
+
+    /**
+     * 跳转到指定画面
+     *
+     * @public
+     * @param  {string} pageId 跳转画面ID
+     */
+    function forwardTo(pageId){
+        _viewModelController.forwardTo.apply(_viewModelController, arguments);
+    }
+    this.forwardTo = forwardTo;
+
+    /**
+     * 返回至指定画面
+     *
+     * @public
+     * @param  {string} pageId 跳转画面ID
+     */
+    function backTo(pageId){
+        _viewModelController.backTo.apply(_viewModelController, arguments);
+    }
+    this.backTo = backTo;
+
+    /**
+     * 取得业务画面的HTML，并在指定区域更新
+     *
+     * @private
+     * @param  {string} viewModelTemplateUrl 模版的路径
+     * @param  {Object} handler              页面加载完成的回调函数
+     */
+    var updateHTML = function(viewModelTemplateUrl, handler){
+        // 对应画面的HTML文件
+        var viewModelTemplateHTML = null;
+
+        // 取得HTML文件中的内容
+        if (!_util.isEmpty(viewModelTemplateUrl)){
+            viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
+            // 在指定区域刷新取得的HTML文本
+            $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+        }
+        // 调用回调函数
+        handler();
+    };
+    this.updateHTML = updateHTML;
+
+    /**
+     * 使指定控件不可用
+     *
+     * @public
+     * @param  {string} domId 控件ID
+     */
+    function disable(domId){
+        $(_byId(domId)).addClass("disabled");
+    }
+    this.disable = disable;
+
+    /**
+     * 使指定控件可用
+     *
+     * @public
+     * @param  {string} domId 控件ID
+     */
+    function enable(domId){
+        $(_byId(domId)).removeClass("disabled");
+    }
+    this.enable = enable;
+};
+/**
  * URL模块
  * 用于处理Url相关逻辑
  *
@@ -634,6 +1049,12 @@ var _message = new function(){
  */
 var _url = new function(){
 
+    /**
+     * 用于分割Hash
+     *
+     * @private
+     * @type {string}
+     */
     var _SPLIT_CHAR = "/";
 
     /**
@@ -685,10 +1106,20 @@ var _url = new function(){
     var setUrlParameter = function(uri, paramObj){
         var ret = uri;
         var separator = "";
+        var hashString = "";
+        var hashIndex = 0;
 
         if (!_util.isEmpty(uri)){
-            separator = uri.indexOf("?") !== -1 ? "&" : "?";
+            hashIndex = uri.indexOf("#");
+            if (hashIndex !== -1){
+                hashString = uri.substring(hashIndex);
+                ret = uri.substring(0, hashIndex);
+            }
+            separator = ret.indexOf("?") !== -1 ? "&" : "?";
             ret += separator + $.param(paramObj);
+            if (!_util.isEmpty(hashString)){
+                ret += hashString;
+            }
         }
 
         return ret;
@@ -1195,8 +1626,23 @@ var _util = new function(){
      */
     function getFileContent(filePath, dataType){
         var ret = null;
+        var contextPath = window.location.pathname;
+        var configContent = null;
+        var pathIndex = 0;
+        var fileAbsolutePath = window.location.origin;
         var context = new HTTPContext();
-        context.url = filePath + "?_=" + _config.createCacheToken();
+
+        // 取得配置文件绝对路径
+        if (!_util.isEmpty(contextPath) && contextPath !== "/"){
+            contextPath = contextPath.substring(1);
+            pathIndex = contextPath.indexOf("/");
+            if (pathIndex !== -1){
+                contextPath = "/" + contextPath.substring(0, pathIndex + 1);
+            }
+        }
+        fileAbsolutePath += contextPath + filePath;
+
+        context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.success = function(res){

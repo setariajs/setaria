@@ -1,4 +1,5 @@
 {
+    "//": ":: require config ::",
     "//": "系统名称",
     "APP_NAME": "",
 
@@ -7,9 +8,6 @@
 
     "//": "系统版本号",
     "APP_REVISION": "0.1.0",
-
-    "//": "异步HTTP通信的过期时间",
-    "DEFAULT_TIMEOUT": 20000,
 
     "//": "访问的Service地址",
     "SERVICE_URL": "WS/",
@@ -23,9 +21,6 @@
     "//": "系统业务画面显示区域",
     "MAIN_AREA_ID": "_sys_container",
 
-    "//": "模式窗口控件ID",
-    "MODAL_AREA_ID": "_area_message_dialog",
-
     "//": "系统加载提示控件ID",
     "LOADING_ID": "_loading",
 
@@ -33,5 +28,13 @@
     "VIEWMODEL_CONFIG_FILE": "sample/config/viewModel_config.json",
 
     "//": "自定义消息文件",
-    "MESSAGE_FILE": "sample/config/message.json"
+    "MESSAGE_FILE": "sample/config/message.json",
+
+    "//": ":: optional config ::",
+
+    "//": "异步HTTP通信的过期时间",
+    "DEFAULT_TIMEOUT": 20000,
+
+    "//": "模式窗口控件ID",
+    "MODAL_AREA_ID": "_area_message_dialog"
 }

@@ -17,9 +17,19 @@
     <script src="../src/ValidationMessage.js"></script>
     <script src="../src/ViewModelController.js"></script>
     <script src="../src/_config.js"></script>
-    <script src="../src/custom/_handler.js"></script>
-    <script src="../src/custom/_log.js"></script>
-    <script src="../src/custom/_ui.js"></script>
+    <script src="../src/_handler.js"></script>
+    <script src="../src/_log.js"></script>
+    <script src="../src/_ui.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            var debug = _log.debug;
+            _log.debug = function(obj){
+                console.log("111 ::" + obj);
+                debug(obj);
+            };
+            _setaria.start();
+        });
+    </script>
 </head>
 <body>
 

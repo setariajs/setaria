@@ -8,7 +8,7 @@ module.exports = function(grunt) {
                 files: [
                     {
                         expand: true,
-                        src: ['custom/**'],
+                        src: ['config/**'],
                         dest: '<%= pkg.destDir %>/',
                         filter: 'isFile',
                         cwd: '<%= pkg.sourceDir %>'
