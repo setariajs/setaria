@@ -13,7 +13,7 @@
      */
     var _loadConfig = function(){
         $("script").each(function(){
-            var dataConfig = $(this).attr("data-config");
+            var dataConfig = $(this).attr("data-setaria-config");
 
             if (!_util.isEmpty(dataConfig)){
                 // 取得配置文件内容
