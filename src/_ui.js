@@ -36,17 +36,6 @@ var _ui = new function(){
     };
 
     /**
-     * 显示模式化确认窗口
-     *
-     * @private
-     *
-     * @param  {Object} param 模式化窗口设置参数
-     */
-    function _showModalDialog(param){
-        alert("Dialog -> title :: " + param.title + ", message :: " + param.message);
-    }
-
-    /**
      * 切换mask的显示／隐藏
      *
      * @param {Boolean} isDisp 是否显示标志位
@@ -93,15 +82,17 @@ var _ui = new function(){
                     handler();
                 };
             }
+            // TODO 简单的实现？
+            alert("Message -> title :: " + (type !== "error" ? "消息" : "错误") + ", message :: " + messageArr.join(""));
             // 在画面显示消息
-            _showModalDialog({
-                "title": type !== "error" ? "消息" : "错误",
-                "type": type,
-                "message": messageArr.join(""),
-                "cancelText": "关闭",
-                "cancelCallback": cancelCallback,
-                "cancelOnly": true
-            });
+            // _showModalDialog({
+            //     "title": type !== "error" ? "消息" : "错误",
+            //     "type": type,
+            //     "message": messageArr.join(""),
+            //     "cancelText": "关闭",
+            //     "cancelCallback": cancelCallback,
+            //     "cancelOnly": true
+            // });
         }
     }
     this.showMessage = showMessage;
@@ -129,16 +120,18 @@ var _ui = new function(){
         var cancelCallback = function(){
             handler(false);
         };
+        // TODO 简单的实现？
+        alert("Dialog -> title :: " + title + ", message :: " + message);
         // 显示模态窗口
-        _showModalDialog({
-            "title": title,
-            "message": message,
-            "doneText": doneText,
-            "cancelText": cancelText,
-            "doneCallback": doneCallback,
-            "cancelCallback": cancelCallback,
-            "cancelOnly": cancelOnly
-        });
+        // _showModalDialog({
+        //     "title": title,
+        //     "message": message,
+        //     "doneText": doneText,
+        //     "cancelText": cancelText,
+        //     "doneCallback": doneCallback,
+        //     "cancelCallback": cancelCallback,
+        //     "cancelOnly": cancelOnly
+        // });
     }
     this.showModalDialog = showModalDialog;
 
@@ -185,26 +178,4 @@ var _ui = new function(){
         handler();
     };
     this.updateHTML = updateHTML;
-
-    /**
-     * 使指定控件不可用
-     *
-     * @public
-     * @param  {string} domId 控件ID
-     */
-    function disable(domId){
-        $(_byId(domId)).addClass("disabled");
-    }
-    this.disable = disable;
-
-    /**
-     * 使指定控件可用
-     *
-     * @public
-     * @param  {string} domId 控件ID
-     */
-    function enable(domId){
-        $(_byId(domId)).removeClass("disabled");
-    }
-    this.enable = enable;
 };
