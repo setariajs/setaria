@@ -47,7 +47,7 @@ var _url = new function(){
         var ret = "";
         var params = this.getHashParams();
 
-        if (params.length > 0){
+        if (!_util.isEmpty(params)){
             ret = params[0];
         }
 
