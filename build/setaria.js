@@ -261,7 +261,7 @@ var _handler = new function(){
             if (evt.target.nodeName === "FORM"){
                 ret = true;
             }else if (evt.target.nodeName === "A" &&
-                evt.target.lastIndexOf("#") === evt.target.href.length - 1){
+                evt.target.href.lastIndexOf("#") === evt.target.href.length - 1){
                 ret = true;
             }else if ($(evt.target).parents("a").length > 0){
                 domNode = $(evt.target).parents("a")[0];
@@ -1066,7 +1066,7 @@ var _url = new function(){
         var ret = "";
         var params = this.getHashParams();
 
-        if (params.length > 0){
+        if (!_util.isEmpty(params)){
             ret = params[0];
         }
 
