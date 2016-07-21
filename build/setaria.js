@@ -437,11 +437,17 @@ var _html = new function(){
 
         var serializeArray = _byId(formId).serializeArray();
         $.each(serializeArray, function(){
-            if (!!ret[this.name]){
-                if (!ret[this.name].push){
+            // 对应的键值已存在的场合
+            if (!_util.isEmpty(ret[this.name])){
+                // 用数据存储在Form内具有相同name的控件的值
+                // 如果值不是数组的场合
+                if (!_util.isArray(ret[this.name])){
+                    // 转换值为数组
                     ret[this.name] = [ret[this.name]];
                 }
+                // 存值
                 ret[this.name].push(this.value || '');
+            // 对应的键值不存在的场合
             } else {
                 ret[this.name] = this.value || '';
             }
