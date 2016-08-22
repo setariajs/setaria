@@ -67,7 +67,7 @@ var _ui = new function(){
      *
      * @public
      * @param  {(Array | Message | string)} messageObject 指定的消息
-     * @param  {string}                     type          消息类型, info 正常 error 错误
+     * @param  {string}                     type          消息类型, info[正常] || error[错误]
      * @param  {Function}                   handler       关闭按钮点击时的回调函数
      */
     function showMessage(messageObject, type, handler){

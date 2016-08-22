@@ -8,14 +8,6 @@
 var _config = new function(){
 
     /**
-     * 系统消息文件路径
-     *
-     * @const
-     * @type {String}
-     */
-    this.SYSMESSAGE_FILE = "src/config/sysmessage.json";
-
-    /**
      * 取得本地配置文件时所使用的缓存值
      *
      * @const

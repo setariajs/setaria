@@ -1,0 +1,10 @@
+{
+    "login":{
+        "template": "login.html",
+        "viewModelClass": "biz/LoginViewModel"
+    },
+    "dashboard":{
+        "template": "dashboard.html",
+        "viewModelClass": "biz/DashBoardViewModel"
+    }
+}

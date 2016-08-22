@@ -129,7 +129,7 @@ var ViewModelController = function(configFilePath, completeHandler){
     /**
      * 取得模版的路径
      *
-     * @private
+     * @public
      * @param  {string} template vm配置文件中定义的模版名
      * @return {string} 模版的路径
      */
@@ -141,4 +141,13 @@ var ViewModelController = function(configFilePath, completeHandler){
         return ret;
     };
     this.getTemplatePath = getTemplatePath;
+
+    /**
+     * 取得ViewModel配置信息
+     * @return {Object} ViewModel配置信息
+     */
+    var getViewModelConfig = function(){
+        return viewModelConfigs;
+    };
+    this.getViewModelConfig = getViewModelConfig;
 };

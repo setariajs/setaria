@@ -46,10 +46,33 @@
         var defaultViewModelConfigFile = _config.VIEWMODEL_CONFIG_FILE;
         // 初期化ViewModelController
         window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
+        // 绑定Hash Change事件
+        this.bindHashChange();
         // 跳转页面
         this.dispatcher();
     };
     this.start = start;
+
+    /**
+     * 绑定window的hashchange事件
+     */
+    var bindHashChange = function(){
+        $(window).on("hashchange", this.doHashChange);
+    };
+    this.bindHashChange = bindHashChange;
+
+    /**
+     * window的hashchange事件处理
+     */
+    var doHashChange = function(){
+        // 取得url中的Hash参数
+        var targetPageParams = _url.getHashParams();
+        // 如果存在页面跳转定义
+        if (!_util.isEmpty(targetPageParams)){
+            _ui.forwardTo.apply(_ui, targetPageParams);
+        }
+    };
+    this.doHashChange = doHashChange;
 
     /**
      * Customize Dispatcher
