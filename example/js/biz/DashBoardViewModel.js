@@ -36,6 +36,8 @@ var DashBoardViewModel = function(loginData){
     var logoutSystem = function(){
         // 切换页面刷新区域
         _config.MAIN_AREA_ID = "_sys_container";
+        // 清除Hash值
+        _url.clearHash();
         // 回退至登录画面
         _ui.backTo("login");
     };

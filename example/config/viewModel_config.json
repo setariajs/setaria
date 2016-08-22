@@ -6,5 +6,8 @@
     "dashboard":{
         "template": "dashboard.html",
         "viewModelClass": "biz/DashBoardViewModel"
+    },
+    "gameList":{
+        "template": "gameList.html"
     }
 }

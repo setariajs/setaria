@@ -158,4 +158,16 @@ var _url = new function(){
         window.history.replaceState(null, null, href);
     };
     this.clearUrlParameter = clearUrlParameter;
+
+    /**
+     * 清除Url中的Hash值
+     */
+    var clearHash = function(){
+        var href = window.location.href;
+        if (href.indexOf("#") !== -1){
+            href = href.substring(0, href.indexOf("#"));
+        }
+        window.history.replaceState(null, null, href);
+    };
+    this.clearHash = clearHash;
 };
