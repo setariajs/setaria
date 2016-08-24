@@ -472,6 +472,18 @@ var _html = new function(){
     this.getValue = getValue;
 
     /**
+     * 根据控件name属性值取得控件的值
+     *
+     * @public
+     * @param  {[type]} name [description]
+     * @return {[type]}      [description]
+     */
+    function getFormItemValueByName(name){
+
+    }
+    this.getFormItemValueByName = getFormItemValueByName;
+
+    /**
      * 对指定DOM的进行设值处理
      *
      * @public
@@ -480,19 +492,42 @@ var _html = new function(){
      */
     function setValue(id, data){
         var domNode = _byId(id);
-        // 如果DOM是checkbox时
-        if (domNode.is(":checkbox")){
-            if (data === domNode.val()){
-                domNode.prop("checked", true);
-            }else{
-                domNode.prop("checked", false);
+        // 如果DOM是form时
+        if (domNode.is("form") && _util.isObject(data)){
+            var key = null;
+            for (key in data){
+                this.setFormItemValueByName(key, data[key]);
             }
-        // 如果DOM是其他类型时
+        // DOM为其他控件时
         }else{
             domNode.val(data);
         }
     }
     this.setValue = setValue;
+
+    /**
+     * 设置Form表单内控件的值
+     *
+     * @public
+     * @param {string} name  控件name属性值
+     * @param {string} value 控件的值
+     */
+    function setFormItemValueByName(name, value){
+        var selector = $("name=[" + name + "]");
+        if (selector.is(":checkbox") ||
+            selector.is(":radio")){
+            selector.each(function(){
+                if (this.val() === value){
+                    this.prop("checked", true);
+                }else{
+                    this.prop("checked", false);
+                }
+            });
+        }else{
+            selector.val(value);
+        }
+    }
+    this.setFormItemValueByName = setFormItemValueByName;
 
     /**
      * 根据domId取得DOM
@@ -1750,12 +1785,16 @@ var _util = new function(){
         var context = new HTTPContext();
 
         // 取得配置文件绝对路径
-        if (!_util.isEmpty(contextPath) && contextPath !== "/"){
+        if (!_util.isEmpty(contextPath) &&
+            contextPath !== "/" &&
+            contextPath.indexOf(".") === -1){
             contextPath = contextPath.substring(1);
             pathIndex = contextPath.indexOf("/");
             if (pathIndex !== -1){
                 contextPath = "/" + contextPath.substring(0, pathIndex + 1);
             }
+        }else{
+            contextPath = "/";
         }
         fileAbsolutePath += contextPath + filePath;
 
