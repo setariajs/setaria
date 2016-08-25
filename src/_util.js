@@ -432,15 +432,16 @@ var _util = new function(){
 
         // 取得配置文件绝对路径
         if (!_util.isEmpty(contextPath) &&
-            contextPath !== "/" &&
-            contextPath.indexOf(".") === -1){
+            contextPath !== "/"){
             contextPath = contextPath.substring(1);
-            pathIndex = contextPath.indexOf("/");
-            if (pathIndex !== -1){
-                contextPath = "/" + contextPath.substring(0, pathIndex + 1);
+            if (contextPath.split("/")[0].indexOf(".") === -1){
+                pathIndex = contextPath.indexOf("/");
+                if (pathIndex !== -1){
+                    contextPath = "/" + contextPath.substring(0, pathIndex + 1);
+                }
+            }else{
+                contextPath = "/";
             }
-        }else{
-            contextPath = "/";
         }
         fileAbsolutePath += contextPath + filePath;
 

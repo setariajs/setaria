@@ -111,6 +111,18 @@ var _html = new function(){
     this.getValue = getValue;
 
     /**
+     * 根据控件name属性值取得控件的值
+     *
+     * @public
+     * @param  {[type]} name [description]
+     * @return {[type]}      [description]
+     */
+    function getFormItemValueByName(name){
+
+    }
+    this.getFormItemValueByName = getFormItemValueByName;
+
+    /**
      * 对指定DOM的进行设值处理
      *
      * @public
@@ -118,9 +130,43 @@ var _html = new function(){
      * @param {(Object | string)} data 更新值
      */
     function setValue(id, data){
-        _byId(id).val(data);
+        var domNode = _byId(id);
+        // 如果DOM是form时
+        if (domNode.is("form") && _util.isObject(data)){
+            var key = null;
+            for (key in data){
+                this.setFormItemValueByName(key, data[key]);
+            }
+        // DOM为其他控件时
+        }else{
+            domNode.val(data);
+        }
     }
     this.setValue = setValue;
+
+    /**
+     * 设置Form表单内控件的值
+     *
+     * @public
+     * @param {string} name  控件name属性值
+     * @param {string} value 控件的值
+     */
+    function setFormItemValueByName(name, value){
+        var selector = $("name=[" + name + "]");
+        if (selector.is(":checkbox") ||
+            selector.is(":radio")){
+            selector.each(function(){
+                if (this.val() === value){
+                    this.prop("checked", true);
+                }else{
+                    this.prop("checked", false);
+                }
+            });
+        }else{
+            selector.val(value);
+        }
+    }
+    this.setFormItemValueByName = setFormItemValueByName;
 
     /**
      * 根据domId取得DOM
