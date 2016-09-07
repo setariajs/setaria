@@ -448,6 +448,13 @@ var _util = new function(){
         context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
+        context.error = function(jqXHR, textStatus, errorThrown){
+            ret = {
+                "jqXHR": jqXHR,
+                "textStatus": textStatus,
+                "errorThrown": errorThrown
+            };
+        };
         context.success = function(res){
             ret = res;
         };

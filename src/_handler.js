@@ -57,11 +57,14 @@ var _handler = new function(){
         var domNode = null;
 
         if (evt && evt.target){
+            // 当触发事件的节点类型为Form时，阻止Form提交
             if (evt.target.nodeName === "FORM"){
                 ret = true;
+            // 当触发事件的节点类型为A（链接），并且节点的href属性为#时，阻止#自动添加到当前Url中
             }else if (evt.target.nodeName === "A" &&
                 evt.target.href.lastIndexOf("#") === evt.target.href.length - 1){
                 ret = true;
+            // // 当触发事件的节点的父节点为A（链接），并且节点的href属性为#时，阻止#自动添加到当前Url中
             }else if ($(evt.target).parents("a").length > 0){
                 domNode = $(evt.target).parents("a")[0];
                 if (domNode.href.lastIndexOf("#") === domNode.href.length - 1){

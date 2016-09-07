@@ -74,7 +74,7 @@ var _ui = new function(){
         var messageArr = [];
         var messageId = "";
         var messageContent = "";
-        var cancelCallback = null;
+        var doneCallback = null;
         if (!_util.isEmpty(messageObject)){
             // 指定的消息是数组的场合
             if (_util.isArray(messageObject)){
@@ -84,12 +84,15 @@ var _ui = new function(){
                     messageArr.push(HTML_TAG_BREAK);
                 });
             // 指定的消息是对象的场合
-            }else {
+            }else if (_util.isObject(messageObject)){
                 messageId = messageObject.messageId || "";
                 messageArr.push(_util.isObject(messageObject) ? messageObject.message : messageObject);
+            // 其他类型的场合，转换为字符串
+            }else{
+                messageArr.push(messageObject + "");
             }
             if (_util.isFunction(handler)){
-                cancelCallback = function(){
+                doneCallback = function(){
                     handler();
                 };
             }
@@ -97,10 +100,10 @@ var _ui = new function(){
             this.showDialog({
                 "title": type !== "error" ? "消息" : "错误",
                 "type": type,
-                "message": messageArr.join(""),
-                "cancelText": "关闭",
-                "cancelCallback": cancelCallback,
-                "cancelOnly": true
+                "message": messageArr.join("<br/>"),
+                "doneText": "关闭",
+                "doneCallback": doneCallback,
+                "doneOnly": true
             });
         }
     }
@@ -118,7 +121,7 @@ var _ui = new function(){
      */
     function showModalDialog(title, message, handler, cancelText, doneText){
         title = _util.isEmpty(title) ? "确认窗口" : title;
-        cancelOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
+        doneOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
         doneText = doneText || "确认";
         cancelText = cancelText || "取消";
         // 确认按钮点击后的回调函数
@@ -137,7 +140,7 @@ var _ui = new function(){
             "cancelText": cancelText,
             "doneCallback": doneCallback,
             "cancelCallback": cancelCallback,
-            "cancelOnly": cancelOnly
+            "doneOnly": doneOnly
         });
     }
     this.showModalDialog = showModalDialog;
@@ -178,11 +181,32 @@ var _ui = new function(){
         // 取得HTML文件中的内容
         if (!_util.isEmpty(viewModelTemplateUrl)){
             viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
-            // 在指定区域刷新取得的HTML文本
-            $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            // 无法加载指定Html文件的场合
+            if (_util.isObject(viewModelTemplateHTML)){
+                if (viewModelTemplateHTML.textStatus === "error"){
+                    _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+                }
+            }else{
+                // 在指定区域刷新取得的HTML文本
+                $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            }
         }
         // 调用回调函数
         handler();
     };
     this.updateHTML = updateHTML;
+
+    /**
+     * 更新画面标题
+     *
+     * @public
+     * @param  {string} title 标题内容
+     */
+    var updateDocumentTitle = function(title){
+        title = _util.isEmpty(title) ? "" : title;
+        if (!_util.isEmpty(title)){
+            document.title = title;
+        }
+    };
+    this.updateDocumentTitle = updateDocumentTitle;
 };

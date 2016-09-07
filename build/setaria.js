@@ -57,6 +57,29 @@ var _config = new function(){
     this.createCacheToken = function(){
         return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
     };
+
+    /**
+     * 取得当前的移动操作系统名称
+     * Windows Phone, Android, iOS
+     *
+     * @return {string} 移动操作系统名称
+     */
+    this.getMobileOperatingSystem = function(){
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        var ret = "unknown";
+
+        // Windows Phone must come first because its UA also contains "Android"
+        if (/windows phone/i.test(userAgent)) {
+            ret = "Windows Phone";
+        }else if (/android/i.test(userAgent)) {
+            ret = "Android";
+        // iOS detection from: http://stackoverflow.com/a/9039885/177710
+        }else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            ret = "iOS";
+        }
+
+        return ret;
+    };
 };
 /**
  * Cookie管理模块。
@@ -343,11 +366,14 @@ var _handler = new function(){
         var domNode = null;
 
         if (evt && evt.target){
+            // 当触发事件的节点类型为Form时，阻止Form提交
             if (evt.target.nodeName === "FORM"){
                 ret = true;
+            // 当触发事件的节点类型为A（链接），并且节点的href属性为#时，阻止#自动添加到当前Url中
             }else if (evt.target.nodeName === "A" &&
                 evt.target.href.lastIndexOf("#") === evt.target.href.length - 1){
                 ret = true;
+            // // 当触发事件的节点的父节点为A（链接），并且节点的href属性为#时，阻止#自动添加到当前Url中
             }else if ($(evt.target).parents("a").length > 0){
                 domNode = $(evt.target).parents("a")[0];
                 if (domNode.href.lastIndexOf("#") === domNode.href.length - 1){
@@ -764,7 +790,9 @@ var _log = new function(){
      * @param {Anything} obj 输出的对象
      */
     function debug(obj){
-        console.log(obj);
+        if (_config.DEBUG_MODE === "true"){
+            console.log(obj);
+        }
     }
     this.debug = debug;
 
@@ -791,7 +819,23 @@ var _log = new function(){
 var _message = new function(){
 
     /**
-     * 消息缓存
+     * 无法取得业务消息文件。
+     *
+     * @const
+     * @type {String}
+     */
+    var MESSAGE_FILE_NOT_EXIST_MSG = "无法取得业务消息文件。";
+
+    /**
+     * 无法取得系统消息文件。
+     *
+     * @const
+     * @type {String}
+     */
+    var SYS_MESSAGE_FILE_NOT_EXIST_MSG = "无法取得系统消息文件。";
+
+    /**
+     * 业务消息缓存
      *
      * @private
      * @type {Object}
@@ -810,28 +854,46 @@ var _message = new function(){
      * 根据指定消息ID取得消息内容
      *
      * @private
-     * @param  {string} id 消息ID
+     * @param {string}  id 消息ID
+     * @param {Boolean} isSystemMessage true为取系统公共消息,false为取系统业务消息
      * @return {string} 消息内容
      */
-    var _getMessage = function(id){
-        if (_util.isEmpty(message)){
-            message = _util.getFileContent(_config.MESSAGE_FILE, "json");
+    var _getMessage = function(id, isSystemMessage){
+        var ret = null;
+        // 消息文件路径
+        var filePath = (isSystemMessage === true) ? _config.SYSMESSAGE_FILE :
+            _config.MESSAGE_FILE;
+        var messageContent = null;
+        // 取得系统公共消息的场合
+        if (isSystemMessage === true){
+            // 第一次取得系统公共消息的场合
+            if (_util.isEmpty(systemMessage)){
+                systemMessage = _util.getFileContent(filePath, "json");
+            }
+            messageContent = systemMessage;
+        // 取得系统业务消息的场合
+        }else if (isSystemMessage ===  false){
+            // 第一次取得系统业务消息的场合
+            if (_util.isEmpty(message)){
+                message = _util.getFileContent(filePath, "json");
+            }
+            messageContent = message;
         }
-        return message[id];
-    };
-
-    /**
-     * 根据指定系统消息ID取得系统消息内容
-     *
-     * @private
-     * @param  {string} id 系统消息ID
-     * @return {string} 系统消息内容
-     */
-    var _getSysMessage = function(id){
-        if (_util.isEmpty(systemMessage)){
-            systemMessage = _util.getFileContent(_config.SYSMESSAGE_FILE, "json");
+        // 无法取得消息文件的场合
+        if (_util.isObject(messageContent) &&
+                messageContent.textStatus === "error"){
+            if (isSystemMessage === true){
+                ret = SYS_MESSAGE_FILE_NOT_EXIST_MSG;
+            }else{
+                ret = MESSAGE_FILE_NOT_EXIST_MSG;
+            }
+        }else{
+            ret = messageContent[id];
+            if (_util.isEmpty(ret)){
+                ret = '没有找到指定的消息。 (id=' + id + ')';
+            }
         }
-        return systemMessage[id];
+        return ret;
     };
 
     /**
@@ -860,11 +922,7 @@ var _message = new function(){
      * @return {String}  消息字符串
      */
     function getMessage(id, parameters){
-        var template = _getMessage(id);
-        if (!template){
-            return "没有找到指定的消息. (id=" + id + ", parameters=" + parameters + ")";
-        }
-        return _format(template, parameters);
+        return _format(_getMessage(id, false), parameters);
     }
     this.getMessage = getMessage;
 
@@ -878,11 +936,7 @@ var _message = new function(){
      * @return {string}  系统消息字符串
      */
     function getSystemMessage(id, parameters){
-        var template = _getSysMessage(id);
-        if (!template){
-            return "message not found. (id=" + id + ", parameters=" + parameters + ")";
-        }
-        return _format(template, parameters);
+        return _format(_getMessage(id, true), parameters);
     }
     this.getSystemMessage = getSystemMessage;
 };
@@ -900,23 +954,31 @@ var _message = new function(){
      * @private
      */
     var _loadConfig = function(){
+        var ret = false;
         $("script").each(function(){
             var dataConfig = $(this).attr("data-setaria-config");
 
             if (!_util.isEmpty(dataConfig)){
                 // 取得配置文件内容
                 configContent = _util.getFileContent(dataConfig, "json");
+
                 // 无法取得配置文件的场合
-                if (_util.isEmpty(configContent)){
-                    _ui.showMessage(new SystemMessage("SESYSM003E"));
+                if (_util.isEmpty(configContent) ||
+                        (!_util.isEmpty(configContent.textStatus) &&
+                            configContent.textStatus === "error")){
+                    _ui.showMessage("无法读取客户端系统配置文件。", "error");
                 }else{
                     // 复制配置信息
                     $.each(configContent, function(key, value){
                         _config[key] = value;
                     });
+                    ret = true;
                 }
+                // 退出循环
+                return false;
             }
         });
+        return ret;
     };
 
     /**
@@ -926,18 +988,21 @@ var _message = new function(){
      */
     var start = function(){
         // 取得配置信息
-        _loadConfig();
-        // 更新引用文件的缓存
-        // this.appendTokenOnImportFile();
-        // 加载viewModel
-        // 默认ViewModel的配置文件
-        var defaultViewModelConfigFile = _config.VIEWMODEL_CONFIG_FILE;
-        // 初期化ViewModelController
-        window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
-        // 绑定Hash Change事件
-        this.bindHashChange();
-        // 跳转页面
-        this.dispatcher();
+        var loadConfigResult = _loadConfig();
+        // 当成功加载配置文件时
+        if (loadConfigResult){
+            // 更新引用文件的缓存
+            // this.appendTokenOnImportFile();
+            // 加载viewModel
+            // 默认ViewModel的配置文件
+            var defaultViewModelConfigFile = _config.VIEWMODEL_CONFIG_FILE;
+            // 初期化ViewModelController
+            window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
+            // 绑定Hash Change事件
+            this.bindHashChange();
+            // 跳转页面
+            this.dispatcher(window._viewModelController);
+        }
     };
     this.start = start;
 
@@ -953,12 +1018,7 @@ var _message = new function(){
      * window的hashchange事件处理
      */
     var doHashChange = function(){
-        // 取得url中的Hash参数
-        var targetPageParams = _url.getHashParams();
-        // 如果存在页面跳转定义
-        if (!_util.isEmpty(targetPageParams)){
-            _ui.forwardTo.apply(_ui, targetPageParams);
-        }
+        // TODO 点击了浏览器的回退按钮的场合，如何进行判断，是否引入history?
     };
     this.doHashChange = doHashChange;
 
@@ -969,8 +1029,8 @@ var _message = new function(){
      * @override
      * @return {[type]} [description]
      */
-    var dispatcher = function(){
-        this.defaultDispatcher();
+    var dispatcher = function(vmController){
+        this.defaultDispatcher(vmController);
     };
     this.dispatcher = dispatcher;
 
@@ -979,13 +1039,35 @@ var _message = new function(){
      *
      * @protected
      */
-    var defaultDispatcher = function(){
-        // 取得url中的Hash参数
-        var targetPageParams = _url.getHashParams();
+    var defaultDispatcher = function(vmController){
+        // 当前的Hash值
+        var hash = window.location.hash;
+        // ViewModel的映射路径
+        var path = null;
+        // ViewModel的参数
+        var param = null;
+        // 目标跳转画面的信息
+        var viewModelParams = [];
+
         // 如果存在页面跳转定义
-        if (!_util.isEmpty(targetPageParams)){
-            _ui.forwardTo.apply(_ui, targetPageParams);
+        if (!_util.isEmpty(hash) && hash !== "#"){
+            // 根据Hash值取得已配置的ViewModel的映射地址
+            path = vmController.getViewModelPathFromHash(hash);
+            // 没有找到对应的ViewModel
+            if (_util.isEmpty(path)){
+                // 显示错误消息
+                _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+            }else{
+                // 组装目标跳转画面的信息
+                viewModelParams[0] = path;
+                // 取得path后的字符作为参数传给ViewModel
+                param = hash.substring(hash.indexOf(path) + path.length);
+                viewModelParams[1] = param;
+                // 画面跳转
+                _ui.forwardTo.apply(_ui, viewModelParams);
+            }
         }else{
+            // 跳转至首页
             _ui.forwardTo(_config.WELCOME_PAGE);
         }
     };
@@ -1067,7 +1149,7 @@ var _ui = new function(){
         var messageArr = [];
         var messageId = "";
         var messageContent = "";
-        var cancelCallback = null;
+        var doneCallback = null;
         if (!_util.isEmpty(messageObject)){
             // 指定的消息是数组的场合
             if (_util.isArray(messageObject)){
@@ -1077,12 +1159,15 @@ var _ui = new function(){
                     messageArr.push(HTML_TAG_BREAK);
                 });
             // 指定的消息是对象的场合
-            }else {
+            }else if (_util.isObject(messageObject)){
                 messageId = messageObject.messageId || "";
                 messageArr.push(_util.isObject(messageObject) ? messageObject.message : messageObject);
+            // 其他类型的场合，转换为字符串
+            }else{
+                messageArr.push(messageObject + "");
             }
             if (_util.isFunction(handler)){
-                cancelCallback = function(){
+                doneCallback = function(){
                     handler();
                 };
             }
@@ -1090,10 +1175,10 @@ var _ui = new function(){
             this.showDialog({
                 "title": type !== "error" ? "消息" : "错误",
                 "type": type,
-                "message": messageArr.join(""),
-                "cancelText": "关闭",
-                "cancelCallback": cancelCallback,
-                "cancelOnly": true
+                "message": messageArr.join("<br/>"),
+                "doneText": "关闭",
+                "doneCallback": doneCallback,
+                "doneOnly": true
             });
         }
     }
@@ -1111,7 +1196,7 @@ var _ui = new function(){
      */
     function showModalDialog(title, message, handler, cancelText, doneText){
         title = _util.isEmpty(title) ? "确认窗口" : title;
-        cancelOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
+        doneOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
         doneText = doneText || "确认";
         cancelText = cancelText || "取消";
         // 确认按钮点击后的回调函数
@@ -1130,7 +1215,7 @@ var _ui = new function(){
             "cancelText": cancelText,
             "doneCallback": doneCallback,
             "cancelCallback": cancelCallback,
-            "cancelOnly": cancelOnly
+            "doneOnly": doneOnly
         });
     }
     this.showModalDialog = showModalDialog;
@@ -1171,13 +1256,34 @@ var _ui = new function(){
         // 取得HTML文件中的内容
         if (!_util.isEmpty(viewModelTemplateUrl)){
             viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
-            // 在指定区域刷新取得的HTML文本
-            $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            // 无法加载指定Html文件的场合
+            if (_util.isObject(viewModelTemplateHTML)){
+                if (viewModelTemplateHTML.textStatus === "error"){
+                    _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+                }
+            }else{
+                // 在指定区域刷新取得的HTML文本
+                $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            }
         }
         // 调用回调函数
         handler();
     };
     this.updateHTML = updateHTML;
+
+    /**
+     * 更新画面标题
+     *
+     * @public
+     * @param  {string} title 标题内容
+     */
+    var updateDocumentTitle = function(title){
+        title = _util.isEmpty(title) ? "" : title;
+        if (!_util.isEmpty(title)){
+            document.title = title;
+        }
+    };
+    this.updateDocumentTitle = updateDocumentTitle;
 };
 /**
  * URL模块
@@ -1217,24 +1323,6 @@ var _url = new function(){
         return ret;
     };
     this.getHashParams = getHashParams;
-
-    /**
-     * 取得当前页面ID
-     *
-     * @public
-     * @return {String} 页面ID
-     */
-    var getPageId = function(){
-        var ret = "";
-        var params = this.getHashParams();
-
-        if (!_util.isEmpty(params)){
-            ret = params[0];
-        }
-
-        return ret;
-    };
-    this.getPageId = getPageId;
 
     /**
      * 设定Url中的参数
@@ -1802,6 +1890,13 @@ var _util = new function(){
         context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
+        context.error = function(jqXHR, textStatus, errorThrown){
+            ret = {
+                "jqXHR": jqXHR,
+                "textStatus": textStatus,
+                "errorThrown": errorThrown
+            };
+        };
         context.success = function(res){
             ret = res;
         };
@@ -2038,18 +2133,27 @@ var ViewModelController = function(configFilePath, completeHandler){
     var viewModelCacheObject = {};
 
     var loadScript = function(config, srcPath, handler){
+        // JS脚本路径
         var filePath = _config.SRC_ROOT_DIR + srcPath + ".js";
+        // 脚本文件名必须与ViewModelClass类名一致
+        // TODO 需要考虑更好的方案
         var viewModelClass = srcPath.substring(srcPath.lastIndexOf("/") + 1);
+        // ViewModelClass没有被加载过的场合
         if (!_util.isFunction(window[viewModelClass])){
+            // 构建Script标签加载脚本
             var node = document.createElement("script");
             node.type = "text/javascript";
             node.charset = "utf-8";
             node.src = filePath + "?_=" + _config.createCacheToken();
+            // 绑定脚本加载完成事件
             node.addEventListener("load", function(){
                 handler.call(null, window[viewModelClass]);
             }.bind(this), false);
+            // 使用异步加载防止阻塞浏览器进程
             node.async = true;
+            // 把脚本添加到document中
             document.querySelector("head").appendChild(node);
+        // ViewModelClass加载过的场合
         }else{
             handler.call(null, window[viewModelClass]);
         }
@@ -2057,7 +2161,7 @@ var ViewModelController = function(configFilePath, completeHandler){
     this.loadScript = loadScript;
 
     /**
-     * 取得指定业务画面的配置信息
+     * 取得ViewModelConfig
      *
      * @private
      */
@@ -2067,7 +2171,9 @@ var ViewModelController = function(configFilePath, completeHandler){
         var viewModelClassName = "";
         // 取得VM Class定义
         var ViewModelClass = null;
+        // 取得指定的ViewModelConfig
         viewModelConfigs = _util.getFileContent(configFilePath, "json");
+        // 在系统启动时预加载所有配置的ViewModel
         // if (!_util.isEmpty(viewModelConfigs)){
         //     for (var key in viewModelConfigs){
         //         config = viewModelConfigs[key];
@@ -2088,42 +2194,95 @@ var ViewModelController = function(configFilePath, completeHandler){
     this.initialViewModelConfig();
 
     /**
+     * 根据ViewModel路径映射取得对应的ViewModel和模版视图
+     *
+     * @private
+     * @param  {string} path     Url路径映射
+     * @return {Object} 画面配置
+     */
+    var getViewConfigByPath = function(path){
+        var ret = viewModelConfigs[path];
+        // 指定画面只有HTML的场合，可以不在配置文件中对指定画面进行配置
+        if (_util.isEmpty(ret)){
+            ret = {
+                "template": path + ".html"
+            };
+        }else if (_util.isEmpty(ret.template)){
+            ret.template = path + ".html";
+        }
+        return ret;
+    };
+    this.getViewConfigByPath = getViewConfigByPath;
+
+    /**
+     * 根据Hash值查询配置文件取得最接近的映射路径
+     *
+     * 例：
+     * 传入的hash为#a/b/c，配置文件中存在 a 和 a/b两个映射路径的场合
+     * 返回 a/b
+     *
+     * @public
+     * @param  {string} hash url hash值
+     * @return {string} 映射路径
+     */
+    var getViewModelPathFromHash = function(hash){
+        var ret = "";
+
+        if (!_util.isEmpty(hash)){
+            // 删除hash头部的#
+            if (hash.indexOf("#") === 0){
+                hash = hash.substring(1);
+            }
+
+            for (var path in viewModelConfigs){
+                // 找到匹配的路径的并且此路径比之前找到的路径更为接近的场合
+                if (hash.indexOf(path) === 0 &&
+                        path.length > ret.length){
+                    ret = path;
+                }
+            }
+        }
+
+        return ret;
+    };
+    this.getViewModelPathFromHash = getViewModelPathFromHash;
+
+    /**
      * 跳转至指定画面
      *
      * @public
-     * @param  {string} pageId 业务画面ID
+     * @param  {string} path Url路径映射
      */
-    var forwardTo = function(pageId){
-        var config = viewModelConfigs[pageId];
+    var forwardTo = function(path){
+        var config = this.getViewConfigByPath(path);
         var param = arguments;
-        // 如果VM配置对象存在
-        if (config){
-            // 取得业务画面的HTML，并在指定区域更新
-            _ui.updateHTML(this.getTemplatePath(config.template), function(){
-                if (!_util.isEmpty(config.viewModelClass)){
-                    // load class file
-                    this.loadScript(config, config.viewModelClass, function(VMClass){
-                        // 如果对应的VM Class名存在
-                        if (_util.isFunction(VMClass)){
-                            // 把传递参数帮定制
-                            var Class = VMClass.bind.apply(VMClass, param);
-                            // 实例化VM Class
-                            var viewModel = new Class();
-                            // 初期化VM的内部缓存
-                            viewModel.cache = {};
-                            // 执行vm初期化函数
-                            _action.doAction(viewModel.init.bind(viewModel));
-                            // 把VM Class实例存入缓存
-                            viewModelCacheObject[pageId] = viewModel;
-                        }
-                    });
-                }
-            }.bind(this));
 
-        }else{
-            // 抛出错误SESYSM001E
-            _ui.showMessage(new SystemMessage("SESYSM001E", [pageId]), "error");
-        }
+        // 取得业务画面的HTML，并在指定区域更新
+        _ui.updateHTML(this.getTemplatePath(config.template), function(){
+            // 更新画面标题
+            _ui.updateDocumentTitle(config.title);
+            // 存在ViewModel的场合
+            if (!_util.isEmpty(config.viewModelClass)){
+                // load class file
+                this.loadScript(config, config.viewModelClass, function(VMClass){
+                    // 如果对应的VM Class名存在
+                    if (_util.isFunction(VMClass)){
+                        // 把传递参数帮定制
+                        var Class = VMClass.bind.apply(VMClass, param);
+                        // 实例化VM Class
+                        var viewModel = new Class();
+                        // 初期化VM的内部缓存
+                        viewModel.cache = {};
+                        // 输出日志
+                        _log.debug("ViewModel [ " + config.viewModelClass + " ] init.");
+                        // 执行vm初期化函数
+                        _action.doAction(viewModel.init.bind(viewModel));
+                        // 把VM Class实例存入缓存
+                        viewModelCacheObject[path] = viewModel;
+                    }
+                });
+            }
+        }.bind(this));
     };
     this.forwardTo = forwardTo;
 
@@ -2131,27 +2290,29 @@ var ViewModelController = function(configFilePath, completeHandler){
      * 回退至指定画面
      *
      * @public
-     * @param  {string} pageId 业务画面ID
+     * @param  {string} path Url路径映射
      */
-    var backTo = function(pageId){
-        var config = viewModelConfigs[pageId];
+    var backTo = function(path){
+        var config = this.getViewConfigByPath(path);
 
         if (!_util.isEmpty(config)){
             _ui.updateHTML(this.getTemplatePath(config.template), function(){
+                // 更新画面标题
+                _ui.updateDocumentTitle(config.title);
                 // 取得缓存的VM
-                if (viewModelCacheObject[pageId]){
-                    viewModelCacheObject[pageId].init();
+                if (viewModelCacheObject[path]){
+                    viewModelCacheObject[path].init();
                 }
             });
         }else{
             // 抛出错误SESYSM001E
-            _ui.showMessage(new SystemMessage("SESYSM001E", [pageId]), "error");
+            _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
         }
     };
     this.backTo = backTo;
 
     /**
-     * 取得模版的路径
+     * 取得模版的完整路径
      *
      * @public
      * @param  {string} template vm配置文件中定义的模版名

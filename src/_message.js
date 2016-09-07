@@ -8,7 +8,23 @@
 var _message = new function(){
 
     /**
-     * 消息缓存
+     * 无法取得业务消息文件。
+     *
+     * @const
+     * @type {String}
+     */
+    var MESSAGE_FILE_NOT_EXIST_MSG = "无法取得业务消息文件。";
+
+    /**
+     * 无法取得系统消息文件。
+     *
+     * @const
+     * @type {String}
+     */
+    var SYS_MESSAGE_FILE_NOT_EXIST_MSG = "无法取得系统消息文件。";
+
+    /**
+     * 业务消息缓存
      *
      * @private
      * @type {Object}
@@ -27,28 +43,46 @@ var _message = new function(){
      * 根据指定消息ID取得消息内容
      *
      * @private
-     * @param  {string} id 消息ID
+     * @param {string}  id 消息ID
+     * @param {Boolean} isSystemMessage true为取系统公共消息,false为取系统业务消息
      * @return {string} 消息内容
      */
-    var _getMessage = function(id){
-        if (_util.isEmpty(message)){
-            message = _util.getFileContent(_config.MESSAGE_FILE, "json");
+    var _getMessage = function(id, isSystemMessage){
+        var ret = null;
+        // 消息文件路径
+        var filePath = (isSystemMessage === true) ? _config.SYSMESSAGE_FILE :
+            _config.MESSAGE_FILE;
+        var messageContent = null;
+        // 取得系统公共消息的场合
+        if (isSystemMessage === true){
+            // 第一次取得系统公共消息的场合
+            if (_util.isEmpty(systemMessage)){
+                systemMessage = _util.getFileContent(filePath, "json");
+            }
+            messageContent = systemMessage;
+        // 取得系统业务消息的场合
+        }else if (isSystemMessage ===  false){
+            // 第一次取得系统业务消息的场合
+            if (_util.isEmpty(message)){
+                message = _util.getFileContent(filePath, "json");
+            }
+            messageContent = message;
         }
-        return message[id];
-    };
-
-    /**
-     * 根据指定系统消息ID取得系统消息内容
-     *
-     * @private
-     * @param  {string} id 系统消息ID
-     * @return {string} 系统消息内容
-     */
-    var _getSysMessage = function(id){
-        if (_util.isEmpty(systemMessage)){
-            systemMessage = _util.getFileContent(_config.SYSMESSAGE_FILE, "json");
+        // 无法取得消息文件的场合
+        if (_util.isObject(messageContent) &&
+                messageContent.textStatus === "error"){
+            if (isSystemMessage === true){
+                ret = SYS_MESSAGE_FILE_NOT_EXIST_MSG;
+            }else{
+                ret = MESSAGE_FILE_NOT_EXIST_MSG;
+            }
+        }else{
+            ret = messageContent[id];
+            if (_util.isEmpty(ret)){
+                ret = '没有找到指定的消息。 (id=' + id + ')';
+            }
         }
-        return systemMessage[id];
+        return ret;
     };
 
     /**
@@ -77,11 +111,7 @@ var _message = new function(){
      * @return {String}  消息字符串
      */
     function getMessage(id, parameters){
-        var template = _getMessage(id);
-        if (!template){
-            return "没有找到指定的消息. (id=" + id + ", parameters=" + parameters + ")";
-        }
-        return _format(template, parameters);
+        return _format(_getMessage(id, false), parameters);
     }
     this.getMessage = getMessage;
 
@@ -95,11 +125,7 @@ var _message = new function(){
      * @return {string}  系统消息字符串
      */
     function getSystemMessage(id, parameters){
-        var template = _getSysMessage(id);
-        if (!template){
-            return "message not found. (id=" + id + ", parameters=" + parameters + ")";
-        }
-        return _format(template, parameters);
+        return _format(_getMessage(id, true), parameters);
     }
     this.getSystemMessage = getSystemMessage;
 };

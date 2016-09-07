@@ -38,24 +38,6 @@ var _url = new function(){
     this.getHashParams = getHashParams;
 
     /**
-     * 取得当前页面ID
-     *
-     * @public
-     * @return {String} 页面ID
-     */
-    var getPageId = function(){
-        var ret = "";
-        var params = this.getHashParams();
-
-        if (!_util.isEmpty(params)){
-            ret = params[0];
-        }
-
-        return ret;
-    };
-    this.getPageId = getPageId;
-
-    /**
      * 设定Url中的参数
      *
      * @public
