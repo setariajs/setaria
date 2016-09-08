@@ -1,17 +1,19 @@
 /**
- * 共通函数模块
+ * 公用函数模块
+ * 提供了开发中常用的类型判断，字符串处理等函数
  *
- * @namespace
+ * @namespace _util
  * @version 1.0
  * @author HanL
  */
 var _util = new function(){
     "use strict";
+
     /**
      * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
      * of an array-like value.
      */
-    var _MAX_SAFE_INTEGER = 9007199254740991;
+    var MAX_SAFE_INTEGER = 9007199254740991;
 
     var _rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
 
@@ -29,14 +31,15 @@ var _util = new function(){
     };
 
     /** 用于html字符转义判断 */
-    var _reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g,
-        _reUnescapedHtml = /[&<>"'`]/g,
-        _reHasEscapedHtml = RegExp(_reEscapedHtml.source),
-        _reHasUnescapedHtml = RegExp(_reUnescapedHtml.source);
+    var _reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g;
+    var _reUnescapedHtml = /[&<>"'`]/g;
+    var _reHasEscapedHtml = RegExp(_reEscapedHtml.source);
+    var _reHasUnescapedHtml = RegExp(_reUnescapedHtml.source);
 
-
+    /* 使用Object原型hasOwnProperty函数 */
     var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
+    /* 使用Object原型propertyIsEnumerable函数 */
     var _propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 
     /**
@@ -51,11 +54,11 @@ var _util = new function(){
     }
 
     /**
-     * 检查输入值是否是对象
+     * 检查值的原型类是否是对象Object
      *
      * @private
-     * @param   {Anything} 检查的值
-     * @returns {boolean}  如果是对象返回true,否则返回false
+     * @param   {*}        检查的值
+     * @returns {Boolean}  如果是对象返回true,否则返回false
      */
     function _isObjectLike(value) {
         return !!value && typeof value === "object";
@@ -65,21 +68,21 @@ var _util = new function(){
      * 检查输入值是否是合法的数组的length属性
      *
      * @private
-     * @param  {Anything}  value 检查的值
-     * @return {boolean}   如果是合法的数组的Length属性，返回true，否则返回false
+     * @param  {*}         value 检查的值
+     * @return {Boolean}   如果是合法的数组的Length属性，返回true，否则返回false
      */
     function _isLength(value) {
         return typeof value == "number" &&
             value > -1 &&
             value % 1 === 0 &&
-            value <= _MAX_SAFE_INTEGER;
+            value <= MAX_SAFE_INTEGER;
     }
 
     /**
      * 把值转换为字符串，如果值为空，则返回空字符串
      *
      * @private
-     * @param  {Anything} value 检查的值
+     * @param  {*}        value 检查的值
      * @return {string}   字符串
      */
     function _toString(value) {
@@ -90,7 +93,7 @@ var _util = new function(){
      * 把输入值转换成对象
      *
      * @private
-     * @param   {Anything} 输入值
+     * @param   {*}        输入值
      * @returns {Object}   转换出的对象
      */
     function _toObject(value) {
@@ -98,27 +101,26 @@ var _util = new function(){
     }
 
     /**
-     * The base implementation of `get` without support for string paths
-     * and default values.
+     * 根据属性名从指定对象中取得对应的值
      *
      * @private
-     * @param {Object} object The object to query.
-     * @param {Array} path The path of the property to get.
-     * @param {string} [pathKey] The key representation of path.
-     * @returns {*} Returns the resolved value.
+     * @param   {Object} object   查询的对象
+     * @param   {Array}  path     属性的路径
+     * @param   {string} pathKey  属性的准确描述
+     * @returns {*}      Returns  查询到的值
      */
     function _baseGet(object, path, pathKey) {
           if (object === null || object === undefined) {
-            return;
+              return;
           }
           if (pathKey !== undefined && pathKey in _toObject(object)) {
-            path = [pathKey];
+              path = [pathKey];
           }
-          var index = 0,
-              length = path.length;
+          var index = 0;
+          var length = path.length;
 
           while (object !== null && index < length) {
-            object = object[path[index++]];
+              object = object[path[index++]];
           }
           return (index && index == length) ? object : undefined;
     }
@@ -127,12 +129,12 @@ var _util = new function(){
      * 属性字符串转换成数组.
      *
      * @private
-     * @param   {Anything} 属性字符串
-     * @returns {Array}    属性数组
+     * @param   {*}      属性字符串
+     * @returns {Array}  属性数组
      */
     function _toPath(value) {
           if (isArray(value)) {
-            return value;
+              return value;
           }
           var result = [];
           _baseToString(value).replace(_rePropName, function(match, number, quote, string) {
@@ -145,24 +147,26 @@ var _util = new function(){
      * 把输入值转换为字符串类型
      *
      * @private
-     * @param   {Anything} value 输入值
-     * @returns {string}   转换的字符串
+     * @param   {*}       value 输入值
+     * @returns {string}  转换的字符串
      */
     function _baseToString(value) {
         return value === null ? '' : (value + '');
     }
 
     /**
-     * 取得指定对象中指定函数
+     * 从对象中取得指定属性的值
+     * 更多的时候是为了通过简化书写的方式调用不同类型对象内部的相同函数
+     * 譬如toString
      *
      * @private
-     * @param   {string}   key 函数名
-     * @returns {Function} 函数
+     * @param   {string}  key 函数名
+     * @returns {*}       属性的值
      */
     function _baseProperty(key) {
-      return function(object) {
-        return object === null ? undefined : object[key];
-      };
+        return function(object) {
+            return object === null ? undefined : object[key];
+        };
     }
 
     /**
@@ -179,8 +183,8 @@ var _util = new function(){
      * 检查输入值拥有length属性
      *
      * @private
-     * @param   {Anything} value 输入值
-     * @returns {boolean}  如果输入值拥有length属性，返回true，否则返回false
+     * @param   {*}        value 输入值
+     * @returns {Boolean}  输入值拥有length属性的场合，返回true
      */
     function _isArrayLike(value) {
         return value !== null && _isLength(_getLength(value));
@@ -191,9 +195,9 @@ var _util = new function(){
      *
      * @public
      * @param  {Array|Object|string}  value 检查的值
-     * @return {Boolean}  当值为空时返回true，否则返回false
+     * @return {Boolean}              值为空的场合，返回true
      */
-    function isEmpty(value){
+    this.isEmpty = function(value){
         if (value === null || value === undefined) {
             return true;
         }
@@ -202,31 +206,31 @@ var _util = new function(){
             return !value.length;
         }
         return !keys(value).length;
-    }
-    this.isEmpty = isEmpty;
+    };
 
     /**
      * 判断值的类型是否为字符串
      *
+     * @example
      * _util.isString('abc');
      * // => true
      *
      * _util.isString(1);
      * // => false
      *
-     * @param  {Anything}  value 检查的值
-     * @return {boolean}   当值的类型为字符串时返回true，否则返回false
+     * @param  {*}        value 检查的值
+     * @return {Boolean}  值的类型为字符串的场合，返回true
      */
-    function isString(value){
+    this.isString = function(value){
         return typeof value == 'string' ||
             (_isObjectLike(value) &&
                 Object.prototype.toString.call(value) == "[object String]");
-    }
-    this.isString = isString;
+    };
 
     /**
      * 检查值的类型是否为数字
      *
+     * @example
      * _util.isNumber(8.4);
      * // => true
      *
@@ -237,19 +241,19 @@ var _util = new function(){
      * // => false
      *
      * @public
-     * @param  {Anything}  value 检查的值
-     * @return {Boolean}   当值为数字时返回true，否则返回false
+     * @param  {*}         value 检查的值
+     * @return {Boolean}   值为数字的场合，返回true
      */
-    function isNumber(value){
+    this.isNumber = function(value){
         return typeof value == 'number' ||
             (_isObjectLike(value) &&
                 Object.prototype.toString.call(value) == "[object Number]");
-    }
-    this.isNumber = isNumber;
+    };
 
     /**
      * 检查值的类型是否为布尔值
      *
+     * @example
      * _util.isBoolean(false);
      * // => true
      *
@@ -257,94 +261,86 @@ var _util = new function(){
      * // => false
      *
      * @public
-     * @param  {Anything}  value 检查的值
-     * @return {Boolean}   当值的类型为布尔时返回true，否则返回false
+     * @param  {*}         value 检查的值
+     * @return {Boolean}   值的类型为布尔的场合，返回true
      */
-    function isBoolean(value){
+    this.isBoolean = function(value){
         return value === true ||
             value === false ||
             (_isObjectLike(value) &&
                 Object.prototype.toString.call(value) == "[object Boolean]");
-    }
-    this.isBoolean = isBoolean;
+    };
 
     /**
      * 检查值的类型是否为数组
      *
      * @public
-     * @param  {Anything}  value 检查的值
-     * @return {Boolean}   当值的类型为数组时返回true，否则返回false
+     * @param  {*}        value 检查的值
+     * @return {Boolean}  当值的类型为数组时返回true，否则返回false
      */
-    function isArray(value){
+    this.isArray = function(value){
         return _isObjectLike(value) &&
             _isLength(value.length) &&
             Object.prototype.toString.call(value) == "[object Array]";
-    }
-    this.isArray = isArray;
+    };
 
     /**
      * 检查值的类型是否为对象
      * 数组，函数，正则表达式，new Number和new String的情况会返回true
      *
      * @public
-     * @param  {Anything}  value 检查的值
+     * @param  {*}         value 检查的值
      * @return {Boolean}   当值的类型为对象时返回true，否则返回false
      */
-    function isObject(value){
+    this.isObject = function(value){
         var type = typeof value;
         return !!value && (type == 'object' || type == 'function');
-    }
-    this.isObject = isObject;
+    };
 
     /**
      * 检查值的类型是否为函数
      *
      * @public
-     * @param  {Anything}  value 检查的值
+     * @param  {*}         value 检查的值
      * @return {Boolean}   当值的类型为函数时返回true，否则返回false
      */
-    function isFunction(value){
+    this.isFunction = function(value){
         return isObject(value) &&
             Object.prototype.toString.call(value) == "[object Function]";
-    }
-    this.isFunction = isFunction;
+    };
 
     /**
-     * Checks if `value` is classified as an `arguments` object.
+     * 检查值的类型是否为arguments对象
      *
-     * @static
-     * @memberOf _
-     * @category Lang
-     * @param {*} value The value to check.
-     * @returns {boolean} Returns `true` if `value` is correctly classified， else `false`.
      * @example
-     *
      * _util.isArguments(function() { return arguments; }());
      * // => true
      *
      * _util.isArguments([1， 2, 3]);
      * // => false
+     *
+     * @public
+     * @param {Object} value 检查的对象
      */
-    function isArguments(value) {
+    this.isArguments = function(value) {
           return _isObjectLike(value) && _isArrayLike(value) &&
             _hasOwnProperty.call(value, 'callee') && !_propertyIsEnumerable.call(value, 'callee');
-    }
-    this.isArguments = isArguments;
+    };
 
     /**
      * 检查指定对象中是否存在指定的键值
      *
+     * @example
      * _util.has(object, 'a');
      *
      * @public
      * @param  {Object}  object 检查的对象
-     * @param  {String}  key   查找的键值
+     * @param  {string}  key    查找的键值
      * @return {Boolean} 当对象中存在指定键值时返回true,否则返回false
      */
-    function has(object, key){
+    this.has = function(object, key){
         return _hasOwnProperty.call(object, key);
-    }
-    this.has = has;
+    };
 
     /**
      * 从对象中取出指定的键值，如果对应的键值不存在，则返回默认值
@@ -352,14 +348,13 @@ var _util = new function(){
      * @public
      * @param  {Object}         object       取值对象
      * @param  {Array | string} path         指定的键值
-     * @param  {Anything}       defaultValue 默认值
-     * @return {[type]}         在对象中所对应的值
+     * @param  {*}              defaultValue 默认值
+     * @return {*}              在对象中所对应的值
      */
-    function get(object, path, defaultValue){
+    this.get = function(object, path, defaultValue){
         var result = object === null ? undefined : _baseGet(object, _toPath(path), (path + ''));
         return result === undefined ? defaultValue : result;
-    }
-    this.get = get;
+    };
 
     /**
      * 取得指定对象中存在的key
@@ -368,20 +363,19 @@ var _util = new function(){
      * @param  {Object} object 处理的对象
      * @return {Array}  键值数组
      */
-    function keys(object){
+    this.keys = function(object){
         return isObject(object) ? Object.keys(object) : [];
-    }
-    this.keys = keys;
+    };
 
     /**
      * 转换日期对象到指定格式字符串
      *
      * @public
      * @param  {Date}   dateObj
-     * @param  {string} fmt     输出日期格式
+     * @param  {string} fmt      输出日期格式
      * @return {string} 指定格式字符串
      */
-    function dateFormat(dateObj, fmt){ //author: meizz
+    this.dateFormat = function(dateObj, fmt){ //author: meizz
         var o = {
             "M+": dateObj.getMonth() + 1,
             "d+": dateObj.getDate(),
@@ -399,30 +393,28 @@ var _util = new function(){
             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]): (("00" + o[k]).substr(("" + o[k]).length)));
         }
         return fmt;
-    }
-    this.dateFormat = dateFormat;
+    };
 
     /**
      * 对特殊字符进行转义
      * "&", "<", ">", '"', "'", 和 "`"
      *
-     * @param  {string} value 欲转义的字符串
-     * @return {string}       转义后的字符串
+     * @param  {string} value 字符串
+     * @return {string} 转义后的字符串
      */
-    function escape(value){
+    this.escape = function(value){
         value = _baseToString(value);
         return (value && _reHasUnescapedHtml.test(value)) ?
             value.replace(_reUnescapedHtml, _escapeHtmlChar) :
             value;
-    }
-    this.escape = escape;
+    };
 
     /**
      * 读取本地配置文件
      *
      * @param  {string} filePath 配置文件路径
      */
-    function getFileContent(filePath, dataType){
+    this.getFileContent = function(filePath, dataType){
         var ret = null;
         var contextPath = window.location.pathname;
         var configContent = null;
@@ -460,6 +452,5 @@ var _util = new function(){
         };
         _http.doSync(context);
         return ret;
-    }
-    this.getFileContent = getFileContent;
+    };
 };

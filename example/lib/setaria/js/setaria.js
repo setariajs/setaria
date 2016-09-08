@@ -11,8 +11,10 @@ var _action = new function(){
      * 执行事件处理函数
      *
      * @public
+     * @param {Function} func 回调函数
+     * @param {Event}    evt  事件对象
      */
-    function doAction(func, evt){
+    this.doAction = function(func, evt){
         var process = function(){
             try {
                 // 执行事件处理函数的前处理
@@ -36,8 +38,7 @@ var _action = new function(){
             }
         };
         process.apply(this);
-    }
-    this.doAction = doAction;
+    };
 };
 /**
  * 系统设定信息模块。
@@ -57,6 +58,29 @@ var _config = new function(){
     this.createCacheToken = function(){
         return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
     };
+
+    /**
+     * 取得当前的移动操作系统名称
+     * Windows Phone, Android, iOS
+     *
+     * @return {string} 移动操作系统名称
+     */
+    this.getMobileOperatingSystem = function(){
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        var ret = "unknown";
+
+        // Windows Phone must come first because its UA also contains "Android"
+        if (/windows phone/i.test(userAgent)) {
+            ret = "Windows Phone";
+        }else if (/android/i.test(userAgent)) {
+            ret = "Android";
+        // iOS detection from: http://stackoverflow.com/a/9039885/177710
+        }else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            ret = "iOS";
+        }
+
+        return ret;
+    };
 };
 /**
  * Cookie管理模块。
@@ -71,13 +95,12 @@ var _cookie = new function() {
      * 读取一个cookie。如果cookie不存在返回null。
      *
      * @public
-     * @param  {string} 读取的cookie名
+     * @param  {string} sKey 读取的cookie名
      * @return {string} cookie的值
      */
-    var getItem = function(sKey) {
+    this.getItem = function(sKey) {
         return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
     };
-    this.getItem = getItem;
 
     /**
      * 设置Cookie
@@ -96,7 +119,7 @@ var _cookie = new function() {
      * @param  {boolean} bSecure  cookie只会被https传输。
      * @return {boolean} 添加成功时返回true
      */
-    var setItem = function(sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+    this.setItem = function(sKey, sValue, vEnd, sPath, sDomain, bSecure) {
         if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
             return false;
         }
@@ -117,7 +140,6 @@ var _cookie = new function() {
         document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
         return true;
     };
-    this.setItem = setItem;
 
     /**
      * 删除一个cookie。
@@ -130,26 +152,24 @@ var _cookie = new function() {
      *                           如果没有定义，默认为当前文档位置的路径的域名部分。
      * @return {boolean} true为删除成功，当对应的cookie不存在时返回false
      */
-    var removeItem = function(sKey, sPath, sDomain) {
+    this.removeItem = function(sKey, sPath, sDomain) {
         if (!sKey || !this.hasItem(sKey)) {
             return false;
         }
         document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
         return true;
     };
-    this.removeItem = removeItem;
 
     /**
      * 检查一个cookie是否存在
      *
      * @public
      * @param  {string}  sKey 要检查的cookie名
-     * @return {boolean} true为存在，反之不存在
+     * @return {boolean} 存在检查的cookie名时，返回true
      */
-    var hasItem = function(sKey) {
+    this.hasItem = function(sKey) {
         return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
     };
-    this.hasItem = hasItem;
 };
 /**
  * 公共数据保存模块
@@ -191,7 +211,7 @@ var _globalParam = new function(){
      * 往数据存储对象中设值
      *
      * @private
-     * @param {Anything} value 值
+     * @param {*} value 值
      */
     function _setCacheObject(value){
         _store.setItem(_GP_KEY, JSON.stringify(value));
@@ -217,8 +237,8 @@ var _globalParam = new function(){
      * 设值内部实现函数
      *
      * @private
-     * @param {string}    key   键
-     * @param {Anything}  值
+     * @param {string} key   键
+     * @param {*}      值
      */
     function _set(key, value){
         var sessionValue = _getCacheObject();
@@ -231,8 +251,8 @@ var _globalParam = new function(){
      * 取值内部实现函数
      *
      * @private
-     * @param  {string}    key 键
-     * @return {Anything}  值
+     * @param  {string} key 键
+     * @return {*}      值
      */
     function _get(key){
         var sessionValue = _getCacheObject();
@@ -253,25 +273,23 @@ var _globalParam = new function(){
      * 保存公共数据
      *
      * @public
-     * @param {string}   key   键
-     * @param {Anything} value 保存的值
+     * @param {string}  key   键
+     * @param {*}       value 保存的值
      */
-    function set(key, value){
+    this.set = function(key, value){
         _set(key, value);
-    }
-    this.set = set;
+    };
 
     /**
      * 根据键取得公共数据
      *
      * @public
-     * @param  {string}   key   键
-     * @return {Anything} value 保存的值
+     * @param  {string} key   键
+     * @return {*}      value 保存的值
      */
-    function get(key){
+    this.get = function(key){
         return _get(key);
-    }
-    this.get = get;
+    };
 
     /**
      * 删除指定的值
@@ -279,10 +297,9 @@ var _globalParam = new function(){
      * @public
      * @param  {string} key 键
      */
-    function clear(key){
+    this.clear = function(key){
         _clear(key);
-    }
-    this.clear = clear;
+    };
 };
 /**
  * 事件处理的句柄
@@ -298,56 +315,57 @@ var _handler = new function(){
      * 每个事件处理执行前会被调用
      *
      * @public
-     * @param {Object} evt 事件Event对象
+     * @param {Event} evt 事件Event对象
      */
-    function doPreProcess(evt){
-    }
-    this.doPreProcess = doPreProcess;
+    this.doPreProcess = function(evt){
+    };
 
     /**
      * 在事件处理发生异常时的句柄函数
      *
      * @public
-     * @param {Object} e   异常对象
-     * @param {Object} evt 事件Event对象
+     * @param {Error} e   异常对象
+     * @param {Event} evt 事件Event对象
      */
-    function doCatch(e, evt){
+    this.doCatch = function(e, evt){
         e = e.message ? e : new SystemMessage("SESYSM002E");
         // 在画面显示错误
         _ui.showMessage(e, "error");
-    }
-    this.doCatch = doCatch;
+    };
 
     /**
      * 事件处理的后处理句柄
      *
      * @public
-     * @param {Object} evt 事件Event对象
+     * @param {Event} evt 事件Event对象
      */
-    function doFinally(evt){
-        if (isNeedPrevent(evt)){
+    this.doFinally = function(evt){
+        if (_isNeedPrevent(evt)){
             // 取消事件的默认动作
             evt.preventDefault();
         }
-    }
-    this.doFinally = doFinally;
+    };
 
     /**
      * 判断当前事件执行后是否需要继续执行后续处理
      *
-     * @param  {Object}  evt 事件Event对象
+     * @private
+     * @param  {Event}  evt 事件Event对象
      * @return {boolean} true则需要阻止后续处理
      */
-    function isNeedPrevent(evt){
+    function _isNeedPrevent(evt){
         var ret = false;
         var domNode = null;
 
         if (evt && evt.target){
+            // 当触发事件的节点类型为Form时，阻止Form提交
             if (evt.target.nodeName === "FORM"){
                 ret = true;
+            // 当触发事件的节点类型为A（链接），并且节点的href属性为#时，阻止#自动添加到当前Url中
             }else if (evt.target.nodeName === "A" &&
                 evt.target.href.lastIndexOf("#") === evt.target.href.length - 1){
                 ret = true;
+            // // 当触发事件的节点的父节点为A（链接），并且节点的href属性为#时，阻止#自动添加到当前Url中
             }else if ($(evt.target).parents("a").length > 0){
                 domNode = $(evt.target).parents("a")[0];
                 if (domNode.href.lastIndexOf("#") === domNode.href.length - 1){
@@ -375,10 +393,10 @@ var _html = new function(){
      * @param  {string} id DOM ID
      * @return {Object} JQuery的DOM对象
      */
-    var _byId = function(id){
+    function _byId(id){
         id = id.indexOf("#") === 0 ? id : "#" + id;
         return $(id);
-    };
+    }
 
     /**
      * 把对应的事件绑定到指定DOM节点
@@ -388,12 +406,12 @@ var _html = new function(){
      * @param  {Object}   selector  JQuery的选择器
      * @param  {Function} handler   事件触发后的回调函数
      */
-    var _bindEvent = function(eventName, selector, handler){
+    function _bindEvent(eventName, selector, handler){
         // 绑定事件
         selector.on(eventName, function(evt){
             _action.doAction(handler, evt);
         });
-    };
+    }
 
     /**
      * 移除指定DOM节点上对应的事件处理函数
@@ -402,9 +420,9 @@ var _html = new function(){
      * @param  {string}   eventName 事件名称
      * @param  {Object}   selector  JQuery的选择器
      */
-    var _unBindEvent = function(eventName, selector){
+    function _unBindEvent(eventName, selector){
         selector.off(eventName);
-    };
+    }
 
     /**
      * 判断指定的DOM节点是否为Form控件
@@ -413,9 +431,9 @@ var _html = new function(){
      * @param  {string}  id DOM ID
      * @return {boolean} 如果是Form控件，则返回true
      */
-    var _isFormDOM = function(id){
+    function _isFormDOM(id){
         return _byId(id).prop("tagName") === "FORM";
-    };
+    }
 
     /**
      * 取得Form内可使用控件的值
@@ -424,7 +442,7 @@ var _html = new function(){
      * @param  {string} formId 表单控件ID
      * @return {Array}  表单内项目数组
      */
-    var _serializeObject = function(formId){
+    function _serializeObject(formId){
         var ret = {};
 
         var serializeArray = _byId(formId).serializeArray();
@@ -446,17 +464,16 @@ var _html = new function(){
         });
 
         return ret;
-    };
-
+    }
 
     /**
-     * 对指定DOM的进行取值处理
+     * 根据DOM ID取得指定DOM的值
      *
      * @public
      * @param  {string}            id DOM ID
      * @return {(Object | string)} 指定DOM的值
      */
-    function getValue(id){
+    this.getValue = function(id){
         var ret = null;
         if (!_util.isEmpty(id)){
             // Form控件的场合
@@ -468,8 +485,20 @@ var _html = new function(){
             }
         }
         return ret;
-    }
-    this.getValue = getValue;
+    };
+
+    /**
+     * 根据控件name属性值取得控件的值
+     *
+     * @todo 未实现
+     *
+     * @public
+     * @param  {string} name 节点name属性值
+     * @return {(Object | string)} 控件的值
+     */
+    this.getFormItemValueByName = function(name){
+
+    };
 
     /**
      * 对指定DOM的进行设值处理
@@ -478,119 +507,133 @@ var _html = new function(){
      * @param {string}            id   DOM ID
      * @param {(Object | string)} data 更新值
      */
-    function setValue(id, data){
+    this.setValue = function(id, data){
         var domNode = _byId(id);
-        // 如果DOM是checkbox时
-        if (domNode.is(":checkbox")){
-            if (data === domNode.val()){
-                domNode.prop("checked", true);
-            }else{
-                domNode.prop("checked", false);
+        // 如果DOM是form时
+        if (domNode.is("form") && _util.isObject(data)){
+            var key = null;
+            for (key in data){
+                this.setFormItemValueByName(key, data[key]);
             }
-        // 如果DOM是其他类型时
+        // DOM为其他控件时
         }else{
             domNode.val(data);
         }
-    }
-    this.setValue = setValue;
+    };
+
+    /**
+     * 设置Form表单内控件的值
+     *
+     * @public
+     * @param {string} name  控件name属性值
+     * @param {string} value 控件的值
+     */
+    this.setFormItemValueByName = function(name, value){
+        var selector = $("name=[" + name + "]");
+        if (selector.is(":checkbox") ||
+            selector.is(":radio")){
+            selector.each(function(){
+                if (this.val() === value){
+                    this.prop("checked", true);
+                }else{
+                    this.prop("checked", false);
+                }
+            });
+        }else{
+            selector.val(value);
+        }
+    };
 
     /**
      * 根据domId取得DOM
      *
+     * @public
      * @param  {string} domId DOM节点id
-     * @return {DOMObject}
+     * @return {DOMObject} DOM节点对象
      */
-    function byId(domId){
-    	var domObj = _byId(domId);
-    	return domObj.length > 0 ? domObj[0] : null;
-    }
-    this.byId = byId;
+    this.byId = function(domId){
+        var domObj = _byId(domId);
+        return domObj.length > 0 ? domObj[0] : null;
+    };
 
     /**
      * 对指定的控件进行校验
      *
-     * TODO 未完成
+     * @todo 未实现
      *
      * @public
      * @param  {string}           id      DOM ID
      * @param  {Function}         handler 校验处理后的回调函数
      * @return {(boolean | void)}
      */
-    function validate(id, handler){
+    this.validate = function(id, handler){
         var ret = true;
 
         return ret;
-    }
-    this.validate = validate;
+    };
 
     /**
      * 根据DOM ID使对应的DOM节点显示
      *
      * @public
-     * @param {String} id DOM ID
+     * @param {string} id DOM ID
      */
-    function show(id){
+    this.show = function(id){
         _byId(id).show();
-    }
-    this.show = show;
+    };
 
     /**
      * 根据DOM ID使对应的DOM节点隐藏
      *
      * @public
-     * @param {String} id DOM ID
+     * @param {string} id DOM ID
      */
-    function hide(id){
+    this.hide = function(id){
         _byId(id).hide();
-    }
-    this.hide = hide;
+    };
 
     /**
      * 根据DOM ID使对应的DOM节点变成可用状态
      *
      * @public
-     * @param {String} id DOM ID
+     * @param {string} id DOM ID
      */
-    function enable(id){
+    this.enable = function(id){
         _byId(id).prop("disabled", false);
-    }
-    this.enable = enable;
+    };
 
     /**
      * 根据DOM ID使对应的DOM节点变成不可用状态
      *
      * @public
-     * @param {String} id DOM ID
+     * @param {string} id DOM ID
      */
-    function disable(id){
+    this.disable = function(id){
         _byId(id).prop("disabled", true);
-    }
-    this.disable = disable;
+    };
 
     /**
      * 删除对应的DOM节点
      *
      * @param  {string} id DOM的ID
      */
-    function removeDomNodeById(id){
+    this.removeDomNodeById = function(id){
         _byId(id).remove();
-    }
-    this.removeDomNodeById = removeDomNodeById;
+    };
 
     /**
      * 删除对应的DOM节点
      *
      * @param  {Element} node DOM对象
      */
-    function removeDomNode(node){
+    this.removeDomNode = function(node){
         var id = node.getAttribute("id");
         if (!_util.isEmpty(id)){
             _byId(id).remove();
         }else{
             $(node).remove();
         }
-    }
-    this.removeDomNode = removeDomNode;
+    };
 
     /**
      * 使用DOM ID进行DOM事件绑定
@@ -600,10 +643,9 @@ var _html = new function(){
      * @param  {string}     eventName   事件名称
      * @param  {Function}   handler     事件处理函数
      */
-    function bindEventById(id, eventName, handler){
+    this.bindEventById = function(id, eventName, handler){
         _bindEvent(eventName, _byId(id), handler);
-    }
-    this.bindEventById = bindEventById;
+    };
 
     /**
      * 使用DOM Name进行DOM事件绑定
@@ -613,10 +655,9 @@ var _html = new function(){
      * @param  {string}    eventName  事件名称
      * @param  {Function}  handler    事件处理函数
      */
-    function bindEventByName(name, eventName, handler){
+    this.bindEventByName = function(name, eventName, handler){
         _bindEvent(eventName, $("[name='" + name + "']"), handler);
-    }
-    this.bindEventByName = bindEventByName;
+    };
 
     /**
      * 解除指定DOM节点的事件处理
@@ -625,10 +666,9 @@ var _html = new function(){
      * @param  {string}    name       DOM Name
      * @param  {string}    eventName  事件名称
      */
-    function unBindEventById(id, eventName){
+    this.unBindEventById = function(id, eventName){
         _unBindEvent(eventName, _byId(id));
-    }
-    this.unBindEventById = unBindEventById;
+    };
 };
 /**
  * HTTP基础通信模块
@@ -645,7 +685,7 @@ var _http = new function(){
      * @private
      * @param {HTTPContext} context Ajax请求的选项
      */
-    var _doXhr = function(context){
+    function _doXhr(context){
         if (!_util.isEmpty(context)){
             // 超时时间(ms)
             var defaultTimeout = _config.DEFAULT_TIMEOUT || 20000;
@@ -662,7 +702,7 @@ var _http = new function(){
             // 开始ajax通信
             return $.ajax(context);
         }
-    };
+    }
 
     /**
      * 默认ajax通信失败处理函数
@@ -672,7 +712,7 @@ var _http = new function(){
      * @param  {string} textStatus  通信状态值("timeout", "error", "abort", "parsererror")
      * @param  {string} errorThrown 异常对象
      */
-    var _defaultErrorHandler = function(jqXHR, textStatus, errorThrown){
+    function _defaultErrorHandler(jqXHR, textStatus, errorThrown){
         var errorMsg;
         var msgList = [];
         if (textStatus === "timeout"){
@@ -682,7 +722,7 @@ var _http = new function(){
         }
         msgList.push(errorMsg);
         _ui.showMessage(msgList, "error");
-    };
+    }
 
     /**
      * 执行异步ajax通信
@@ -690,14 +730,13 @@ var _http = new function(){
      * @public
      * @param  {HTTPContext} context HTTP通信设定对象
      */
-    function doAsync(context){
+    this.doAsync = function(context){
         if (!_util.isEmpty(context)){
             // 使用异步调用
             context.async = true;
             _doXhr(context);
         }
-    }
-    this.doAsync = doAsync;
+    };
 
     /**
      * 执行同步ajax通信
@@ -705,14 +744,13 @@ var _http = new function(){
      * @public
      * @param  {HTTPContext} context HTTP通信设定对象
      */
-    function doSync(context){
+    this.doSync = function(context){
         if (!_util.isEmpty(context)){
             // 同步模式
             context.async = false;
             _doXhr(context);
         }
-    }
-    this.doSync = doSync;
+    };
 };
 /**
  * log输出模块
@@ -726,25 +764,25 @@ var _log = new function(){
      * 输出debug级别的log
      *
      * @public
-     * @param {Anything} obj 输出的对象
+     * @param {*} obj 输出的对象
      */
-    function debug(obj){
-        console.log(obj);
-    }
-    this.debug = debug;
+    this.debug = function(obj){
+        if (_config.DEBUG_MODE === "true"){
+            console.log(obj);
+        }
+    };
 
     /**
      * 输出error级别的log
      *
      * @public
-     * @param {Anything} exception 异常对象
+     * @param {*} exception 异常对象
      */
-    function error(exception){
+    this.error = function(exception){
         var msgId = exception.messageId;
         msgId = _util.isEmpty(msgId) ? "" : msgId + " ";
         console.error(msgId + exception);
-    }
-    this.error = error;
+    };
 };
 /**
  * 消息管理模块
@@ -756,12 +794,28 @@ var _log = new function(){
 var _message = new function(){
 
     /**
-     * 消息缓存
+     * 无法取得业务消息文件。
+     *
+     * @const
+     * @type {string}
+     */
+    var MESSAGE_FILE_NOT_EXIST_MSG = "无法取得业务消息文件。";
+
+    /**
+     * 无法取得系统消息文件。
+     *
+     * @const
+     * @type {string}
+     */
+    var SYS_MESSAGE_FILE_NOT_EXIST_MSG = "无法取得系统消息文件。";
+
+    /**
+     * 业务消息缓存
      *
      * @private
      * @type {Object}
      */
-    var message = null;
+    var _messageObject = null;
 
     /**
      * 系统消息缓存
@@ -769,52 +823,70 @@ var _message = new function(){
      * @private
      * @type {Object}
      */
-    var systemMessage = null;
+    var _systemMessageObject = null;
 
     /**
      * 根据指定消息ID取得消息内容
      *
      * @private
-     * @param  {string} id 消息ID
-     * @return {string} 消息内容
+     * @param  {string}  id 消息ID
+     * @param  {Boolean} isSystemMessage true为取系统公共消息,false为取系统业务消息
+     * @return {string}  消息内容
      */
-    var _getMessage = function(id){
-        if (_util.isEmpty(message)){
-            message = _util.getFileContent(_config.MESSAGE_FILE, "json");
+    function _getMessage(id, isSystemMessage){
+        var ret = null;
+        // 消息文件路径
+        var filePath = (isSystemMessage === true) ? _config.SYSMESSAGE_FILE :
+            _config.MESSAGE_FILE;
+        var messageContent = null;
+        // 取得系统公共消息的场合
+        if (isSystemMessage === true){
+            // 第一次取得系统公共消息的场合
+            if (_util.isEmpty(_systemMessageObject)){
+                _systemMessageObject = _util.getFileContent(filePath, "json");
+            }
+            messageContent = _systemMessageObject;
+        // 取得系统业务消息的场合
+        }else{
+            // 第一次取得系统业务消息的场合
+            if (_util.isEmpty(_messageObject)){
+                _messageObject = _util.getFileContent(filePath, "json");
+            }
+            messageContent = _messageObject;
         }
-        return message[id];
-    };
-
-    /**
-     * 根据指定系统消息ID取得系统消息内容
-     *
-     * @private
-     * @param  {string} id 系统消息ID
-     * @return {string} 系统消息内容
-     */
-    var _getSysMessage = function(id){
-        if (_util.isEmpty(systemMessage)){
-            systemMessage = _util.getFileContent(_config.SYSMESSAGE_FILE, "json");
+        // 无法取得消息文件的场合
+        if (_util.isObject(messageContent) &&
+                messageContent.textStatus === "error"){
+            if (isSystemMessage === true){
+                ret = SYS_MESSAGE_FILE_NOT_EXIST_MSG;
+            }else{
+                ret = MESSAGE_FILE_NOT_EXIST_MSG;
+            }
+        }else{
+            ret = messageContent[id];
+            if (_util.isEmpty(ret)){
+                ret = '没有找到指定的消息。 (id=' + id + ')';
+            }
         }
-        return systemMessage[id];
-    };
+        return ret;
+    }
 
     /**
      * 使用参数填充自定义的消息模版
      *
-     * @inner
+     * @private
      * @param  {string} template 定义在消息定义模块的消息模版
      * @param  {Array}  parameters 参数数组
      * @return {string} 消息字符串
      */
-    var _format = function(template, parameters){
+    function _format(template, parameters){
         if (!_util.isEmpty(parameters)){
             for (var i = 0; i < parameters.length; i++){
                 template = template.split("\{" + i + "\}").join(parameters[i]);
             }
         }
         return template;
-    };
+    }
 
     /**
      * 取得一般消息
@@ -822,17 +894,11 @@ var _message = new function(){
      * @public
      * @param  {string}  id 消息ID
      * @param  {Array}   parameters 参数数组
-     * @return {String}  消息字符串
+     * @return {string}  消息字符串
      */
-    function getMessage(id, parameters){
-        var template = _getMessage(id);
-        if (!template){
-            return "没有找到指定的消息. (id=" + id + ", parameters=" + parameters + ")";
-        }
-        return _format(template, parameters);
-    }
-    this.getMessage = getMessage;
-
+    this.getMessage = function(id, parameters){
+        return _format(_getMessage(id, false), parameters);
+    };
 
     /**
      * 取得系统消息
@@ -842,14 +908,9 @@ var _message = new function(){
      * @param  {Array}   parameters 参数数组
      * @return {string}  系统消息字符串
      */
-    function getSystemMessage(id, parameters){
-        var template = _getSysMessage(id);
-        if (!template){
-            return "message not found. (id=" + id + ", parameters=" + parameters + ")";
-        }
-        return _format(template, parameters);
-    }
-    this.getSystemMessage = getSystemMessage;
+    this.getSystemMessage = function(id, parameters){
+        return _format(_getMessage(id, true), parameters);
+    };
 };
 /**
  * 系统处理模块
@@ -860,101 +921,130 @@ var _message = new function(){
  var _setaria = new function(){
 
     /**
-     * 取得配置信息
+     * 取得Setaria配置信息
      *
      * @private
+     * @return {Boolean} 配置信息取得成功的场合，返回true
      */
-    var _loadConfig = function(){
+    function _loadConfig(){
+        var ret = false;
         $("script").each(function(){
             var dataConfig = $(this).attr("data-setaria-config");
 
             if (!_util.isEmpty(dataConfig)){
                 // 取得配置文件内容
                 configContent = _util.getFileContent(dataConfig, "json");
+
                 // 无法取得配置文件的场合
-                if (_util.isEmpty(configContent)){
-                    _ui.showMessage(new SystemMessage("SESYSM003E"));
+                if (_util.isEmpty(configContent) ||
+                        (!_util.isEmpty(configContent.textStatus) &&
+                            configContent.textStatus === "error")){
+                    _ui.showMessage("无法读取客户端系统配置文件。", "error");
                 }else{
                     // 复制配置信息
                     $.each(configContent, function(key, value){
                         _config[key] = value;
                     });
+                    ret = true;
                 }
+                // 退出循环
+                return false;
             }
         });
-    };
+        return ret;
+    }
 
     /**
      * 启动函数
      *
      * @public
      */
-    var start = function(){
+    this.start = function(){
         // 取得配置信息
-        _loadConfig();
-        // 更新引用文件的缓存
-        // this.appendTokenOnImportFile();
-        // 加载viewModel
-        // 默认ViewModel的配置文件
-        var defaultViewModelConfigFile = _config.VIEWMODEL_CONFIG_FILE;
-        // 初期化ViewModelController
-        window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
-        // 绑定Hash Change事件
-        this.bindHashChange();
-        // 跳转页面
-        this.dispatcher();
+        var loadConfigResult = _loadConfig();
+        // 当成功加载配置文件时
+        if (loadConfigResult){
+            // 更新引用文件的缓存
+            // this.appendTokenOnImportFile();
+            // 加载viewModel
+            // 默认ViewModel的配置文件
+            var defaultViewModelConfigFile = _config.VIEWMODEL_CONFIG_FILE;
+            // 初期化ViewModelController
+            window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
+            // 绑定Hash Change事件
+            this.bindHashChange();
+            // 跳转页面
+            this.dispatcher(window._viewModelController);
+        }
     };
-    this.start = start;
 
     /**
      * 绑定window的hashchange事件
+     *
+     * @public
      */
-    var bindHashChange = function(){
+    this.bindHashChange = function(){
         $(window).on("hashchange", this.doHashChange);
     };
-    this.bindHashChange = bindHashChange;
 
     /**
      * window的hashchange事件处理
+     *
+     * @public
      */
-    var doHashChange = function(){
-        // 取得url中的Hash参数
-        var targetPageParams = _url.getHashParams();
-        // 如果存在页面跳转定义
-        if (!_util.isEmpty(targetPageParams)){
-            _ui.forwardTo.apply(_ui, targetPageParams);
-        }
+    this.doHashChange = function(){
+        // TODO 点击了浏览器的回退按钮的场合，如何进行判断，是否引入history?
     };
-    this.doHashChange = doHashChange;
 
     /**
      * Customize Dispatcher
      *
      * @public
-     * @override
-     * @return {[type]} [description]
+     * @param  {ViewModelController} vmController 当前VMController实例
      */
-    var dispatcher = function(){
-        this.defaultDispatcher();
+    var dispatcher = function(vmController){
+        this.defaultDispatcher(vmController);
     };
     this.dispatcher = dispatcher;
 
     /**
-     * Default Dispatcher
+     * 默认跳转逻辑
      *
-     * @protected
+     * @public
+     * @param  {ViewModelController} vmController 当前VMController实例
      */
-    var defaultDispatcher = function(){
-        // 取得url中的Hash参数
-        var targetPageParams = _url.getHashParams();
+    this.defaultDispatcher = function(vmController){
+        // 当前的Hash值
+        var hash = window.location.hash;
+        // ViewModel的映射路径
+        var path = null;
+        // ViewModel的参数
+        var param = null;
+        // 目标跳转画面的信息
+        var viewModelParams = [];
+
         // 如果存在页面跳转定义
-        if (!_util.isEmpty(targetPageParams)){
-            _ui.forwardTo.apply(_ui, targetPageParams);
+        if (!_util.isEmpty(hash) && hash !== "#"){
+            // 根据Hash值取得已配置的View的Url映射路径
+            path = vmController.getViewPathFromHash(hash);
+            // 没有找到对应的View
+            if (_util.isEmpty(path)){
+                // 跳转至首页
+                _ui.forwardTo(_config.WELCOME_PAGE);
+            }else{
+                // 组装目标跳转画面的信息
+                viewModelParams[0] = path;
+                // 取得path后的字符作为参数传给ViewModel
+                param = hash.substring(hash.indexOf(path) + path.length);
+                viewModelParams[1] = param;
+                // 画面跳转
+                _ui.forwardTo.apply(_ui, viewModelParams);
+            }
         }else{
+            // 跳转至首页
             _ui.forwardTo(_config.WELCOME_PAGE);
         }
     };
-    this.defaultDispatcher = defaultDispatcher;
  };
 /**
  * 复杂UI功能模块
@@ -988,27 +1078,26 @@ var _ui = new function(){
      * @param  {string} id DOM ID
      * @return {Object} JQuery的DOM对象
      */
-    var _byId = function(id){
+    function _byId(id){
         id = id.indexOf("#") === 0 ? id : "#" + id;
         return $(id);
-    };
+    }
 
     /**
      * 显示模式化确认窗口
      *
-     * @protected
+     * @public
      * @param  {Object} param 模式化窗口设置参数
      */
-    function showDialog(param){
+    this.showDialog = function(param){
         alert("Dialog -> title :: " + param.title + ", message :: " + param.message);
-    }
-    this.showDialog = showDialog;
+    };
 
     /**
      * 切换mask的显示／隐藏
      *
-     * @param {Boolean} isDisp 是否显示标志位
      * @public
+     * @param {Boolean} isDisp 是否显示标志位
      */
     function toggleProcessing(isDisp){
         var loadingNode = $("#" + _config.LOADING_ID);
@@ -1032,7 +1121,7 @@ var _ui = new function(){
         var messageArr = [];
         var messageId = "";
         var messageContent = "";
-        var cancelCallback = null;
+        var doneCallback = null;
         if (!_util.isEmpty(messageObject)){
             // 指定的消息是数组的场合
             if (_util.isArray(messageObject)){
@@ -1042,12 +1131,15 @@ var _ui = new function(){
                     messageArr.push(HTML_TAG_BREAK);
                 });
             // 指定的消息是对象的场合
-            }else {
+            }else if (_util.isObject(messageObject)){
                 messageId = messageObject.messageId || "";
                 messageArr.push(_util.isObject(messageObject) ? messageObject.message : messageObject);
+            // 其他类型的场合，转换为字符串
+            }else{
+                messageArr.push(messageObject + "");
             }
             if (_util.isFunction(handler)){
-                cancelCallback = function(){
+                doneCallback = function(){
                     handler();
                 };
             }
@@ -1055,10 +1147,10 @@ var _ui = new function(){
             this.showDialog({
                 "title": type !== "error" ? "消息" : "错误",
                 "type": type,
-                "message": messageArr.join(""),
-                "cancelText": "关闭",
-                "cancelCallback": cancelCallback,
-                "cancelOnly": true
+                "message": messageArr.join("<br/>"),
+                "doneText": "关闭",
+                "doneCallback": doneCallback,
+                "doneOnly": true
             });
         }
     }
@@ -1076,7 +1168,7 @@ var _ui = new function(){
      */
     function showModalDialog(title, message, handler, cancelText, doneText){
         title = _util.isEmpty(title) ? "确认窗口" : title;
-        cancelOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
+        doneOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
         doneText = doneText || "确认";
         cancelText = cancelText || "取消";
         // 确认按钮点击后的回调函数
@@ -1095,7 +1187,7 @@ var _ui = new function(){
             "cancelText": cancelText,
             "doneCallback": doneCallback,
             "cancelCallback": cancelCallback,
-            "cancelOnly": cancelOnly
+            "doneOnly": doneOnly
         });
     }
     this.showModalDialog = showModalDialog;
@@ -1136,13 +1228,34 @@ var _ui = new function(){
         // 取得HTML文件中的内容
         if (!_util.isEmpty(viewModelTemplateUrl)){
             viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
-            // 在指定区域刷新取得的HTML文本
-            $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            // 无法加载指定Html文件的场合
+            if (_util.isObject(viewModelTemplateHTML)){
+                if (viewModelTemplateHTML.textStatus === "error"){
+                    _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+                }
+            }else{
+                // 在指定区域刷新取得的HTML文本
+                $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            }
         }
         // 调用回调函数
         handler();
     };
     this.updateHTML = updateHTML;
+
+    /**
+     * 更新画面标题
+     *
+     * @public
+     * @param  {string} title 标题内容
+     */
+    var updateDocumentTitle = function(title){
+        title = _util.isEmpty(title) ? "" : title;
+        if (!_util.isEmpty(title)){
+            document.title = title;
+        }
+    };
+    this.updateDocumentTitle = updateDocumentTitle;
 };
 /**
  * URL模块
@@ -1182,24 +1295,6 @@ var _url = new function(){
         return ret;
     };
     this.getHashParams = getHashParams;
-
-    /**
-     * 取得当前页面ID
-     *
-     * @public
-     * @return {String} 页面ID
-     */
-    var getPageId = function(){
-        var ret = "";
-        var params = this.getHashParams();
-
-        if (!_util.isEmpty(params)){
-            ret = params[0];
-        }
-
-        return ret;
-    };
-    this.getPageId = getPageId;
 
     /**
      * 设定Url中的参数
@@ -1631,13 +1726,9 @@ var _util = new function(){
     /**
      * Checks if `value` is classified as an `arguments` object.
      *
-     * @static
-     * @memberOf _
-     * @category Lang
-     * @param {*} value The value to check.
-     * @returns {boolean} Returns `true` if `value` is correctly classified， else `false`.
+     * @public
+     * @param {Object} value 检查的对象
      * @example
-     *
      * _util.isArguments(function() { return arguments; }());
      * // => true
      *
@@ -1672,7 +1763,7 @@ var _util = new function(){
      * @param  {Object}         object       取值对象
      * @param  {Array | string} path         指定的键值
      * @param  {Anything}       defaultValue 默认值
-     * @return {[type]}         在对象中所对应的值
+     * @return {*}              在对象中所对应的值
      */
     function get(object, path, defaultValue){
         var result = object === null ? undefined : _baseGet(object, _toPath(path), (path + ''));
@@ -1750,11 +1841,16 @@ var _util = new function(){
         var context = new HTTPContext();
 
         // 取得配置文件绝对路径
-        if (!_util.isEmpty(contextPath) && contextPath !== "/"){
+        if (!_util.isEmpty(contextPath) &&
+            contextPath !== "/"){
             contextPath = contextPath.substring(1);
-            pathIndex = contextPath.indexOf("/");
-            if (pathIndex !== -1){
-                contextPath = "/" + contextPath.substring(0, pathIndex + 1);
+            if (contextPath.split("/")[0].indexOf(".") === -1){
+                pathIndex = contextPath.indexOf("/");
+                if (pathIndex !== -1){
+                    contextPath = "/" + contextPath.substring(0, pathIndex + 1);
+                }
+            }else{
+                contextPath = "/";
             }
         }
         fileAbsolutePath += contextPath + filePath;
@@ -1762,6 +1858,13 @@ var _util = new function(){
         context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
+        context.error = function(jqXHR, textStatus, errorThrown){
+            ret = {
+                "jqXHR": jqXHR,
+                "textStatus": textStatus,
+                "errorThrown": errorThrown
+            };
+        };
         context.success = function(res){
             ret = res;
         };
@@ -1985,52 +2088,35 @@ var ValidationMessage = function(elementId, messageId, parameters){
 /**
  * 业务画面管理模块
  *
- * @namespace
+ * @class
  * @version 1.0
  * @author HanL
  */
 var ViewModelController = function(configFilePath, completeHandler){
 
     // 初期化ViewModel配置对象
-    var viewModelConfigs = null;
+    var _viewModelConfigs = null;
 
     // 业务画面缓存对象
-    var viewModelCacheObject = {};
-
-    var loadScript = function(config, srcPath, handler){
-        var filePath = _config.SRC_ROOT_DIR + srcPath + ".js";
-        var viewModelClass = srcPath.substring(srcPath.lastIndexOf("/") + 1);
-        if (!_util.isFunction(window[viewModelClass])){
-            var node = document.createElement("script");
-            node.type = "text/javascript";
-            node.charset = "utf-8";
-            node.src = filePath + "?_=" + _config.createCacheToken();
-            node.addEventListener("load", function(){
-                handler.call(null, window[viewModelClass]);
-            }.bind(this), false);
-            node.async = true;
-            document.querySelector("head").appendChild(node);
-        }else{
-            handler.call(null, window[viewModelClass]);
-        }
-    };
-    this.loadScript = loadScript;
+    var _viewModelCacheObject = {};
 
     /**
-     * 取得指定业务画面的配置信息
+     * 取得ViewModelConfig
      *
      * @private
      */
-    var initialViewModelConfig = function(){
+    function _initialViewModelConfig(){
         var config = null;
         // 画面ID对应的VM Class名
         var viewModelClassName = "";
         // 取得VM Class定义
         var ViewModelClass = null;
-        viewModelConfigs = _util.getFileContent(configFilePath, "json");
-        // if (!_util.isEmpty(viewModelConfigs)){
-        //     for (var key in viewModelConfigs){
-        //         config = viewModelConfigs[key];
+        // 取得指定的ViewModelConfig
+        _viewModelConfigs = _util.getFileContent(configFilePath, "json");
+        // 在系统启动时预加载所有配置的ViewModel
+        // if (!_util.isEmpty(_viewModelConfigs)){
+        //     for (var key in _viewModelConfigs){
+        //         config = _viewModelConfigs[key];
         //         // 画面ID对应的VM Class名
         //         viewModelClassName = config.viewModelClass;
         //         if (!_util.isEmpty(viewModelClassName)){
@@ -2043,95 +2129,183 @@ var ViewModelController = function(configFilePath, completeHandler){
         //         }
         //     }
         // }
+    }
+    _initialViewModelConfig();
+
+    /**
+     * 取得并加载指定的ViewModelClass
+     *
+     * @public
+     * @param  {Object}   config  View配置信息对象
+     * @param  {string}   srcPath ViewModel脚本文件路径
+     * @param  {Function} handler 加载成功后的回调函数
+     */
+    this.loadScript = function(config, srcPath, handler){
+        // JS脚本路径
+        var filePath = _config.SRC_ROOT_DIR + srcPath + ".js";
+        // 脚本文件名必须与ViewModelClass类名一致
+        // TODO 需要考虑更好的方案
+        var viewModelClass = srcPath.substring(srcPath.lastIndexOf("/") + 1);
+        // ViewModelClass没有被加载过的场合
+        if (!_util.isFunction(window[viewModelClass])){
+            // 构建Script标签加载脚本
+            var node = document.createElement("script");
+            node.type = "text/javascript";
+            node.charset = "utf-8";
+            node.src = filePath + "?_=" + _config.createCacheToken();
+            // 绑定脚本加载完成事件
+            node.addEventListener("load", function(){
+                handler.call(null, window[viewModelClass]);
+            }.bind(this), false);
+            // 使用异步加载防止阻塞浏览器进程
+            node.async = true;
+            // 把脚本添加到document中
+            document.querySelector("head").appendChild(node);
+        // ViewModelClass加载过的场合
+        }else{
+            handler.call(null, window[viewModelClass]);
+        }
     };
-    this.initialViewModelConfig = initialViewModelConfig;
-    this.initialViewModelConfig();
+
+    /**
+     * 根据ViewModel路径映射取得对应的ViewModel和模版视图
+     *
+     * @public
+     * @param  {string} path     Url路径映射
+     * @return {Object} 画面配置
+     */
+    this.getViewConfigByPath = function(path){
+        var ret = _viewModelConfigs[path];
+        // 指定画面只有HTML的场合，可以不在配置文件中对指定画面进行配置
+        if (_util.isEmpty(ret)){
+            ret = {
+                "template": path + ".html"
+            };
+        }else if (_util.isEmpty(ret.template)){
+            ret.template = path + ".html";
+        }
+        return ret;
+    };
+
+    /**
+     * 根据Hash值取得View配置文件中最接近的Url映射路径
+     *
+     * 例：
+     * 传入的hash为#a/b/c，配置文件中存在 a 和 a/b两个Url映射路径的场合
+     * 函数返回 a/b
+     *
+     * @public
+     * @param  {string} hash url hash值
+     * @return {string} 映射路径
+     */
+    this.getViewPathFromHash = function(hash){
+        var ret = "";
+
+        if (!_util.isEmpty(hash)){
+            // 删除hash头部的#
+            if (hash.indexOf("#") === 0){
+                hash = hash.substring(1);
+            }
+
+            for (var path in _viewModelConfigs){
+                // 找到匹配的路径的并且此路径比之前找到的路径更为接近的场合
+                if (hash.indexOf(path) === 0 &&
+                        path.length > ret.length){
+                    ret = path;
+                }
+            }
+        }
+
+        return ret;
+    };
 
     /**
      * 跳转至指定画面
      *
      * @public
-     * @param  {string} pageId 业务画面ID
+     * @param  {string} path Url路径映射
      */
-    var forwardTo = function(pageId){
-        var config = viewModelConfigs[pageId];
+    this.forwardTo = function(path){
+        var config = this.getViewConfigByPath(path);
         var param = arguments;
-        // 如果VM配置对象存在
-        if (config){
-            // 取得业务画面的HTML，并在指定区域更新
-            _ui.updateHTML(this.getTemplatePath(config.template), function(){
-                if (!_util.isEmpty(config.viewModelClass)){
-                    // load class file
-                    this.loadScript(config, config.viewModelClass, function(VMClass){
-                        // 如果对应的VM Class名存在
-                        if (_util.isFunction(VMClass)){
-                            // 把传递参数帮定制
-                            var Class = VMClass.bind.apply(VMClass, param);
-                            // 实例化VM Class
-                            var viewModel = new Class();
-                            // 初期化VM的内部缓存
-                            viewModel.cache = {};
-                            // 执行vm初期化函数
-                            _action.doAction(viewModel.init.bind(viewModel));
-                            // 把VM Class实例存入缓存
-                            viewModelCacheObject[pageId] = viewModel;
-                        }
-                    });
-                }
-            }.bind(this));
 
-        }else{
-            // 抛出错误SESYSM001E
-            _ui.showMessage(new SystemMessage("SESYSM001E", [pageId]), "error");
-        }
+        // 取得业务画面的HTML，并在指定区域更新
+        _ui.updateHTML(this.getTemplatePath(config.template), function(){
+            // 更新画面标题
+            _ui.updateDocumentTitle(config.title);
+            // 存在ViewModel的场合
+            if (!_util.isEmpty(config.viewModelClass)){
+                // load class file
+                this.loadScript(config, config.viewModelClass, function(VMClass){
+                    // 如果对应的VM Class名存在
+                    if (_util.isFunction(VMClass)){
+                        // 把传递参数帮定制
+                        var Class = VMClass.bind.apply(VMClass, param);
+                        // 实例化VM Class
+                        var viewModel = new Class();
+                        // 初期化VM的内部缓存
+                        viewModel.cache = {};
+                        // 输出日志
+                        _log.debug("ViewModel [ " + config.viewModelClass + " ] init.");
+                        // 执行vm初期化函数
+                        _action.doAction(viewModel.init.bind(viewModel));
+                        // 把VM Class实例存入缓存
+                        _viewModelCacheObject[path] = viewModel;
+                    }
+                });
+            }
+        }.bind(this));
     };
-    this.forwardTo = forwardTo;
 
     /**
      * 回退至指定画面
      *
      * @public
-     * @param  {string} pageId 业务画面ID
+     * @param  {string} path Url路径映射
      */
-    var backTo = function(pageId){
-        var config = viewModelConfigs[pageId];
+    this.backTo = function(path){
+        var config = this.getViewConfigByPath(path);
 
         if (!_util.isEmpty(config)){
             _ui.updateHTML(this.getTemplatePath(config.template), function(){
+                // 更新画面标题
+                _ui.updateDocumentTitle(config.title);
                 // 取得缓存的VM
-                if (viewModelCacheObject[pageId]){
-                    viewModelCacheObject[pageId].init();
+                if (_viewModelCacheObject[path]){
+                    _viewModelCacheObject[path].init();
+                }else{
+                    // 抛出错误SESYSM001E
+                    _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
                 }
             });
         }else{
             // 抛出错误SESYSM001E
-            _ui.showMessage(new SystemMessage("SESYSM001E", [pageId]), "error");
+            _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
         }
     };
-    this.backTo = backTo;
 
     /**
-     * 取得模版的路径
+     * 取得View模版的完整路径
      *
      * @public
      * @param  {string} template vm配置文件中定义的模版名
      * @return {string} 模版的路径
      */
-    var getTemplatePath = function(template){
+    this.getTemplatePath = function(template){
         var ret = "";
         if (!_util.isEmpty(template)){
             ret = _config.HTML_ROOT_DIR + template;
         }
         return ret;
     };
-    this.getTemplatePath = getTemplatePath;
 
     /**
      * 取得ViewModel配置信息
-     * @return {Object} ViewModel配置信息
+     *
+     * @public
+     * @return {Object} View配置信息
      */
-    var getViewModelConfig = function(){
-        return viewModelConfigs;
+    this.getViewModelConfig = function(){
+        return _viewModelConfigs;
     };
-    this.getViewModelConfig = getViewModelConfig;
 };

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "sourceDir": "src",
   "destDir": "build",
+  "docDir": "doc",
   "devDependencies": {
     "chai": "^3.5.0",
     "grunt": "^1.0.1",
@@ -10,6 +11,8 @@
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-uglify": "^1.0.1",
+    "grunt-jsdoc": "^2.1.0",
+    "minami": "^1.1.1",
     "mocha": "^2.5.3"
   }
 }

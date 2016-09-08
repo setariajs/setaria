@@ -1,18 +1,21 @@
 /**
  * Action控制模块
  *
- * @namespace
+ * @namespace _action
  * @version 1.0
  * @author HanL
  */
 var _action = new function(){
+    "use strict";
 
     /**
      * 执行事件处理函数
      *
      * @public
+     * @param {Function} func 回调函数
+     * @param {Event}    evt  事件对象
      */
-    function doAction(func, evt){
+    this.doAction = function(func, evt){
         var process = function(){
             try {
                 // 执行事件处理函数的前处理
@@ -36,6 +39,5 @@ var _action = new function(){
             }
         };
         process.apply(this);
-    }
-    this.doAction = doAction;
+    };
 };

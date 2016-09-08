@@ -23,10 +23,30 @@ var DashBoardViewModel = function(loginData){
         // 修改页面刷新区域
         _config.MAIN_AREA_ID = "_page_container";
 
+        // 绑定菜单按钮点击事件
+        _html.bindEventById("systemMenu", "click", this.clickMenu);
+
         // 绑定登出系统按钮点击事件
         _html.bindEventById("logoutSystem", "click", this.logoutSystem);
     };
     this.init = init;
+
+    /**
+     * 菜单项点击事件处理
+     *
+     * @private
+     */
+    var clickMenu = function(evt){
+        var target = evt.target;
+        var targetViewPath = target.getAttribute("href");
+        if (targetViewPath.indexOf("#") === 0){
+            targetViewPath = targetViewPath.substring(1);
+        }
+        if (!_util.isEmpty(targetViewPath)){
+            _ui.forwardTo(targetViewPath, "hi");
+        }
+    };
+    this.clickMenu = clickMenu;
 
     /**
      * 退出系统按钮点击事件处理

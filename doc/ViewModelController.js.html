@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ViewModelController.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="HTTPContext.html">HTTPContext</a></li><li><a href="Message.html">Message</a><ul class='methods'><li data-type='method'><a href="Message.html#toString">toString</a></li></ul></li><li><a href="SystemMessage.html">SystemMessage</a><ul class='methods'><li data-type='method'><a href="SystemMessage.html#toString">toString</a></li></ul></li><li><a href="ValidationMessage.html">ValidationMessage</a><ul class='methods'><li data-type='method'><a href="ValidationMessage.html#toString">toString</a></li></ul></li><li><a href="ViewModelController.html">ViewModelController</a><ul class='methods'><li data-type='method'><a href="ViewModelController.html#backTo">backTo</a></li><li data-type='method'><a href="ViewModelController.html#forwardTo">forwardTo</a></li><li data-type='method'><a href="ViewModelController.html#getTemplatePath">getTemplatePath</a></li><li data-type='method'><a href="ViewModelController.html#getViewConfigByPath">getViewConfigByPath</a></li><li data-type='method'><a href="ViewModelController.html#getViewModelConfig">getViewModelConfig</a></li><li data-type='method'><a href="ViewModelController.html#getViewPathFromHash">getViewPathFromHash</a></li><li data-type='method'><a href="ViewModelController.html#loadScript">loadScript</a></li></ul></li></ul><h3>Namespaces</h3><ul><li><a href="-_action.html">_action</a><ul class='methods'><li data-type='method'><a href="-_action.html#doAction">doAction</a></li></ul></li><li><a href="-_config.html">_config</a><ul class='methods'><li data-type='method'><a href="-_config.html#createCacheToken">createCacheToken</a></li><li data-type='method'><a href="-_config.html#getMobileOperatingSystem">getMobileOperatingSystem</a></li></ul></li><li><a href="-_cookie.html">_cookie</a><ul class='methods'><li data-type='method'><a href="-_cookie.html#getItem">getItem</a></li><li data-type='method'><a href="-_cookie.html#hasItem">hasItem</a></li><li data-type='method'><a href="-_cookie.html#removeItem">removeItem</a></li><li data-type='method'><a href="-_cookie.html#setItem">setItem</a></li></ul></li><li><a href="-_globalParam.html">_globalParam</a><ul class='methods'><li data-type='method'><a href="-_globalParam.html#clear">clear</a></li><li data-type='method'><a href="-_globalParam.html#get">get</a></li><li data-type='method'><a href="-_globalParam.html#set">set</a></li></ul></li><li><a href="-_handler.html">_handler</a><ul class='methods'><li data-type='method'><a href="-_handler.html#doCatch">doCatch</a></li><li data-type='method'><a href="-_handler.html#doFinally">doFinally</a></li><li data-type='method'><a href="-_handler.html#doPreProcess">doPreProcess</a></li></ul></li><li><a href="-_html.html">_html</a><ul class='methods'><li data-type='method'><a href="-_html.html#bindEventById">bindEventById</a></li><li data-type='method'><a href="-_html.html#bindEventByName">bindEventByName</a></li><li data-type='method'><a href="-_html.html#byId">byId</a></li><li data-type='method'><a href="-_html.html#disable">disable</a></li><li data-type='method'><a href="-_html.html#enable">enable</a></li><li data-type='method'><a href="-_html.html#getFormItemValueByName">getFormItemValueByName</a></li><li data-type='method'><a href="-_html.html#getValue">getValue</a></li><li data-type='method'><a href="-_html.html#hide">hide</a></li><li data-type='method'><a href="-_html.html#removeDomNode">removeDomNode</a></li><li data-type='method'><a href="-_html.html#removeDomNodeById">removeDomNodeById</a></li><li data-type='method'><a href="-_html.html#setFormItemValueByName">setFormItemValueByName</a></li><li data-type='method'><a href="-_html.html#setValue">setValue</a></li><li data-type='method'><a href="-_html.html#show">show</a></li><li data-type='method'><a href="-_html.html#unBindEventById">unBindEventById</a></li><li data-type='method'><a href="-_html.html#validate">validate</a></li></ul></li><li><a href="-_http.html">_http</a><ul class='methods'><li data-type='method'><a href="-_http.html#doAsync">doAsync</a></li><li data-type='method'><a href="-_http.html#doSync">doSync</a></li></ul></li><li><a href="-_log.html">_log</a><ul class='methods'><li data-type='method'><a href="-_log.html#debug">debug</a></li><li data-type='method'><a href="-_log.html#error">error</a></li></ul></li><li><a href="-_message.html">_message</a><ul class='methods'><li data-type='method'><a href="-_message.html#getMessage">getMessage</a></li><li data-type='method'><a href="-_message.html#getSystemMessage">getSystemMessage</a></li></ul></li><li><a href="-_ui.html">_ui</a><ul class='methods'><li data-type='method'><a href="-_ui.html#backTo">backTo</a></li><li data-type='method'><a href="-_ui.html#forwardTo">forwardTo</a></li><li data-type='method'><a href="-_ui.html#showDialog">showDialog</a></li><li data-type='method'><a href="-_ui.html#showMessage">showMessage</a></li><li data-type='method'><a href="-_ui.html#showModalDialog">showModalDialog</a></li><li data-type='method'><a href="-_ui.html#toggleProcessing">toggleProcessing</a></li><li data-type='method'><a href="-_ui.html#updateDocumentTitle">updateDocumentTitle</a></li><li data-type='method'><a href="-_ui.html#updateHTML">updateHTML</a></li></ul></li><li><a href="-_url.html">_url</a><ul class='methods'><li data-type='method'><a href="-_url.html#clearHash">clearHash</a></li><li data-type='method'><a href="-_url.html#clearUrlParameter">clearUrlParameter</a></li><li data-type='method'><a href="-_url.html#getHashParams">getHashParams</a></li><li data-type='method'><a href="-_url.html#getUrlParameter">getUrlParameter</a></li><li data-type='method'><a href="-_url.html#redirectTo">redirectTo</a></li><li data-type='method'><a href="-_url.html#redirectToErrorPage">redirectToErrorPage</a></li><li data-type='method'><a href="-_url.html#setUrlParameter">setUrlParameter</a></li></ul></li><li><a href="-_util.html">_util</a><ul class='methods'><li data-type='method'><a href="-_util.html#dateFormat">dateFormat</a></li><li data-type='method'><a href="-_util.html#escape">escape</a></li><li data-type='method'><a href="-_util.html#get">get</a></li><li data-type='method'><a href="-_util.html#getFileContent">getFileContent</a></li><li data-type='method'><a href="-_util.html#has">has</a></li><li data-type='method'><a href="-_util.html#isArguments">isArguments</a></li><li data-type='method'><a href="-_util.html#isArray">isArray</a></li><li data-type='method'><a href="-_util.html#isBoolean">isBoolean</a></li><li data-type='method'><a href="-_util.html#isEmpty">isEmpty</a></li><li data-type='method'><a href="-_util.html#isFunction">isFunction</a></li><li data-type='method'><a href="-_util.html#isNumber">isNumber</a></li><li data-type='method'><a href="-_util.html#isObject">isObject</a></li><li data-type='method'><a href="-_util.html#isString">isString</a></li><li data-type='method'><a href="-_util.html#keys">keys</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#_setaria">_setaria</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">ViewModelController.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * View画面管理模块
+ *
+ * @class
+ * @version 1.0
+ * @author HanL
+ */
+var ViewModelController = function(configFilePath, completeHandler){
+
+    // 初期化ViewModel配置对象
+    var _viewModelConfigs = null;
+
+    // 业务画面缓存对象
+    var _viewModelCacheObject = {};
+
+    /**
+     * 取得ViewModelConfig
+     *
+     * @private
+     */
+    function _initialViewModelConfig(){
+        var config = null;
+        // 画面ID对应的VM Class名
+        var viewModelClassName = "";
+        // 取得VM Class定义
+        var ViewModelClass = null;
+        // 取得指定的ViewModelConfig
+        _viewModelConfigs = _util.getFileContent(configFilePath, "json");
+        // 在系统启动时预加载所有配置的ViewModel
+        // if (!_util.isEmpty(_viewModelConfigs)){
+        //     for (var key in _viewModelConfigs){
+        //         config = _viewModelConfigs[key];
+        //         // 画面ID对应的VM Class名
+        //         viewModelClassName = config.viewModelClass;
+        //         if (!_util.isEmpty(viewModelClassName)){
+        //             // 取得VM Class定义
+        //             ViewModelClass = null;
+        //             if (!window[viewModelClassName]){
+
+        //             }
+        //             this.initialViewModelClass(config, viewModelClassName);
+        //         }
+        //     }
+        // }
+    }
+    _initialViewModelConfig();
+
+    /**
+     * 取得并加载指定的ViewModelClass
+     *
+     * @public
+     * @param  {Object}   config  View配置信息对象
+     * @param  {string}   srcPath ViewModel脚本文件路径
+     * @param  {Function} handler 加载成功后的回调函数
+     */
+    this.loadScript = function(config, srcPath, handler){
+        // JS脚本路径
+        var filePath = _config.SRC_ROOT_DIR + srcPath + ".js";
+        // 脚本文件名必须与ViewModelClass类名一致
+        // TODO 需要考虑更好的方案
+        var viewModelClass = srcPath.substring(srcPath.lastIndexOf("/") + 1);
+        // ViewModelClass没有被加载过的场合
+        if (!_util.isFunction(window[viewModelClass])){
+            // 构建Script标签加载脚本
+            var node = document.createElement("script");
+            node.type = "text/javascript";
+            node.charset = "utf-8";
+            node.src = filePath + "?_=" + _config.createCacheToken();
+            // 绑定脚本加载完成事件
+            node.addEventListener("load", function(){
+                handler.call(null, window[viewModelClass]);
+            }.bind(this), false);
+            // 使用异步加载防止阻塞浏览器进程
+            node.async = true;
+            // 把脚本添加到document中
+            document.querySelector("head").appendChild(node);
+        // ViewModelClass加载过的场合
+        }else{
+            handler.call(null, window[viewModelClass]);
+        }
+    };
+
+    /**
+     * 根据View的Url路径映射取得对应的View配置信息
+     *
+     * @public
+     * @param  {string} path     Url路径映射
+     * @return {Object} 画面配置
+     */
+    this.getViewConfigByPath = function(path){
+        var ret = _viewModelConfigs[path];
+        // 指定画面只有HTML的场合，可以不在配置文件中对指定画面进行配置
+        if (_util.isEmpty(ret)){
+            ret = {
+                "template": path + ".html"
+            };
+        }else if (_util.isEmpty(ret.template)){
+            ret.template = path + ".html";
+        }
+        return ret;
+    };
+
+    /**
+     * 根据Hash值取得View配置文件中最接近的Url映射路径
+     *
+     * 例：
+     * 传入的hash为#a/b/c，配置文件中存在 a 和 a/b两个Url映射路径的场合
+     * 函数返回 a/b
+     *
+     * @public
+     * @param  {string} hash url hash值
+     * @return {string} 映射路径
+     */
+    this.getViewPathFromHash = function(hash){
+        var ret = "";
+
+        if (!_util.isEmpty(hash)){
+            // 删除hash头部的#
+            if (hash.indexOf("#") === 0){
+                hash = hash.substring(1);
+            }
+
+            for (var path in _viewModelConfigs){
+                // 找到匹配的路径的并且此路径比之前找到的路径更为接近的场合
+                if (hash.indexOf(path) === 0 &amp;&amp;
+                        path.length > ret.length){
+                    ret = path;
+                }
+            }
+        }
+
+        return ret;
+    };
+
+    /**
+     * 跳转至指定画面
+     *
+     * @public
+     * @param  {string} path Url路径映射
+     */
+    this.forwardTo = function(path){
+        var config = this.getViewConfigByPath(path);
+        var param = arguments;
+
+        // 取得业务画面的HTML，并在指定区域更新
+        _ui.updateHTML(this.getTemplatePath(config.template), function(){
+            // 更新画面标题
+            _ui.updateDocumentTitle(config.title);
+            // 存在ViewModel的场合
+            if (!_util.isEmpty(config.viewModelClass)){
+                // load class file
+                this.loadScript(config, config.viewModelClass, function(VMClass){
+                    // 如果对应的VM Class名存在
+                    if (_util.isFunction(VMClass)){
+                        // 把传递参数帮定制
+                        var Class = VMClass.bind.apply(VMClass, param);
+                        // 实例化VM Class
+                        var viewModel = new Class();
+                        // 初期化VM的内部缓存
+                        viewModel.cache = {};
+                        // 输出日志
+                        _log.debug("ViewModel [ " + config.viewModelClass + " ] init.");
+                        // 执行vm初期化函数
+                        _action.doAction(viewModel.init.bind(viewModel));
+                        // 把VM Class实例存入缓存
+                        _viewModelCacheObject[path] = viewModel;
+                    }
+                });
+            }
+        }.bind(this));
+    };
+
+    /**
+     * 回退至指定画面
+     *
+     * @public
+     * @param  {string} path Url路径映射
+     */
+    this.backTo = function(path){
+        var config = this.getViewConfigByPath(path);
+
+        if (!_util.isEmpty(config)){
+            _ui.updateHTML(this.getTemplatePath(config.template), function(){
+                // 更新画面标题
+                _ui.updateDocumentTitle(config.title);
+                // 取得缓存的VM
+                if (_viewModelCacheObject[path]){
+                    _viewModelCacheObject[path].init();
+                }else{
+                    // 抛出错误SESYSM001E
+                    _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
+                }
+            });
+        }else{
+            // 抛出错误SESYSM001E
+            _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
+        }
+    };
+
+    /**
+     * 取得View模版的完整路径
+     *
+     * @public
+     * @param  {string} template vm配置文件中定义的模版名
+     * @return {string} 模版的路径
+     */
+    this.getTemplatePath = function(template){
+        var ret = "";
+        if (!_util.isEmpty(template)){
+            ret = _config.HTML_ROOT_DIR + template;
+        }
+        return ret;
+    };
+
+    /**
+     * 取得View配置信息
+     *
+     * @public
+     * @return {Object} View配置信息
+     */
+    this.getViewModelConfig = function(){
+        return _viewModelConfigs;
+    };
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Sep 08 2016 17:29:54 GMT+0800 (CST) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

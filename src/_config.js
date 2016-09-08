@@ -1,16 +1,17 @@
 /**
  * 系统设定信息模块。
  *
- * @namespace
+ * @namespace _config
  * @version 1.0
  * @author HanL
  */
 var _config = new function(){
+    "use strict";
 
     /**
      * 取得本地配置文件时所使用的缓存值
      *
-     * @const
+     * @public
      * @return {Function} 缓存值
      */
     this.createCacheToken = function(){
@@ -21,6 +22,7 @@ var _config = new function(){
      * 取得当前的移动操作系统名称
      * Windows Phone, Android, iOS
      *
+     * @public
      * @return {string} 移动操作系统名称
      */
     this.getMobileOperatingSystem = function(){

@@ -2,11 +2,12 @@
  * URL模块
  * 用于处理Url相关逻辑
  *
- * @namespace
+ * @namespace _url
  * @version 1.0
  * @author HanL
  */
 var _url = new function(){
+    "use strict";
 
     /**
      * 用于分割Hash
@@ -14,7 +15,7 @@ var _url = new function(){
      * @private
      * @type {string}
      */
-    var _SPLIT_CHAR = "/";
+    var SPLIT_CHAR = "/";
 
     /**
      * 取得Url中的Hash参数
@@ -22,7 +23,7 @@ var _url = new function(){
      * @public
      * @return {Array} Hash参数数组
      */
-    var getHashParams = function(){
+    this.getHashParams = function(){
         var ret = null;
         var hash = window.location.hash;
 
@@ -30,12 +31,11 @@ var _url = new function(){
         if (!_util.isEmpty(hash) && hash.indexOf("#") === 0){
             // 去掉#
             hash = hash.substring(1);
-            ret = hash.split(_SPLIT_CHAR);
+            ret = hash.split(SPLIT_CHAR);
         }
 
         return ret;
     };
-    this.getHashParams = getHashParams;
 
     /**
      * 设定Url中的参数
@@ -44,7 +44,7 @@ var _url = new function(){
      * @param {string} uri      uri
      * @param {Object} paramObj 参数对象
      */
-    var setUrlParameter = function(uri, paramObj){
+    this.setUrlParameter = function(uri, paramObj){
         var ret = uri;
         var separator = "";
         var hashString = "";
@@ -65,17 +65,16 @@ var _url = new function(){
 
         return ret;
     };
-    this.setUrlParameter = setUrlParameter;
 
     /**
      * 取得Url中的参数
      * 如果不指定参数名称则取得所有参数
      *
      * @public
-     * @param  {String} paramName 参数名称
+     * @param  {string} paramName 参数名称
      * @return {Object} 包含url参数的对象
      */
-    var getUrlParameter = function(paramName){
+    this.getUrlParameter = function(paramName){
         var ret = {};
         var urlParam = window.location.search.substring(1);
         var urlVariables = urlParam.split('&');
@@ -96,23 +95,21 @@ var _url = new function(){
         }
         return ret;
     };
-    this.getUrlParameter = getUrlParameter;
 
     /**
      * Url跳转
      *
      * @public
-     * @param  {String}  url       目标Url
+     * @param  {string}  url       目标Url
      * @param  {boolean} isReplace true的时候，重定向，false的时候，画面跳转
      */
-    var redirectTo = function(url, isReplace){
+    this.redirectTo = function(url, isReplace){
         if (isReplace){
             window.location.replace(url);
         }else{
             window.location.href = url;
         }
     };
-    this.redirectTo = redirectTo;
 
     /**
      * 跳转至指定的错误页面
@@ -120,36 +117,35 @@ var _url = new function(){
      * @public
      * @param  {string} page 错误页面名称
      */
-    var redirectToErrorPage = function(page){
+    this.redirectToErrorPage = function(page){
         this.redirectTo(_config.HTML_ROOT_DIR +
             _config.HTML_ERROR_DIR +
             page +
             ".html", true);
     };
-    this.redirectToErrorPage = redirectToErrorPage;
 
     /**
      * 清除Url中的参数
      *
      * @public
      */
-    var clearUrlParameter = function(){
+    this.clearUrlParameter = function(){
         var search = window.location.search;
         var href = window.location.href;
         href = href.replace(search, "");
         window.history.replaceState(null, null, href);
     };
-    this.clearUrlParameter = clearUrlParameter;
 
     /**
      * 清除Url中的Hash值
+     *
+     * @public
      */
-    var clearHash = function(){
+    this.clearHash = function(){
         var href = window.location.href;
         if (href.indexOf("#") !== -1){
             href = href.substring(0, href.indexOf("#"));
         }
         window.history.replaceState(null, null, href);
     };
-    this.clearHash = clearHash;
 };

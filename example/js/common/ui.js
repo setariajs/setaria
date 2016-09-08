@@ -28,48 +28,58 @@ _ui.showDialog = function(param){
         if (param.type === "error"){
             dialogTitle.addClass(errorStyle);
             dialogText.addClass(errorStyle);
-            _html.hide(okButtonId);
+            _html.hide(cancelButtonId);
         }else{
-            _html.show(okButtonId);
-        }
-        if (param.cancelOnly === false){
-            // 绑定确认按钮事件
-            $("#" + okButtonId).one("click", function(){
-                dialogWidget.modal("hide");
-                if (param.doneCallback){
-                    dialogWidget.one("hidden.bs.modal", {
-                        "closeMode": true
-                    },function(event){
-                        if (event.data.closeMode){
-                            param.doneCallback.call(param);
-                        }
-                    });
-                }
-            });
-        }else{
-            // 隐藏确认按钮
-            _html.hide(okButtonId);
+            _html.show(cancelButtonId);
         }
 
-        if (param.cancelCallback){
-            modalParam.keyboard = false;
-            modalParam.backdrop = "static";
-        }
-        // 设定取消按钮的Label
-        _html.byId(cancelButtonId).innerText = param.cancelText;
-        // 绑定关闭按钮事件
-        $("#" + cancelButtonId).one("click", function(){
+        // 绑定确认按钮事件
+        $("#" + okButtonId).one("click", function(){
             dialogWidget.modal("hide");
-            if (param.cancelCallback){
+            if (param.doneCallback){
                 dialogWidget.one("hidden.bs.modal", {
-                    "closeMode": false
+                    "closeMode": true
                 },function(event){
-                    if (!event.data.closeMode){
-                        param.cancelCallback.call(param);
+                    if (event.data.closeMode){
+                        param.doneCallback.call(param);
                     }
                 });
             }
         });
+        // 设定确认按钮的Label
+        _html.byId(okButtonId).innerText = param.doneText;
+        // 隐藏取消按钮
+        _html.hide(cancelButtonId);
+
+        // 显示取消按钮的场合
+        if (param.doneOnly !== true){
+            // 绑定取消按钮事件
+            $("#" + cancelButtonId).one("click", function(){
+                dialogWidget.modal("hide");
+                if (param.cancelCallback){
+                    dialogWidget.one("hidden.bs.modal", {
+                        "closeMode": false
+                    },function(event){
+                        if (!event.data.closeMode){
+                            param.cancelCallback.call(param);
+                        }
+                    });
+                }
+            });
+            // 当点击取消按钮，并且设定了取消按钮点击处理事件的场合
+            if (param.cancelCallback){
+                // 按下escape按键时不会关闭对话框
+                modalParam.keyboard = false;
+                // 点击对话框外部时不会关闭对话框
+                modalParam.backdrop = "static";
+            }
+            // 设定取消按钮的Label
+            _html.byId(cancelButtonId).innerText = param.cancelText;
+            // 显示取消按钮
+            _html.show(cancelButtonId);
+        }
+
+        // 显示对话框
         dialogWidget.modal(modalParam);
     }
 };

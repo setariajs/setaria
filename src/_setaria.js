@@ -5,13 +5,15 @@
  * @author HanL
  */
  var _setaria = new function(){
+    "use strict";
 
     /**
-     * 取得配置信息
+     * 取得Setaria配置信息
      *
      * @private
+     * @return {Boolean} 配置信息取得成功的场合，返回true
      */
-    var _loadConfig = function(){
+    function _loadConfig(){
         var ret = false;
         $("script").each(function(){
             var dataConfig = $(this).attr("data-setaria-config");
@@ -37,14 +39,14 @@
             }
         });
         return ret;
-    };
+    }
 
     /**
      * 启动函数
      *
      * @public
      */
-    var start = function(){
+    this.start = function(){
         // 取得配置信息
         var loadConfigResult = _loadConfig();
         // 当成功加载配置文件时
@@ -62,30 +64,30 @@
             this.dispatcher(window._viewModelController);
         }
     };
-    this.start = start;
 
     /**
      * 绑定window的hashchange事件
+     *
+     * @public
      */
-    var bindHashChange = function(){
+    this.bindHashChange = function(){
         $(window).on("hashchange", this.doHashChange);
     };
-    this.bindHashChange = bindHashChange;
 
     /**
      * window的hashchange事件处理
+     *
+     * @public
      */
-    var doHashChange = function(){
+    this.doHashChange = function(){
         // TODO 点击了浏览器的回退按钮的场合，如何进行判断，是否引入history?
     };
-    this.doHashChange = doHashChange;
 
     /**
      * Customize Dispatcher
      *
      * @public
-     * @override
-     * @return {[type]} [description]
+     * @param  {ViewModelController} vmController 当前VMController实例
      */
     var dispatcher = function(vmController){
         this.defaultDispatcher(vmController);
@@ -93,11 +95,12 @@
     this.dispatcher = dispatcher;
 
     /**
-     * Default Dispatcher
+     * 默认跳转逻辑
      *
-     * @protected
+     * @public
+     * @param  {ViewModelController} vmController 当前VMController实例
      */
-    var defaultDispatcher = function(vmController){
+    this.defaultDispatcher = function(vmController){
         // 当前的Hash值
         var hash = window.location.hash;
         // ViewModel的映射路径
@@ -109,12 +112,12 @@
 
         // 如果存在页面跳转定义
         if (!_util.isEmpty(hash) && hash !== "#"){
-            // 根据Hash值取得已配置的ViewModel的映射地址
-            path = vmController.getViewModelPathFromHash(hash);
-            // 没有找到对应的ViewModel
+            // 根据Hash值取得已配置的View的Url映射路径
+            path = vmController.getViewPathFromHash(hash);
+            // 没有找到对应的View
             if (_util.isEmpty(path)){
-                // 显示错误消息
-                _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+                // 跳转至首页
+                _ui.forwardTo(_config.WELCOME_PAGE);
             }else{
                 // 组装目标跳转画面的信息
                 viewModelParams[0] = path;
@@ -129,5 +132,4 @@
             _ui.forwardTo(_config.WELCOME_PAGE);
         }
     };
-    this.defaultDispatcher = defaultDispatcher;
  };

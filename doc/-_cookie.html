@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>_cookie - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="HTTPContext.html">HTTPContext</a></li><li><a href="Message.html">Message</a><ul class='methods'><li data-type='method'><a href="Message.html#toString">toString</a></li></ul></li><li><a href="SystemMessage.html">SystemMessage</a><ul class='methods'><li data-type='method'><a href="SystemMessage.html#toString">toString</a></li></ul></li><li><a href="ValidationMessage.html">ValidationMessage</a><ul class='methods'><li data-type='method'><a href="ValidationMessage.html#toString">toString</a></li></ul></li><li><a href="ViewModelController.html">ViewModelController</a><ul class='methods'><li data-type='method'><a href="ViewModelController.html#backTo">backTo</a></li><li data-type='method'><a href="ViewModelController.html#forwardTo">forwardTo</a></li><li data-type='method'><a href="ViewModelController.html#getTemplatePath">getTemplatePath</a></li><li data-type='method'><a href="ViewModelController.html#getViewConfigByPath">getViewConfigByPath</a></li><li data-type='method'><a href="ViewModelController.html#getViewModelConfig">getViewModelConfig</a></li><li data-type='method'><a href="ViewModelController.html#getViewPathFromHash">getViewPathFromHash</a></li><li data-type='method'><a href="ViewModelController.html#loadScript">loadScript</a></li></ul></li></ul><h3>Namespaces</h3><ul><li><a href="-_action.html">_action</a><ul class='methods'><li data-type='method'><a href="-_action.html#doAction">doAction</a></li></ul></li><li><a href="-_config.html">_config</a><ul class='methods'><li data-type='method'><a href="-_config.html#createCacheToken">createCacheToken</a></li><li data-type='method'><a href="-_config.html#getMobileOperatingSystem">getMobileOperatingSystem</a></li></ul></li><li><a href="-_cookie.html">_cookie</a><ul class='methods'><li data-type='method'><a href="-_cookie.html#getItem">getItem</a></li><li data-type='method'><a href="-_cookie.html#hasItem">hasItem</a></li><li data-type='method'><a href="-_cookie.html#removeItem">removeItem</a></li><li data-type='method'><a href="-_cookie.html#setItem">setItem</a></li></ul></li><li><a href="-_globalParam.html">_globalParam</a><ul class='methods'><li data-type='method'><a href="-_globalParam.html#clear">clear</a></li><li data-type='method'><a href="-_globalParam.html#get">get</a></li><li data-type='method'><a href="-_globalParam.html#set">set</a></li></ul></li><li><a href="-_handler.html">_handler</a><ul class='methods'><li data-type='method'><a href="-_handler.html#doCatch">doCatch</a></li><li data-type='method'><a href="-_handler.html#doFinally">doFinally</a></li><li data-type='method'><a href="-_handler.html#doPreProcess">doPreProcess</a></li></ul></li><li><a href="-_html.html">_html</a><ul class='methods'><li data-type='method'><a href="-_html.html#bindEventById">bindEventById</a></li><li data-type='method'><a href="-_html.html#bindEventByName">bindEventByName</a></li><li data-type='method'><a href="-_html.html#byId">byId</a></li><li data-type='method'><a href="-_html.html#disable">disable</a></li><li data-type='method'><a href="-_html.html#enable">enable</a></li><li data-type='method'><a href="-_html.html#getFormItemValueByName">getFormItemValueByName</a></li><li data-type='method'><a href="-_html.html#getValue">getValue</a></li><li data-type='method'><a href="-_html.html#hide">hide</a></li><li data-type='method'><a href="-_html.html#removeDomNode">removeDomNode</a></li><li data-type='method'><a href="-_html.html#removeDomNodeById">removeDomNodeById</a></li><li data-type='method'><a href="-_html.html#setFormItemValueByName">setFormItemValueByName</a></li><li data-type='method'><a href="-_html.html#setValue">setValue</a></li><li data-type='method'><a href="-_html.html#show">show</a></li><li data-type='method'><a href="-_html.html#unBindEventById">unBindEventById</a></li><li data-type='method'><a href="-_html.html#validate">validate</a></li></ul></li><li><a href="-_http.html">_http</a><ul class='methods'><li data-type='method'><a href="-_http.html#doAsync">doAsync</a></li><li data-type='method'><a href="-_http.html#doSync">doSync</a></li></ul></li><li><a href="-_log.html">_log</a><ul class='methods'><li data-type='method'><a href="-_log.html#debug">debug</a></li><li data-type='method'><a href="-_log.html#error">error</a></li></ul></li><li><a href="-_message.html">_message</a><ul class='methods'><li data-type='method'><a href="-_message.html#getMessage">getMessage</a></li><li data-type='method'><a href="-_message.html#getSystemMessage">getSystemMessage</a></li></ul></li><li><a href="-_ui.html">_ui</a><ul class='methods'><li data-type='method'><a href="-_ui.html#backTo">backTo</a></li><li data-type='method'><a href="-_ui.html#forwardTo">forwardTo</a></li><li data-type='method'><a href="-_ui.html#showDialog">showDialog</a></li><li data-type='method'><a href="-_ui.html#showMessage">showMessage</a></li><li data-type='method'><a href="-_ui.html#showModalDialog">showModalDialog</a></li><li data-type='method'><a href="-_ui.html#toggleProcessing">toggleProcessing</a></li><li data-type='method'><a href="-_ui.html#updateDocumentTitle">updateDocumentTitle</a></li><li data-type='method'><a href="-_ui.html#updateHTML">updateHTML</a></li></ul></li><li><a href="-_url.html">_url</a><ul class='methods'><li data-type='method'><a href="-_url.html#clearHash">clearHash</a></li><li data-type='method'><a href="-_url.html#clearUrlParameter">clearUrlParameter</a></li><li data-type='method'><a href="-_url.html#getHashParams">getHashParams</a></li><li data-type='method'><a href="-_url.html#getUrlParameter">getUrlParameter</a></li><li data-type='method'><a href="-_url.html#redirectTo">redirectTo</a></li><li data-type='method'><a href="-_url.html#redirectToErrorPage">redirectToErrorPage</a></li><li data-type='method'><a href="-_url.html#setUrlParameter">setUrlParameter</a></li></ul></li><li><a href="-_util.html">_util</a><ul class='methods'><li data-type='method'><a href="-_util.html#dateFormat">dateFormat</a></li><li data-type='method'><a href="-_util.html#escape">escape</a></li><li data-type='method'><a href="-_util.html#get">get</a></li><li data-type='method'><a href="-_util.html#getFileContent">getFileContent</a></li><li data-type='method'><a href="-_util.html#has">has</a></li><li data-type='method'><a href="-_util.html#isArguments">isArguments</a></li><li data-type='method'><a href="-_util.html#isArray">isArray</a></li><li data-type='method'><a href="-_util.html#isBoolean">isBoolean</a></li><li data-type='method'><a href="-_util.html#isEmpty">isEmpty</a></li><li data-type='method'><a href="-_util.html#isFunction">isFunction</a></li><li data-type='method'><a href="-_util.html#isNumber">isNumber</a></li><li data-type='method'><a href="-_util.html#isObject">isObject</a></li><li data-type='method'><a href="-_util.html#isString">isString</a></li><li data-type='method'><a href="-_util.html#keys">keys</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#_setaria">_setaria</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">_cookie</h1>
+    
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        _cookie
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Cookie管理模块。</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+    <dt class="tag-version">Version:</dt>
+    <dd class="tag-version"><ul class="dummy"><li>1.0</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>HanL</li>
+        </ul>
+    </dd>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="-_cookie.js.html">_cookie.js</a>, <a href="-_cookie.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="getItem"><span class="type-signature"></span>getItem<span class="signature">(sKey)</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    读取一个cookie。如果cookie不存在返回null。
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>sKey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">读取的cookie名</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="-_cookie.js.html">_cookie.js</a>, <a href="-_cookie.js.html#line18">line 18</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    cookie的值
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="hasItem"><span class="type-signature"></span>hasItem<span class="signature">(sKey)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+<div class="description">
+    检查一个cookie是否存在
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>sKey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">要检查的cookie名</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="-_cookie.js.html">_cookie.js</a>, <a href="-_cookie.js.html#line87">line 87</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    存在检查的cookie名时，返回true
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="removeItem"><span class="type-signature"></span>removeItem<span class="signature">(sKey, sPath, sDomain)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+<div class="description">
+    删除一个cookie。
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>sKey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">要移除的cookie名</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sPath</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">例如 '/', '/mydir'。 如果没有定义，默认为当前文档位置的路径。(string or null)。
+                          路径必须为绝对路径（参见 RFC 2965）。</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sDomain</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">例如 'example.com'， '.example.com' (包括所有子域名), 'subdomain.example.com'。
+                          如果没有定义，默认为当前文档位置的路径的域名部分。</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="-_cookie.js.html">_cookie.js</a>, <a href="-_cookie.js.html#line72">line 72</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    true为删除成功，当对应的cookie不存在时返回false
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setItem"><span class="type-signature"></span>setItem<span class="signature">(sKey, sValue, vEnd, sPath, sDomain, bSecure)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+<div class="description">
+    设置Cookie
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>sKey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">要创建或覆盖的cookie的名字</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sValue</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">cookie的值</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>vEnd</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">最大年龄的秒数 (一年为31536e3， 永不过期的cookie为Infinity) ，
+                           或者过期时间的GMTString格式或Date对象;
+                           如果没有定义则会在会话结束时过期
+                           (number – 有限的或 Infinity – string, Date object or null)。</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sPath</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">例如 '/', '/mydir'。 如果没有定义，默认为当前文档位置的路径。(string or null)。
+                           路径必须为绝对路径</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sDomain</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">例如 'example.com'， '.example.com' (包括所有子域名), 'subdomain.example.com'。
+                           如果没有定义，默认为当前文档位置的路径的域名部分。</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bSecure</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">cookie只会被https传输。</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="-_cookie.js.html">_cookie.js</a>, <a href="-_cookie.js.html#line39">line 39</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    添加成功时返回true
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Sep 08 2016 17:29:54 GMT+0800 (CST) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

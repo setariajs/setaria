@@ -1,11 +1,12 @@
 /**
  * HTTP基础通信模块
  *
- * @namespace
+ * @namespace _http
  * @version 1.0
  * @author HanL
  */
 var _http = new function(){
+    "use strict";
 
     /**
      * 执行Ajax请求
@@ -13,7 +14,7 @@ var _http = new function(){
      * @private
      * @param {HTTPContext} context Ajax请求的选项
      */
-    var _doXhr = function(context){
+    function _doXhr(context){
         if (!_util.isEmpty(context)){
             // 超时时间(ms)
             var defaultTimeout = _config.DEFAULT_TIMEOUT || 20000;
@@ -30,7 +31,7 @@ var _http = new function(){
             // 开始ajax通信
             return $.ajax(context);
         }
-    };
+    }
 
     /**
      * 默认ajax通信失败处理函数
@@ -40,7 +41,7 @@ var _http = new function(){
      * @param  {string} textStatus  通信状态值("timeout", "error", "abort", "parsererror")
      * @param  {string} errorThrown 异常对象
      */
-    var _defaultErrorHandler = function(jqXHR, textStatus, errorThrown){
+    function _defaultErrorHandler(jqXHR, textStatus, errorThrown){
         var errorMsg;
         var msgList = [];
         if (textStatus === "timeout"){
@@ -50,7 +51,7 @@ var _http = new function(){
         }
         msgList.push(errorMsg);
         _ui.showMessage(msgList, "error");
-    };
+    }
 
     /**
      * 执行异步ajax通信
@@ -58,14 +59,13 @@ var _http = new function(){
      * @public
      * @param  {HTTPContext} context HTTP通信设定对象
      */
-    function doAsync(context){
+    this.doAsync = function(context){
         if (!_util.isEmpty(context)){
             // 使用异步调用
             context.async = true;
             _doXhr(context);
         }
-    }
-    this.doAsync = doAsync;
+    };
 
     /**
      * 执行同步ajax通信
@@ -73,12 +73,11 @@ var _http = new function(){
      * @public
      * @param  {HTTPContext} context HTTP通信设定对象
      */
-    function doSync(context){
+    this.doSync = function(context){
         if (!_util.isEmpty(context)){
             // 同步模式
             context.async = false;
             _doXhr(context);
         }
-    }
-    this.doSync = doSync;
+    };
 };

@@ -1,11 +1,13 @@
 /**
  * 复杂UI功能模块
  *
- * @namespace
+ * @namespace _ui
  * @version 1.0
  * @author HanL
  */
 var _ui = new function(){
+    "use strict";
+
     /**
      * HTML换行Tag
      *
@@ -30,37 +32,35 @@ var _ui = new function(){
      * @param  {string} id DOM ID
      * @return {Object} JQuery的DOM对象
      */
-    var _byId = function(id){
+    function _byId(id){
         id = id.indexOf("#") === 0 ? id : "#" + id;
         return $(id);
-    };
+    }
 
     /**
      * 显示模式化确认窗口
      *
-     * @protected
+     * @public
      * @param  {Object} param 模式化窗口设置参数
      */
-    function showDialog(param){
+    this.showDialog = function(param){
         alert("Dialog -> title :: " + param.title + ", message :: " + param.message);
-    }
-    this.showDialog = showDialog;
+    };
 
     /**
      * 切换mask的显示／隐藏
      *
-     * @param {Boolean} isDisp 是否显示标志位
      * @public
+     * @param {Boolean} isDisp 是否显示标志位
      */
-    function toggleProcessing(isDisp){
+    this.toggleProcessing = function(isDisp){
         var loadingNode = $("#" + _config.LOADING_ID);
         if (isDisp){
             loadingNode.show();
         }else{
             loadingNode.hide();
         }
-    }
-    this.toggleProcessing = toggleProcessing;
+    };
 
     /**
      * 在画面中显示指定的消息
@@ -70,7 +70,7 @@ var _ui = new function(){
      * @param  {string}                     type          消息类型, info[正常] || error[错误]
      * @param  {Function}                   handler       关闭按钮点击时的回调函数
      */
-    function showMessage(messageObject, type, handler){
+    this.showMessage = function(messageObject, type, handler){
         var messageArr = [];
         var messageId = "";
         var messageContent = "";
@@ -106,8 +106,7 @@ var _ui = new function(){
                 "doneOnly": true
             });
         }
-    }
-    this.showMessage = showMessage;
+    };
 
     /**
      * 显示模态窗口
@@ -119,7 +118,7 @@ var _ui = new function(){
      * @param  {string}   cancelText 取消按钮的显示文字，默认为［取消］
      * @param  {string}   doneText   确认按钮的显示文字，默认为［确认］
      */
-    function showModalDialog(title, message, handler, cancelText, doneText){
+    this.showModalDialog = function(title, message, handler, cancelText, doneText){
         title = _util.isEmpty(title) ? "确认窗口" : title;
         doneOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
         doneText = doneText || "确认";
@@ -142,8 +141,7 @@ var _ui = new function(){
             "cancelCallback": cancelCallback,
             "doneOnly": doneOnly
         });
-    }
-    this.showModalDialog = showModalDialog;
+    };
 
     /**
      * 跳转到指定画面
@@ -151,10 +149,9 @@ var _ui = new function(){
      * @public
      * @param  {string} pageId 跳转画面ID
      */
-    function forwardTo(pageId){
+    this.forwardTo = function(pageId){
         _viewModelController.forwardTo.apply(_viewModelController, arguments);
-    }
-    this.forwardTo = forwardTo;
+    };
 
     /**
      * 返回至指定画面
@@ -162,19 +159,18 @@ var _ui = new function(){
      * @public
      * @param  {string} pageId 跳转画面ID
      */
-    function backTo(pageId){
+    this.backTo = function(pageId){
         _viewModelController.backTo.apply(_viewModelController, arguments);
-    }
-    this.backTo = backTo;
+    };
 
     /**
      * 取得业务画面的HTML，并在指定区域更新
      *
-     * @private
+     * @public
      * @param  {string} viewModelTemplateUrl 模版的路径
      * @param  {Object} handler              页面加载完成的回调函数
      */
-    var updateHTML = function(viewModelTemplateUrl, handler){
+    this.updateHTML = function(viewModelTemplateUrl, handler){
         // 对应画面的HTML文件
         var viewModelTemplateHTML = null;
 
@@ -194,7 +190,6 @@ var _ui = new function(){
         // 调用回调函数
         handler();
     };
-    this.updateHTML = updateHTML;
 
     /**
      * 更新画面标题
@@ -202,11 +197,10 @@ var _ui = new function(){
      * @public
      * @param  {string} title 标题内容
      */
-    var updateDocumentTitle = function(title){
+    this.updateDocumentTitle = function(title){
         title = _util.isEmpty(title) ? "" : title;
         if (!_util.isEmpty(title)){
             document.title = title;
         }
     };
-    this.updateDocumentTitle = updateDocumentTitle;
 };

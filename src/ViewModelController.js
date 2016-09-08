@@ -1,19 +1,59 @@
 /**
- * 业务画面管理模块
+ * View画面管理模块
  *
- * @namespace
+ * @class
  * @version 1.0
  * @author HanL
  */
 var ViewModelController = function(configFilePath, completeHandler){
 
     // 初期化ViewModel配置对象
-    var viewModelConfigs = null;
+    var _viewModelConfigs = null;
 
     // 业务画面缓存对象
-    var viewModelCacheObject = {};
+    var _viewModelCacheObject = {};
 
-    var loadScript = function(config, srcPath, handler){
+    /**
+     * 取得ViewModelConfig
+     *
+     * @private
+     */
+    function _initialViewModelConfig(){
+        var config = null;
+        // 画面ID对应的VM Class名
+        var viewModelClassName = "";
+        // 取得VM Class定义
+        var ViewModelClass = null;
+        // 取得指定的ViewModelConfig
+        _viewModelConfigs = _util.getFileContent(configFilePath, "json");
+        // 在系统启动时预加载所有配置的ViewModel
+        // if (!_util.isEmpty(_viewModelConfigs)){
+        //     for (var key in _viewModelConfigs){
+        //         config = _viewModelConfigs[key];
+        //         // 画面ID对应的VM Class名
+        //         viewModelClassName = config.viewModelClass;
+        //         if (!_util.isEmpty(viewModelClassName)){
+        //             // 取得VM Class定义
+        //             ViewModelClass = null;
+        //             if (!window[viewModelClassName]){
+
+        //             }
+        //             this.initialViewModelClass(config, viewModelClassName);
+        //         }
+        //     }
+        // }
+    }
+    _initialViewModelConfig();
+
+    /**
+     * 取得并加载指定的ViewModelClass
+     *
+     * @public
+     * @param  {Object}   config  View配置信息对象
+     * @param  {string}   srcPath ViewModel脚本文件路径
+     * @param  {Function} handler 加载成功后的回调函数
+     */
+    this.loadScript = function(config, srcPath, handler){
         // JS脚本路径
         var filePath = _config.SRC_ROOT_DIR + srcPath + ".js";
         // 脚本文件名必须与ViewModelClass类名一致
@@ -39,50 +79,16 @@ var ViewModelController = function(configFilePath, completeHandler){
             handler.call(null, window[viewModelClass]);
         }
     };
-    this.loadScript = loadScript;
 
     /**
-     * 取得ViewModelConfig
+     * 根据View的Url路径映射取得对应的View配置信息
      *
-     * @private
-     */
-    var initialViewModelConfig = function(){
-        var config = null;
-        // 画面ID对应的VM Class名
-        var viewModelClassName = "";
-        // 取得VM Class定义
-        var ViewModelClass = null;
-        // 取得指定的ViewModelConfig
-        viewModelConfigs = _util.getFileContent(configFilePath, "json");
-        // 在系统启动时预加载所有配置的ViewModel
-        // if (!_util.isEmpty(viewModelConfigs)){
-        //     for (var key in viewModelConfigs){
-        //         config = viewModelConfigs[key];
-        //         // 画面ID对应的VM Class名
-        //         viewModelClassName = config.viewModelClass;
-        //         if (!_util.isEmpty(viewModelClassName)){
-        //             // 取得VM Class定义
-        //             ViewModelClass = null;
-        //             if (!window[viewModelClassName]){
-
-        //             }
-        //             this.initialViewModelClass(config, viewModelClassName);
-        //         }
-        //     }
-        // }
-    };
-    this.initialViewModelConfig = initialViewModelConfig;
-    this.initialViewModelConfig();
-
-    /**
-     * 根据ViewModel路径映射取得对应的ViewModel和模版视图
-     *
-     * @private
+     * @public
      * @param  {string} path     Url路径映射
      * @return {Object} 画面配置
      */
-    var getViewConfigByPath = function(path){
-        var ret = viewModelConfigs[path];
+    this.getViewConfigByPath = function(path){
+        var ret = _viewModelConfigs[path];
         // 指定画面只有HTML的场合，可以不在配置文件中对指定画面进行配置
         if (_util.isEmpty(ret)){
             ret = {
@@ -93,20 +99,19 @@ var ViewModelController = function(configFilePath, completeHandler){
         }
         return ret;
     };
-    this.getViewConfigByPath = getViewConfigByPath;
 
     /**
-     * 根据Hash值查询配置文件取得最接近的映射路径
+     * 根据Hash值取得View配置文件中最接近的Url映射路径
      *
      * 例：
-     * 传入的hash为#a/b/c，配置文件中存在 a 和 a/b两个映射路径的场合
-     * 返回 a/b
+     * 传入的hash为#a/b/c，配置文件中存在 a 和 a/b两个Url映射路径的场合
+     * 函数返回 a/b
      *
      * @public
      * @param  {string} hash url hash值
      * @return {string} 映射路径
      */
-    var getViewModelPathFromHash = function(hash){
+    this.getViewPathFromHash = function(hash){
         var ret = "";
 
         if (!_util.isEmpty(hash)){
@@ -115,7 +120,7 @@ var ViewModelController = function(configFilePath, completeHandler){
                 hash = hash.substring(1);
             }
 
-            for (var path in viewModelConfigs){
+            for (var path in _viewModelConfigs){
                 // 找到匹配的路径的并且此路径比之前找到的路径更为接近的场合
                 if (hash.indexOf(path) === 0 &&
                         path.length > ret.length){
@@ -126,7 +131,6 @@ var ViewModelController = function(configFilePath, completeHandler){
 
         return ret;
     };
-    this.getViewModelPathFromHash = getViewModelPathFromHash;
 
     /**
      * 跳转至指定画面
@@ -134,7 +138,7 @@ var ViewModelController = function(configFilePath, completeHandler){
      * @public
      * @param  {string} path Url路径映射
      */
-    var forwardTo = function(path){
+    this.forwardTo = function(path){
         var config = this.getViewConfigByPath(path);
         var param = arguments;
 
@@ -159,13 +163,12 @@ var ViewModelController = function(configFilePath, completeHandler){
                         // 执行vm初期化函数
                         _action.doAction(viewModel.init.bind(viewModel));
                         // 把VM Class实例存入缓存
-                        viewModelCacheObject[path] = viewModel;
+                        _viewModelCacheObject[path] = viewModel;
                     }
                 });
             }
         }.bind(this));
     };
-    this.forwardTo = forwardTo;
 
     /**
      * 回退至指定画面
@@ -173,7 +176,7 @@ var ViewModelController = function(configFilePath, completeHandler){
      * @public
      * @param  {string} path Url路径映射
      */
-    var backTo = function(path){
+    this.backTo = function(path){
         var config = this.getViewConfigByPath(path);
 
         if (!_util.isEmpty(config)){
@@ -181,8 +184,11 @@ var ViewModelController = function(configFilePath, completeHandler){
                 // 更新画面标题
                 _ui.updateDocumentTitle(config.title);
                 // 取得缓存的VM
-                if (viewModelCacheObject[path]){
-                    viewModelCacheObject[path].init();
+                if (_viewModelCacheObject[path]){
+                    _viewModelCacheObject[path].init();
+                }else{
+                    // 抛出错误SESYSM001E
+                    _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
                 }
             });
         }else{
@@ -190,30 +196,29 @@ var ViewModelController = function(configFilePath, completeHandler){
             _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
         }
     };
-    this.backTo = backTo;
 
     /**
-     * 取得模版的完整路径
+     * 取得View模版的完整路径
      *
      * @public
      * @param  {string} template vm配置文件中定义的模版名
      * @return {string} 模版的路径
      */
-    var getTemplatePath = function(template){
+    this.getTemplatePath = function(template){
         var ret = "";
         if (!_util.isEmpty(template)){
             ret = _config.HTML_ROOT_DIR + template;
         }
         return ret;
     };
-    this.getTemplatePath = getTemplatePath;
 
     /**
-     * 取得ViewModel配置信息
-     * @return {Object} ViewModel配置信息
+     * 取得View配置信息
+     *
+     * @public
+     * @return {Object} View配置信息
      */
-    var getViewModelConfig = function(){
-        return viewModelConfigs;
+    this.getViewModelConfig = function(){
+        return _viewModelConfigs;
     };
-    this.getViewModelConfig = getViewModelConfig;
 };

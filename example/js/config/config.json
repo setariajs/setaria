@@ -22,13 +22,16 @@
     "LOADING_ID": "_loading",
 
     "//": "画面配置文件路径",
-    "VIEWMODEL_CONFIG_FILE": "config/viewModel_config.json",
+    "VIEWMODEL_CONFIG_FILE": "js/config/view_model_config.json",
 
     "//": "系统消息文件路径",
-    "SYSMESSAGE_FILE": "config/sysmessage.json",
+    "SYSMESSAGE_FILE": "js/config/sysmessage.json",
 
     "//": "自定义消息文件",
-    "MESSAGE_FILE": "config/message.json",
+    "MESSAGE_FILE": "js/config/message.json",
+
+    "//": "系统模式",
+    "DEBUG_MODE": "true",
 
     "//": ":: optional config ::",
     "//": "模式窗口控件ID",

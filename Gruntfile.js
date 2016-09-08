@@ -38,6 +38,17 @@ module.exports = function(grunt) {
                     '<%= pkg.destDir %>/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
                 }
             }
+        },
+        jsdoc : {
+            dist : {
+                src: ['src/*.js'],
+                options: {
+                    destination: 'doc',
+                    configure: 'conf.json',
+                    template: './node_modules/minami'
+                },
+                dest: '<%= pkg.docDir %>'
+            }
         }
     });
 
@@ -45,6 +56,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-jsdoc');
 
     grunt.registerTask('default', ['clean', 'copy', 'concat', 'uglify']);
 };

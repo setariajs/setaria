@@ -1,10 +1,11 @@
 /**
  * 公共数据保存模块
  *
- * @namespace
+ * @namespace _globalParam
  * @version 1.0
  */
 var _globalParam = new function(){
+    "use strict";
 
     /**
      * 数据持有对象
@@ -21,7 +22,7 @@ var _globalParam = new function(){
      * @private
      * @type {String}
      */
-    var _GP_KEY = "___global_param__";
+    var GP_KEY = "___global_param__";
 
     /**
      * 取得数据存储对象
@@ -30,7 +31,7 @@ var _globalParam = new function(){
      * @return {Object} 数据存储对象
      */
     function _getCacheObject(){
-        var sessValueString = _store.getItem(_GP_KEY) || "{}";
+        var sessValueString = _store.getItem(GP_KEY) || "{}";
         return JSON.parse(sessValueString);
     }
 
@@ -38,10 +39,10 @@ var _globalParam = new function(){
      * 往数据存储对象中设值
      *
      * @private
-     * @param {Anything} value 值
+     * @param {*} value 值
      */
     function _setCacheObject(value){
-        _store.setItem(_GP_KEY, JSON.stringify(value));
+        _store.setItem(GP_KEY, JSON.stringify(value));
     }
 
     /**
@@ -52,7 +53,7 @@ var _globalParam = new function(){
      */
     function _removeCacheObject(key){
         if (_util.isEmpty(key)){
-            _store.removeItem(_GP_KEY);
+            _store.removeItem(GP_KEY);
         }else{
             var sessValue = _getCacheObject();
             delete sessValue[key];
@@ -64,8 +65,8 @@ var _globalParam = new function(){
      * 设值内部实现函数
      *
      * @private
-     * @param {string}    key   键
-     * @param {Anything}  值
+     * @param {string} key   键
+     * @param {*}      值
      */
     function _set(key, value){
         var sessionValue = _getCacheObject();
@@ -78,8 +79,8 @@ var _globalParam = new function(){
      * 取值内部实现函数
      *
      * @private
-     * @param  {string}    key 键
-     * @return {Anything}  值
+     * @param  {string} key 键
+     * @return {*}      值
      */
     function _get(key){
         var sessionValue = _getCacheObject();
@@ -100,25 +101,23 @@ var _globalParam = new function(){
      * 保存公共数据
      *
      * @public
-     * @param {string}   key   键
-     * @param {Anything} value 保存的值
+     * @param {string}  key   键
+     * @param {*}       value 保存的值
      */
-    function set(key, value){
+    this.set = function(key, value){
         _set(key, value);
-    }
-    this.set = set;
+    };
 
     /**
      * 根据键取得公共数据
      *
      * @public
-     * @param  {string}   key   键
-     * @return {Anything} value 保存的值
+     * @param  {string} key   键
+     * @return {*}      value 保存的值
      */
-    function get(key){
+    this.get = function(key){
         return _get(key);
-    }
-    this.get = get;
+    };
 
     /**
      * 删除指定的值
@@ -126,8 +125,7 @@ var _globalParam = new function(){
      * @public
      * @param  {string} key 键
      */
-    function clear(key){
+    this.clear = function(key){
         _clear(key);
-    }
-    this.clear = clear;
+    };
 };

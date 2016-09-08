@@ -1,23 +1,23 @@
 /**
  * Cookie管理模块。
  *
- * @namespace
+ * @namespace _cookie
  * @version 1.0
  * @author HanL
  */
 var _cookie = new function() {
+    "use strict";
 
     /**
      * 读取一个cookie。如果cookie不存在返回null。
      *
      * @public
-     * @param  {string} 读取的cookie名
+     * @param  {string} sKey 读取的cookie名
      * @return {string} cookie的值
      */
-    var getItem = function(sKey) {
+    this.getItem = function(sKey) {
         return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
     };
-    this.getItem = getItem;
 
     /**
      * 设置Cookie
@@ -36,7 +36,7 @@ var _cookie = new function() {
      * @param  {boolean} bSecure  cookie只会被https传输。
      * @return {boolean} 添加成功时返回true
      */
-    var setItem = function(sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+    this.setItem = function(sKey, sValue, vEnd, sPath, sDomain, bSecure) {
         if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
             return false;
         }
@@ -57,7 +57,6 @@ var _cookie = new function() {
         document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
         return true;
     };
-    this.setItem = setItem;
 
     /**
      * 删除一个cookie。
@@ -70,24 +69,22 @@ var _cookie = new function() {
      *                           如果没有定义，默认为当前文档位置的路径的域名部分。
      * @return {boolean} true为删除成功，当对应的cookie不存在时返回false
      */
-    var removeItem = function(sKey, sPath, sDomain) {
+    this.removeItem = function(sKey, sPath, sDomain) {
         if (!sKey || !this.hasItem(sKey)) {
             return false;
         }
         document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
         return true;
     };
-    this.removeItem = removeItem;
 
     /**
      * 检查一个cookie是否存在
      *
      * @public
      * @param  {string}  sKey 要检查的cookie名
-     * @return {boolean} true为存在，反之不存在
+     * @return {boolean} 存在检查的cookie名时，返回true
      */
-    var hasItem = function(sKey) {
+    this.hasItem = function(sKey) {
         return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
     };
-    this.hasItem = hasItem;
 };

@@ -11,37 +11,37 @@
  */
 var ValidationMessage = function(elementId, messageId, parameters){
 
-	/**
-	 * 节点ID
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.elementId = elementId;
+    /**
+     * 节点ID
+     *
+     * @type {string}
+     * @public
+     */
+    this.elementId = elementId;
 
-	/**
-	 * 校验消息ID
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.messageId = messageId;
+    /**
+     * 校验消息ID
+     *
+     * @type {string}
+     * @public
+     */
+    this.messageId = messageId;
 
-	/**
-	 * 校验消息内容
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.message = _message.getMessage(messageId, parameters);
+    /**
+     * 校验消息内容
+     *
+     * @type {string}
+     * @public
+     */
+    this.message = _message.getMessage(messageId, parameters);
 
-	/**
-	 * 返回校验消息内容
-	 *
-	 * @return {String} 校验消息内容
-	 */
-	function toString(){
-		return this.message;
-	}
-	this.toString = toString;
+    /**
+     * 返回校验消息内容
+     *
+     * @public
+     * @return {String} 校验消息内容
+     */
+    this.toString = function(){
+        return this.message;
+    };
 };
