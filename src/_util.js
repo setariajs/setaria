@@ -97,7 +97,7 @@ var _util = new function(){
      * @returns {Object}   转换出的对象
      */
     function _toObject(value) {
-        return isObject(value) ? value : Object(value);
+        return _util.isObject(value) ? value : Object(value);
     }
 
     /**
@@ -133,7 +133,7 @@ var _util = new function(){
      * @returns {Array}  属性数组
      */
     function _toPath(value) {
-          if (isArray(value)) {
+          if (_util.isArray(value)) {
               return value;
           }
           var result = [];
@@ -201,11 +201,11 @@ var _util = new function(){
         if (value === null || value === undefined) {
             return true;
         }
-        if (_isArrayLike(value) && (isArray(value) || isString(value) || isArguments(value) ||
-              (_isObjectLike(value) && isFunction(value.splice)))) {
+        if (_isArrayLike(value) && (this.isArray(value) || this.isString(value) || this.isArguments(value) ||
+              (_isObjectLike(value) && this.isFunction(value.splice)))) {
             return !value.length;
         }
-        return !keys(value).length;
+        return !this.keys(value).length;
     };
 
     /**
@@ -305,7 +305,7 @@ var _util = new function(){
      * @return {Boolean}   当值的类型为函数时返回true，否则返回false
      */
     this.isFunction = function(value){
-        return isObject(value) &&
+        return this.isObject(value) &&
             Object.prototype.toString.call(value) == "[object Function]";
     };
 
@@ -364,7 +364,7 @@ var _util = new function(){
      * @return {Array}  键值数组
      */
     this.keys = function(object){
-        return isObject(object) ? Object.keys(object) : [];
+        return this.isObject(object) ? Object.keys(object) : [];
     };
 
     /**

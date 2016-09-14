@@ -37,13 +37,17 @@ var DashBoardViewModel = function(loginData){
      * @private
      */
     var clickMenu = function(evt){
+        // 点击的菜单项节点
         var target = evt.target;
+        // 当前菜单项的目标画面
         var targetViewPath = target.getAttribute("href");
         if (targetViewPath.indexOf("#") === 0){
+            // 删除#
             targetViewPath = targetViewPath.substring(1);
-        }
-        if (!_util.isEmpty(targetViewPath)){
-            _ui.forwardTo(targetViewPath, "hi");
+            // 如果存在目标画面
+            if (!_util.isEmpty(targetViewPath)){
+                _ui.forwardTo(targetViewPath);
+            }
         }
     };
     this.clickMenu = clickMenu;
@@ -56,7 +60,7 @@ var DashBoardViewModel = function(loginData){
     var logoutSystem = function(){
         // 切换页面刷新区域
         _config.MAIN_AREA_ID = "_sys_container";
-        // 清除Hash值
+        // 清除Url的Hash值
         _url.clearHash();
         // 回退至登录画面
         _ui.backTo("login");

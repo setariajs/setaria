@@ -40,8 +40,15 @@ var LoginViewModel = function(targetPageParams){
     var submitLoginFormEvent = function() {
         // 用户填写的表单数据
         var loginData = _html.getValue("signinForm");
+
+        // 没有输入用户名的场合
+        if (_util.isEmpty(loginData.loginId)){
+            _ui.showMessage(new Message("MSG002E", ["用户名"]));
+        // 没有输入密码的场合
+        }else if (_util.isEmpty(loginData.password)){
+            _ui.showMessage(new Message("MSG002E", ["密码"]));
         // 如果用户名密码与默认的一致
-        if (loginData.loginId === DEFAULT_LOGINID &&
+        }else if (loginData.loginId === DEFAULT_LOGINID &&
             loginData.password === DEFAULT_PASSWORD){
             // 储存当前页面状态
             this.cache.loginData = loginData;

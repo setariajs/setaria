@@ -1,11 +1,12 @@
 /**
  * Action控制模块
  *
- * @namespace
+ * @namespace _action
  * @version 1.0
  * @author HanL
  */
 var _action = new function(){
+    "use strict";
 
     /**
      * 执行事件处理函数
@@ -43,16 +44,17 @@ var _action = new function(){
 /**
  * 系统设定信息模块。
  *
- * @namespace
+ * @namespace _config
  * @version 1.0
  * @author HanL
  */
 var _config = new function(){
+    "use strict";
 
     /**
      * 取得本地配置文件时所使用的缓存值
      *
-     * @const
+     * @public
      * @return {Function} 缓存值
      */
     this.createCacheToken = function(){
@@ -63,6 +65,7 @@ var _config = new function(){
      * 取得当前的移动操作系统名称
      * Windows Phone, Android, iOS
      *
+     * @public
      * @return {string} 移动操作系统名称
      */
     this.getMobileOperatingSystem = function(){
@@ -85,11 +88,12 @@ var _config = new function(){
 /**
  * Cookie管理模块。
  *
- * @namespace
+ * @namespace _cookie
  * @version 1.0
  * @author HanL
  */
 var _cookie = new function() {
+    "use strict";
 
     /**
      * 读取一个cookie。如果cookie不存在返回null。
@@ -174,10 +178,11 @@ var _cookie = new function() {
 /**
  * 公共数据保存模块
  *
- * @namespace
+ * @namespace _globalParam
  * @version 1.0
  */
 var _globalParam = new function(){
+    "use strict";
 
     /**
      * 数据持有对象
@@ -194,7 +199,7 @@ var _globalParam = new function(){
      * @private
      * @type {String}
      */
-    var _GP_KEY = "___global_param__";
+    var GP_KEY = "___global_param__";
 
     /**
      * 取得数据存储对象
@@ -203,7 +208,7 @@ var _globalParam = new function(){
      * @return {Object} 数据存储对象
      */
     function _getCacheObject(){
-        var sessValueString = _store.getItem(_GP_KEY) || "{}";
+        var sessValueString = _store.getItem(GP_KEY) || "{}";
         return JSON.parse(sessValueString);
     }
 
@@ -214,7 +219,7 @@ var _globalParam = new function(){
      * @param {*} value 值
      */
     function _setCacheObject(value){
-        _store.setItem(_GP_KEY, JSON.stringify(value));
+        _store.setItem(GP_KEY, JSON.stringify(value));
     }
 
     /**
@@ -225,7 +230,7 @@ var _globalParam = new function(){
      */
     function _removeCacheObject(key){
         if (_util.isEmpty(key)){
-            _store.removeItem(_GP_KEY);
+            _store.removeItem(GP_KEY);
         }else{
             var sessValue = _getCacheObject();
             delete sessValue[key];
@@ -304,11 +309,12 @@ var _globalParam = new function(){
 /**
  * 事件处理的句柄
  *
- * @namespace
+ * @namespace _handler
  * @version 1.0
  * @author HanL
  */
 var _handler = new function(){
+    "use strict";
 
     /**
      * 事件处理的前处理句柄
@@ -380,11 +386,12 @@ var _handler = new function(){
 /**
  * HTML基本功能处理模块
  *
- * @namespace
+ * @namespace _html
  * @version 1.0
  * @author HanL
  */
 var _html = new function(){
+    "use strict";
 
     /**
      * 根据DOM节点ID取得对应的JQuery的DOM对象
@@ -673,11 +680,12 @@ var _html = new function(){
 /**
  * HTTP基础通信模块
  *
- * @namespace
+ * @namespace _http
  * @version 1.0
  * @author HanL
  */
 var _http = new function(){
+    "use strict";
 
     /**
      * 执行Ajax请求
@@ -755,11 +763,13 @@ var _http = new function(){
 /**
  * log输出模块
  *
- * @namespace
+ * @namespace _log
  * @version 1.0
  * @author HanL
  */
 var _log = new function(){
+    "use strict";
+
     /**
      * 输出debug级别的log
      *
@@ -787,11 +797,12 @@ var _log = new function(){
 /**
  * 消息管理模块
  *
- * @namespace
+ * @namespace _message
  * @version 1.0
  * @author HanL
  */
 var _message = new function(){
+    "use strict";
 
     /**
      * 无法取得业务消息文件。
@@ -919,6 +930,7 @@ var _message = new function(){
  * @author HanL
  */
  var _setaria = new function(){
+    "use strict";
 
     /**
      * 取得Setaria配置信息
@@ -929,7 +941,10 @@ var _message = new function(){
     function _loadConfig(){
         var ret = false;
         $("script").each(function(){
+            // 配置文件路径
             var dataConfig = $(this).attr("data-setaria-config");
+            // 配置文件内容
+            var configContent = null;
 
             if (!_util.isEmpty(dataConfig)){
                 // 取得配置文件内容
@@ -1049,11 +1064,13 @@ var _message = new function(){
 /**
  * 复杂UI功能模块
  *
- * @namespace
+ * @namespace _ui
  * @version 1.0
  * @author HanL
  */
 var _ui = new function(){
+    "use strict";
+
     /**
      * HTML换行Tag
      *
@@ -1099,15 +1116,14 @@ var _ui = new function(){
      * @public
      * @param {Boolean} isDisp 是否显示标志位
      */
-    function toggleProcessing(isDisp){
+    this.toggleProcessing = function(isDisp){
         var loadingNode = $("#" + _config.LOADING_ID);
         if (isDisp){
             loadingNode.show();
         }else{
             loadingNode.hide();
         }
-    }
-    this.toggleProcessing = toggleProcessing;
+    };
 
     /**
      * 在画面中显示指定的消息
@@ -1117,7 +1133,7 @@ var _ui = new function(){
      * @param  {string}                     type          消息类型, info[正常] || error[错误]
      * @param  {Function}                   handler       关闭按钮点击时的回调函数
      */
-    function showMessage(messageObject, type, handler){
+    this.showMessage = function(messageObject, type, handler){
         var messageArr = [];
         var messageId = "";
         var messageContent = "";
@@ -1153,8 +1169,7 @@ var _ui = new function(){
                 "doneOnly": true
             });
         }
-    }
-    this.showMessage = showMessage;
+    };
 
     /**
      * 显示模态窗口
@@ -1166,7 +1181,7 @@ var _ui = new function(){
      * @param  {string}   cancelText 取消按钮的显示文字，默认为［取消］
      * @param  {string}   doneText   确认按钮的显示文字，默认为［确认］
      */
-    function showModalDialog(title, message, handler, cancelText, doneText){
+    this.showModalDialog = function(title, message, handler, cancelText, doneText){
         title = _util.isEmpty(title) ? "确认窗口" : title;
         doneOnly = _util.isEmpty(doneText) && !_util.isEmpty(cancelText);
         doneText = doneText || "确认";
@@ -1189,8 +1204,7 @@ var _ui = new function(){
             "cancelCallback": cancelCallback,
             "doneOnly": doneOnly
         });
-    }
-    this.showModalDialog = showModalDialog;
+    };
 
     /**
      * 跳转到指定画面
@@ -1198,10 +1212,9 @@ var _ui = new function(){
      * @public
      * @param  {string} pageId 跳转画面ID
      */
-    function forwardTo(pageId){
+    this.forwardTo = function(pageId){
         _viewModelController.forwardTo.apply(_viewModelController, arguments);
-    }
-    this.forwardTo = forwardTo;
+    };
 
     /**
      * 返回至指定画面
@@ -1209,19 +1222,18 @@ var _ui = new function(){
      * @public
      * @param  {string} pageId 跳转画面ID
      */
-    function backTo(pageId){
+    this.backTo = function(pageId){
         _viewModelController.backTo.apply(_viewModelController, arguments);
-    }
-    this.backTo = backTo;
+    };
 
     /**
      * 取得业务画面的HTML，并在指定区域更新
      *
-     * @private
+     * @public
      * @param  {string} viewModelTemplateUrl 模版的路径
      * @param  {Object} handler              页面加载完成的回调函数
      */
-    var updateHTML = function(viewModelTemplateUrl, handler){
+    this.updateHTML = function(viewModelTemplateUrl, handler){
         // 对应画面的HTML文件
         var viewModelTemplateHTML = null;
 
@@ -1241,7 +1253,6 @@ var _ui = new function(){
         // 调用回调函数
         handler();
     };
-    this.updateHTML = updateHTML;
 
     /**
      * 更新画面标题
@@ -1249,23 +1260,23 @@ var _ui = new function(){
      * @public
      * @param  {string} title 标题内容
      */
-    var updateDocumentTitle = function(title){
+    this.updateDocumentTitle = function(title){
         title = _util.isEmpty(title) ? "" : title;
         if (!_util.isEmpty(title)){
             document.title = title;
         }
     };
-    this.updateDocumentTitle = updateDocumentTitle;
 };
 /**
  * URL模块
  * 用于处理Url相关逻辑
  *
- * @namespace
+ * @namespace _url
  * @version 1.0
  * @author HanL
  */
 var _url = new function(){
+    "use strict";
 
     /**
      * 用于分割Hash
@@ -1273,7 +1284,7 @@ var _url = new function(){
      * @private
      * @type {string}
      */
-    var _SPLIT_CHAR = "/";
+    var SPLIT_CHAR = "/";
 
     /**
      * 取得Url中的Hash参数
@@ -1281,7 +1292,7 @@ var _url = new function(){
      * @public
      * @return {Array} Hash参数数组
      */
-    var getHashParams = function(){
+    this.getHashParams = function(){
         var ret = null;
         var hash = window.location.hash;
 
@@ -1289,12 +1300,11 @@ var _url = new function(){
         if (!_util.isEmpty(hash) && hash.indexOf("#") === 0){
             // 去掉#
             hash = hash.substring(1);
-            ret = hash.split(_SPLIT_CHAR);
+            ret = hash.split(SPLIT_CHAR);
         }
 
         return ret;
     };
-    this.getHashParams = getHashParams;
 
     /**
      * 设定Url中的参数
@@ -1303,7 +1313,7 @@ var _url = new function(){
      * @param {string} uri      uri
      * @param {Object} paramObj 参数对象
      */
-    var setUrlParameter = function(uri, paramObj){
+    this.setUrlParameter = function(uri, paramObj){
         var ret = uri;
         var separator = "";
         var hashString = "";
@@ -1324,17 +1334,16 @@ var _url = new function(){
 
         return ret;
     };
-    this.setUrlParameter = setUrlParameter;
 
     /**
      * 取得Url中的参数
      * 如果不指定参数名称则取得所有参数
      *
      * @public
-     * @param  {String} paramName 参数名称
+     * @param  {string} paramName 参数名称
      * @return {Object} 包含url参数的对象
      */
-    var getUrlParameter = function(paramName){
+    this.getUrlParameter = function(paramName){
         var ret = {};
         var urlParam = window.location.search.substring(1);
         var urlVariables = urlParam.split('&');
@@ -1355,23 +1364,21 @@ var _url = new function(){
         }
         return ret;
     };
-    this.getUrlParameter = getUrlParameter;
 
     /**
      * Url跳转
      *
      * @public
-     * @param  {String}  url       目标Url
+     * @param  {string}  url       目标Url
      * @param  {boolean} isReplace true的时候，重定向，false的时候，画面跳转
      */
-    var redirectTo = function(url, isReplace){
+    this.redirectTo = function(url, isReplace){
         if (isReplace){
             window.location.replace(url);
         }else{
             window.location.href = url;
         }
     };
-    this.redirectTo = redirectTo;
 
     /**
      * 跳转至指定的错误页面
@@ -1379,53 +1386,54 @@ var _url = new function(){
      * @public
      * @param  {string} page 错误页面名称
      */
-    var redirectToErrorPage = function(page){
+    this.redirectToErrorPage = function(page){
         this.redirectTo(_config.HTML_ROOT_DIR +
             _config.HTML_ERROR_DIR +
             page +
             ".html", true);
     };
-    this.redirectToErrorPage = redirectToErrorPage;
 
     /**
      * 清除Url中的参数
      *
      * @public
      */
-    var clearUrlParameter = function(){
+    this.clearUrlParameter = function(){
         var search = window.location.search;
         var href = window.location.href;
         href = href.replace(search, "");
         window.history.replaceState(null, null, href);
     };
-    this.clearUrlParameter = clearUrlParameter;
 
     /**
      * 清除Url中的Hash值
+     *
+     * @public
      */
-    var clearHash = function(){
+    this.clearHash = function(){
         var href = window.location.href;
         if (href.indexOf("#") !== -1){
             href = href.substring(0, href.indexOf("#"));
         }
         window.history.replaceState(null, null, href);
     };
-    this.clearHash = clearHash;
 };
 /**
- * 共通函数模块
+ * 公用函数模块
+ * 提供了开发中常用的类型判断，字符串处理等函数
  *
- * @namespace
+ * @namespace _util
  * @version 1.0
  * @author HanL
  */
 var _util = new function(){
     "use strict";
+
     /**
      * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
      * of an array-like value.
      */
-    var _MAX_SAFE_INTEGER = 9007199254740991;
+    var MAX_SAFE_INTEGER = 9007199254740991;
 
     var _rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
 
@@ -1443,14 +1451,15 @@ var _util = new function(){
     };
 
     /** 用于html字符转义判断 */
-    var _reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g,
-        _reUnescapedHtml = /[&<>"'`]/g,
-        _reHasEscapedHtml = RegExp(_reEscapedHtml.source),
-        _reHasUnescapedHtml = RegExp(_reUnescapedHtml.source);
+    var _reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g;
+    var _reUnescapedHtml = /[&<>"'`]/g;
+    var _reHasEscapedHtml = RegExp(_reEscapedHtml.source);
+    var _reHasUnescapedHtml = RegExp(_reUnescapedHtml.source);
 
-
+    /* 使用Object原型hasOwnProperty函数 */
     var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
+    /* 使用Object原型propertyIsEnumerable函数 */
     var _propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 
     /**
@@ -1465,11 +1474,11 @@ var _util = new function(){
     }
 
     /**
-     * 检查输入值是否是对象
+     * 检查值的原型类是否是对象Object
      *
      * @private
-     * @param   {Anything} 检查的值
-     * @returns {boolean}  如果是对象返回true,否则返回false
+     * @param   {*}        检查的值
+     * @returns {Boolean}  如果是对象返回true,否则返回false
      */
     function _isObjectLike(value) {
         return !!value && typeof value === "object";
@@ -1479,21 +1488,21 @@ var _util = new function(){
      * 检查输入值是否是合法的数组的length属性
      *
      * @private
-     * @param  {Anything}  value 检查的值
-     * @return {boolean}   如果是合法的数组的Length属性，返回true，否则返回false
+     * @param  {*}         value 检查的值
+     * @return {Boolean}   如果是合法的数组的Length属性，返回true，否则返回false
      */
     function _isLength(value) {
         return typeof value == "number" &&
             value > -1 &&
             value % 1 === 0 &&
-            value <= _MAX_SAFE_INTEGER;
+            value <= MAX_SAFE_INTEGER;
     }
 
     /**
      * 把值转换为字符串，如果值为空，则返回空字符串
      *
      * @private
-     * @param  {Anything} value 检查的值
+     * @param  {*}        value 检查的值
      * @return {string}   字符串
      */
     function _toString(value) {
@@ -1504,35 +1513,34 @@ var _util = new function(){
      * 把输入值转换成对象
      *
      * @private
-     * @param   {Anything} 输入值
+     * @param   {*}        输入值
      * @returns {Object}   转换出的对象
      */
     function _toObject(value) {
-        return isObject(value) ? value : Object(value);
+        return _util.isObject(value) ? value : Object(value);
     }
 
     /**
-     * The base implementation of `get` without support for string paths
-     * and default values.
+     * 根据属性名从指定对象中取得对应的值
      *
      * @private
-     * @param {Object} object The object to query.
-     * @param {Array} path The path of the property to get.
-     * @param {string} [pathKey] The key representation of path.
-     * @returns {*} Returns the resolved value.
+     * @param   {Object} object   查询的对象
+     * @param   {Array}  path     属性的路径
+     * @param   {string} pathKey  属性的准确描述
+     * @returns {*}      Returns  查询到的值
      */
     function _baseGet(object, path, pathKey) {
           if (object === null || object === undefined) {
-            return;
+              return;
           }
           if (pathKey !== undefined && pathKey in _toObject(object)) {
-            path = [pathKey];
+              path = [pathKey];
           }
-          var index = 0,
-              length = path.length;
+          var index = 0;
+          var length = path.length;
 
           while (object !== null && index < length) {
-            object = object[path[index++]];
+              object = object[path[index++]];
           }
           return (index && index == length) ? object : undefined;
     }
@@ -1541,12 +1549,12 @@ var _util = new function(){
      * 属性字符串转换成数组.
      *
      * @private
-     * @param   {Anything} 属性字符串
-     * @returns {Array}    属性数组
+     * @param   {*}      属性字符串
+     * @returns {Array}  属性数组
      */
     function _toPath(value) {
-          if (isArray(value)) {
-            return value;
+          if (_util.isArray(value)) {
+              return value;
           }
           var result = [];
           _baseToString(value).replace(_rePropName, function(match, number, quote, string) {
@@ -1559,24 +1567,26 @@ var _util = new function(){
      * 把输入值转换为字符串类型
      *
      * @private
-     * @param   {Anything} value 输入值
-     * @returns {string}   转换的字符串
+     * @param   {*}       value 输入值
+     * @returns {string}  转换的字符串
      */
     function _baseToString(value) {
         return value === null ? '' : (value + '');
     }
 
     /**
-     * 取得指定对象中指定函数
+     * 从对象中取得指定属性的值
+     * 更多的时候是为了通过简化书写的方式调用不同类型对象内部的相同函数
+     * 譬如toString
      *
      * @private
-     * @param   {string}   key 函数名
-     * @returns {Function} 函数
+     * @param   {string}  key 函数名
+     * @returns {*}       属性的值
      */
     function _baseProperty(key) {
-      return function(object) {
-        return object === null ? undefined : object[key];
-      };
+        return function(object) {
+            return object === null ? undefined : object[key];
+        };
     }
 
     /**
@@ -1593,8 +1603,8 @@ var _util = new function(){
      * 检查输入值拥有length属性
      *
      * @private
-     * @param   {Anything} value 输入值
-     * @returns {boolean}  如果输入值拥有length属性，返回true，否则返回false
+     * @param   {*}        value 输入值
+     * @returns {Boolean}  输入值拥有length属性的场合，返回true
      */
     function _isArrayLike(value) {
         return value !== null && _isLength(_getLength(value));
@@ -1605,42 +1615,42 @@ var _util = new function(){
      *
      * @public
      * @param  {Array|Object|string}  value 检查的值
-     * @return {Boolean}  当值为空时返回true，否则返回false
+     * @return {Boolean}              值为空的场合，返回true
      */
-    function isEmpty(value){
+    this.isEmpty = function(value){
         if (value === null || value === undefined) {
             return true;
         }
-        if (_isArrayLike(value) && (isArray(value) || isString(value) || isArguments(value) ||
-              (_isObjectLike(value) && isFunction(value.splice)))) {
+        if (_isArrayLike(value) && (this.isArray(value) || this.isString(value) || this.isArguments(value) ||
+              (_isObjectLike(value) && this.isFunction(value.splice)))) {
             return !value.length;
         }
-        return !keys(value).length;
-    }
-    this.isEmpty = isEmpty;
+        return !this.keys(value).length;
+    };
 
     /**
      * 判断值的类型是否为字符串
      *
+     * @example
      * _util.isString('abc');
      * // => true
      *
      * _util.isString(1);
      * // => false
      *
-     * @param  {Anything}  value 检查的值
-     * @return {boolean}   当值的类型为字符串时返回true，否则返回false
+     * @param  {*}        value 检查的值
+     * @return {Boolean}  值的类型为字符串的场合，返回true
      */
-    function isString(value){
+    this.isString = function(value){
         return typeof value == 'string' ||
             (_isObjectLike(value) &&
                 Object.prototype.toString.call(value) == "[object String]");
-    }
-    this.isString = isString;
+    };
 
     /**
      * 检查值的类型是否为数字
      *
+     * @example
      * _util.isNumber(8.4);
      * // => true
      *
@@ -1651,19 +1661,19 @@ var _util = new function(){
      * // => false
      *
      * @public
-     * @param  {Anything}  value 检查的值
-     * @return {Boolean}   当值为数字时返回true，否则返回false
+     * @param  {*}         value 检查的值
+     * @return {Boolean}   值为数字的场合，返回true
      */
-    function isNumber(value){
+    this.isNumber = function(value){
         return typeof value == 'number' ||
             (_isObjectLike(value) &&
                 Object.prototype.toString.call(value) == "[object Number]");
-    }
-    this.isNumber = isNumber;
+    };
 
     /**
      * 检查值的类型是否为布尔值
      *
+     * @example
      * _util.isBoolean(false);
      * // => true
      *
@@ -1671,90 +1681,86 @@ var _util = new function(){
      * // => false
      *
      * @public
-     * @param  {Anything}  value 检查的值
-     * @return {Boolean}   当值的类型为布尔时返回true，否则返回false
+     * @param  {*}         value 检查的值
+     * @return {Boolean}   值的类型为布尔的场合，返回true
      */
-    function isBoolean(value){
+    this.isBoolean = function(value){
         return value === true ||
             value === false ||
             (_isObjectLike(value) &&
                 Object.prototype.toString.call(value) == "[object Boolean]");
-    }
-    this.isBoolean = isBoolean;
+    };
 
     /**
      * 检查值的类型是否为数组
      *
      * @public
-     * @param  {Anything}  value 检查的值
-     * @return {Boolean}   当值的类型为数组时返回true，否则返回false
+     * @param  {*}        value 检查的值
+     * @return {Boolean}  当值的类型为数组时返回true，否则返回false
      */
-    function isArray(value){
+    this.isArray = function(value){
         return _isObjectLike(value) &&
             _isLength(value.length) &&
             Object.prototype.toString.call(value) == "[object Array]";
-    }
-    this.isArray = isArray;
+    };
 
     /**
      * 检查值的类型是否为对象
      * 数组，函数，正则表达式，new Number和new String的情况会返回true
      *
      * @public
-     * @param  {Anything}  value 检查的值
+     * @param  {*}         value 检查的值
      * @return {Boolean}   当值的类型为对象时返回true，否则返回false
      */
-    function isObject(value){
+    this.isObject = function(value){
         var type = typeof value;
         return !!value && (type == 'object' || type == 'function');
-    }
-    this.isObject = isObject;
+    };
 
     /**
      * 检查值的类型是否为函数
      *
      * @public
-     * @param  {Anything}  value 检查的值
+     * @param  {*}         value 检查的值
      * @return {Boolean}   当值的类型为函数时返回true，否则返回false
      */
-    function isFunction(value){
-        return isObject(value) &&
+    this.isFunction = function(value){
+        return this.isObject(value) &&
             Object.prototype.toString.call(value) == "[object Function]";
-    }
-    this.isFunction = isFunction;
+    };
 
     /**
-     * Checks if `value` is classified as an `arguments` object.
+     * 检查值的类型是否为arguments对象
      *
-     * @public
-     * @param {Object} value 检查的对象
      * @example
      * _util.isArguments(function() { return arguments; }());
      * // => true
      *
      * _util.isArguments([1， 2, 3]);
      * // => false
+     *
+     * @public
+     * @param {Object} value 检查的对象
      */
-    function isArguments(value) {
+    this.isArguments = function(value) {
           return _isObjectLike(value) && _isArrayLike(value) &&
             _hasOwnProperty.call(value, 'callee') && !_propertyIsEnumerable.call(value, 'callee');
-    }
-    this.isArguments = isArguments;
+    };
 
     /**
      * 检查指定对象中是否存在指定的键值
      *
+     * @example
      * _util.has(object, 'a');
      *
      * @public
      * @param  {Object}  object 检查的对象
-     * @param  {String}  key   查找的键值
+     * @param  {string}  key    查找的键值
      * @return {Boolean} 当对象中存在指定键值时返回true,否则返回false
      */
-    function has(object, key){
+    this.has = function(object, key){
         return _hasOwnProperty.call(object, key);
-    }
-    this.has = has;
+    };
 
     /**
      * 从对象中取出指定的键值，如果对应的键值不存在，则返回默认值
@@ -1762,14 +1768,13 @@ var _util = new function(){
      * @public
      * @param  {Object}         object       取值对象
      * @param  {Array | string} path         指定的键值
-     * @param  {Anything}       defaultValue 默认值
+     * @param  {*}              defaultValue 默认值
      * @return {*}              在对象中所对应的值
      */
-    function get(object, path, defaultValue){
+    this.get = function(object, path, defaultValue){
         var result = object === null ? undefined : _baseGet(object, _toPath(path), (path + ''));
         return result === undefined ? defaultValue : result;
-    }
-    this.get = get;
+    };
 
     /**
      * 取得指定对象中存在的key
@@ -1778,20 +1783,19 @@ var _util = new function(){
      * @param  {Object} object 处理的对象
      * @return {Array}  键值数组
      */
-    function keys(object){
-        return isObject(object) ? Object.keys(object) : [];
-    }
-    this.keys = keys;
+    this.keys = function(object){
+        return this.isObject(object) ? Object.keys(object) : [];
+    };
 
     /**
      * 转换日期对象到指定格式字符串
      *
      * @public
      * @param  {Date}   dateObj
-     * @param  {string} fmt     输出日期格式
+     * @param  {string} fmt      输出日期格式
      * @return {string} 指定格式字符串
      */
-    function dateFormat(dateObj, fmt){ //author: meizz
+    this.dateFormat = function(dateObj, fmt){ //author: meizz
         var o = {
             "M+": dateObj.getMonth() + 1,
             "d+": dateObj.getDate(),
@@ -1809,30 +1813,28 @@ var _util = new function(){
             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]): (("00" + o[k]).substr(("" + o[k]).length)));
         }
         return fmt;
-    }
-    this.dateFormat = dateFormat;
+    };
 
     /**
      * 对特殊字符进行转义
      * "&", "<", ">", '"', "'", 和 "`"
      *
-     * @param  {string} value 欲转义的字符串
-     * @return {string}       转义后的字符串
+     * @param  {string} value 字符串
+     * @return {string} 转义后的字符串
      */
-    function escape(value){
+    this.escape = function(value){
         value = _baseToString(value);
         return (value && _reHasUnescapedHtml.test(value)) ?
             value.replace(_reUnescapedHtml, _escapeHtmlChar) :
             value;
-    }
-    this.escape = escape;
+    };
 
     /**
      * 读取本地配置文件
      *
      * @param  {string} filePath 配置文件路径
      */
-    function getFileContent(filePath, dataType){
+    this.getFileContent = function(filePath, dataType){
         var ret = null;
         var contextPath = window.location.pathname;
         var configContent = null;
@@ -1870,8 +1872,7 @@ var _util = new function(){
         };
         _http.doSync(context);
         return ret;
-    }
-    this.getFileContent = getFileContent;
+    };
 };
 /**
  * HTTP通信参数设定模块
@@ -1971,46 +1972,49 @@ var HTTPContext = function(url, method, dataType, contentType, data, success, er
 /**
  * 消息定义类
  *
+ * @example
+ * var msg = new Message("MSG001", [""])
+ *
  * @class
- * @param {String} messageId 消息ID
- * @param {Array} parameters 参数数组
+ * @param {string} messageId  消息ID
+ * @param {Array}  parameters 参数数组
  *
  * @version 1.0
  * @author HanL
  */
 var Message = function(messageId, parameters){
 
-	/**
-	 * 消息ID
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.messageId = messageId;
+    /**
+     * 消息ID
+     *
+     * @type {string}
+     * @public
+     */
+    this.messageId = messageId;
 
-	/**
-	 * 消息内容
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.message = _message.getMessage(messageId, parameters);
+    /**
+     * 消息内容
+     *
+     * @type {string}
+     * @public
+     */
+    this.message = _message.getMessage(messageId, parameters);
 
-	/**
-	 * 返回消息内容
-	 *
-	 * @return {string} 消息内容
-	 */
-	function toString(){
-		return this.message;
-	}
-	this.toString = toString;
+    /**
+     * 返回消息内容
+     *
+     * @public
+     * @return {string} 消息内容
+     */
+    this.toString = function(){
+        return this.message;
+    };
 };
 /**
  * 系统级别消息处理类
  *
  * @class
- * @param {String} messageId  系统消息ID
+ * @param {string} messageId  系统消息ID
  * @param {Array}  parameters 参数数组
  *
  * @version 1.0
@@ -2018,25 +2022,31 @@ var Message = function(messageId, parameters){
  */
 var SystemMessage = function(messageId, parameters){
 
-	/**
-	 * 系统消息ID
-	 */
-	this.messageId = messageId;
+    /**
+     * 系统消息ID
+     *
+     * @public
+     * @type {string}
+     */
+    this.messageId = messageId;
 
-	/**
-	 * 系统消息内容
-	 */
-	this.message = _message.getSystemMessage(messageId, parameters);
+    /**
+     * 系统消息内容
+     *
+     * @public
+     * @type {string}
+     */
+    this.message = _message.getSystemMessage(messageId, parameters);
 
-	/**
-	 * 返回系统消息内容
-	 *
-	 * @return {String} 系统消息内容
-	 */
-	function toString(){
-		return this.message;
-	}
-	this.toString = toString;
+    /**
+     * 返回系统消息内容
+     *
+     * @public
+     * @return {String} 系统消息内容
+     */
+    this.toString = function(){
+        return this.message;
+    };
 };
 /**
  * 输入值校验消息处理类
@@ -2051,42 +2061,42 @@ var SystemMessage = function(messageId, parameters){
  */
 var ValidationMessage = function(elementId, messageId, parameters){
 
-	/**
-	 * 节点ID
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.elementId = elementId;
+    /**
+     * 节点ID
+     *
+     * @type {string}
+     * @public
+     */
+    this.elementId = elementId;
 
-	/**
-	 * 校验消息ID
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.messageId = messageId;
+    /**
+     * 校验消息ID
+     *
+     * @type {string}
+     * @public
+     */
+    this.messageId = messageId;
 
-	/**
-	 * 校验消息内容
-	 *
-	 * @type {string}
-	 * @public
-	 */
-	this.message = _message.getMessage(messageId, parameters);
+    /**
+     * 校验消息内容
+     *
+     * @type {string}
+     * @public
+     */
+    this.message = _message.getMessage(messageId, parameters);
 
-	/**
-	 * 返回校验消息内容
-	 *
-	 * @return {String} 校验消息内容
-	 */
-	function toString(){
-		return this.message;
-	}
-	this.toString = toString;
+    /**
+     * 返回校验消息内容
+     *
+     * @public
+     * @return {String} 校验消息内容
+     */
+    this.toString = function(){
+        return this.message;
+    };
 };
 /**
- * 业务画面管理模块
+ * View画面管理模块
  *
  * @class
  * @version 1.0
@@ -2168,7 +2178,7 @@ var ViewModelController = function(configFilePath, completeHandler){
     };
 
     /**
-     * 根据ViewModel路径映射取得对应的ViewModel和模版视图
+     * 根据View的Url路径映射取得对应的View配置信息
      *
      * @public
      * @param  {string} path     Url路径映射
@@ -2300,7 +2310,7 @@ var ViewModelController = function(configFilePath, completeHandler){
     };
 
     /**
-     * 取得ViewModel配置信息
+     * 取得View配置信息
      *
      * @public
      * @return {Object} View配置信息

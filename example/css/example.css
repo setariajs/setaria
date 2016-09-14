@@ -1,0 +1,3 @@
+.grid-widget tbody tr:nth-child(even) {
+    background-color: aliceblue;
+}

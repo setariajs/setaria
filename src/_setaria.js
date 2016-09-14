@@ -16,7 +16,10 @@
     function _loadConfig(){
         var ret = false;
         $("script").each(function(){
+            // 配置文件路径
             var dataConfig = $(this).attr("data-setaria-config");
+            // 配置文件内容
+            var configContent = null;
 
             if (!_util.isEmpty(dataConfig)){
                 // 取得配置文件内容
