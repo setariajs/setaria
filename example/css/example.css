@@ -1,3 +1,15 @@
+/* 列表控件 */
+.grid-widget table{
+    /* override bootstrap table class */
+    margin-bottom: 0px;
+}
 .grid-widget tbody tr:nth-child(even) {
     background-color: aliceblue;
+}
+/* 翻页控件 */
+.page-widget-pagination {
+    margin: 0;
+}
+.page-widget-button {
+    text-align: right;
 }

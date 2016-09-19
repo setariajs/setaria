@@ -2110,6 +2110,9 @@ var ViewModelController = function(configFilePath, completeHandler){
     // 业务画面缓存对象
     var _viewModelCacheObject = {};
 
+    // 最近一次使用的ViewModel对象
+    var _currentViewModelInfo = null;
+
     /**
      * 取得ViewModelConfig
      *
@@ -2141,6 +2144,34 @@ var ViewModelController = function(configFilePath, completeHandler){
         // }
     }
     _initialViewModelConfig();
+
+    /**
+     * 执行指定ViewModel的加载动作
+     *
+     * @param  {string}    viewModelName viewModel名称
+     * @param  {ViewModel} viewModel     viewModel实例
+     */
+    function _execViewModelInitial(viewModelName, viewModel){
+        // 输出日志
+        _log.debug("ViewModel [ " + viewModelName + " ] init.");
+        // 执行ViewModel的加载函数(加载函数必须存在)
+        _action.doAction(viewModel.init.bind(viewModel));
+    }
+
+    /**
+     * 执行指定ViewModel的卸载动作
+     *
+     * @param  {string}    viewModelName viewModel名称
+     * @param  {ViewModel} viewModel viewModel实例
+     */
+    function _execViewModelUnInitial(viewModelName, viewModel){
+        // 输出日志
+        _log.debug("ViewModel [ " + viewModelName + " ] unInit.");
+        // 执行ViewModel的卸载函数
+        if (_util.isFunction(viewModel.unInit)){
+            _action.doAction(viewModel.unInit.bind(viewModel));
+        }
+    }
 
     /**
      * 取得并加载指定的ViewModelClass
@@ -2236,8 +2267,16 @@ var ViewModelController = function(configFilePath, completeHandler){
      * @param  {string} path Url路径映射
      */
     this.forwardTo = function(path){
+        // 当前ViewModelController的配置
         var config = this.getViewConfigByPath(path);
+        // 传递的参数
         var param = arguments;
+        // 当前ViewModelController实例对象
+        var that = this;
+
+        // 对正在使用的ViewModel进行卸载操作
+        _execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
+            _util.get(this._currentViewModelInfo, "instance", ""));
 
         // 取得业务画面的HTML，并在指定区域更新
         _ui.updateHTML(this.getTemplatePath(config.template), function(){
@@ -2255,12 +2294,15 @@ var ViewModelController = function(configFilePath, completeHandler){
                         var viewModel = new Class();
                         // 初期化VM的内部缓存
                         viewModel.cache = {};
-                        // 输出日志
-                        _log.debug("ViewModel [ " + config.viewModelClass + " ] init.");
-                        // 执行vm初期化函数
-                        _action.doAction(viewModel.init.bind(viewModel));
+                        // 加载指定ViewModel
+                        _execViewModelInitial(config.viewModelClass, viewModel);
                         // 把VM Class实例存入缓存
                         _viewModelCacheObject[path] = viewModel;
+                        // 存储当前使用的ViewModel实例
+                        that._currentViewModelInfo = {
+                            "instance": viewModel,
+                            "config": config
+                        };
                     }
                 });
             }
@@ -2274,15 +2316,31 @@ var ViewModelController = function(configFilePath, completeHandler){
      * @param  {string} path Url路径映射
      */
     this.backTo = function(path){
+        // ViewModel配置信息
         var config = this.getViewConfigByPath(path);
+        // 当前ViewModelController实例对象
+        var that = this;
+
+        // 对正在使用的ViewModel进行卸载操作
+        _execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
+            _util.get(this._currentViewModelInfo, "instance", ""));
 
         if (!_util.isEmpty(config)){
+            // 渲染制定画面对应的模版
             _ui.updateHTML(this.getTemplatePath(config.template), function(){
+                // 指定画面对应的ViewModel实例
+                var viewModel = _viewModelCacheObject[path];
                 // 更新画面标题
                 _ui.updateDocumentTitle(config.title);
                 // 取得缓存的VM
-                if (_viewModelCacheObject[path]){
-                    _viewModelCacheObject[path].init();
+                if (viewModel){
+                    // 加载指定ViewModel
+                    _execViewModelInitial(config.viewModelClass, viewModel);
+                    // 存储当前使用的ViewModel实例
+                    that._currentViewModelInfo = {
+                        "instance": viewModel,
+                        "config": config
+                    };
                 }else{
                     // 抛出错误SESYSM001E
                     _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");

@@ -191,7 +191,6 @@ GridWidget.prototype.createTBodyHTML = function(value){
     var retHTML = '<tbody>';
     if (value){
         for (var i = 0; i < value.length; i++){
-
             retHTML += this.createRowHTML(value[i], "body");
         }
     }

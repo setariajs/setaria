@@ -35,5 +35,8 @@
 
     "//": ":: optional config ::",
     "//": "模式窗口控件ID",
-    "MODAL_AREA_ID": "_area_message_dialog"
+    "MODAL_AREA_ID": "_area_message_dialog",
+
+    "//": "列表控件每页数据数量",
+    "GRID_ROW_COUNT": 5
 }

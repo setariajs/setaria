@@ -109,3 +109,9 @@
   border-radius: 50%;
 }
 /* /.dashboard画面 */
+
+/* albumList画面 */
+#albumDataPageWrapper {
+  margin-top: 20px;
+}
+/* /.albumList画面 */

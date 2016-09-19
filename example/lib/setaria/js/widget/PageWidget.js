@@ -121,7 +121,7 @@ var PageWidget = function(id, data, value){
         retHTML += '</div>';
 
         // 翻页按钮
-        retHTML += '<div class="col-lg-14 col-md-14 col-sm-14 col-xs-16' +
+        retHTML += '<div class="col-lg-14 col-md-14 col-sm-14 col-xs-16 page-widget-button' +
             '">' +
             '<ul class="pagination page-widget-pagination">';
         retHTML = retHTML +
