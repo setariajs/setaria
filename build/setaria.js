@@ -1287,6 +1287,16 @@ var _url = new function(){
     var SPLIT_CHAR = "/";
 
     /**
+     * 获取当前窗口的完整Url
+     *
+     * @public
+     * @return {string} 当前窗口的完整Url
+     */
+    this.getCurrentUrl = function(){
+        return window.location.href;
+    };
+
+    /**
      * 取得Url中的Hash参数
      *
      * @public

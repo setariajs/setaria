@@ -8,6 +8,14 @@ var PageWidget = function(id, data, value){
     Widget.call(this, "PageWidget", id, data, value);
 
     /**
+     * PAGE_NO
+     *
+     * @private
+     * @type {string}
+     */
+    var PAGE_NO_ATTRIBUTE = "data-page-widget-current-pageno";
+
+    /**
      * 翻页类型
      *
      * @private
@@ -21,6 +29,19 @@ var PageWidget = function(id, data, value){
     };
 
     var dummyDom = $("<div></div>");
+
+    /**
+     * 更新当前页号
+     *
+     * @private
+     * @param  {string} pageNo
+     */
+    var updateCurrentPageNo = function(pageNo){
+        if (this.dom){
+            this.dom.setAttribute(PAGE_NO_ATTRIBUTE, pageNo);
+        }
+    };
+    this.updateCurrentPageNo = updateCurrentPageNo;
 
     /**
      * 绑定按钮事件
@@ -144,7 +165,6 @@ var PageWidget = function(id, data, value){
 
         retHTML = this.updatePaginationButtonByDummy(dummyDom.html(retHTML));
 
-
         return retHTML;
     };
     this.prepareHTML = prepareHTML;
@@ -212,13 +232,17 @@ var PageWidget = function(id, data, value){
         this.updatePageInfo();
         // 更新翻页按钮状态
         this.updatePaginationButton();
+        // 存储页号
+        this.updateCurrentPageNo(pageNo);
         // 触发控件pageChange事件
-        var e = new CustomEvent('pageChange', {
-            "detail": {
-                "pageNo": pageNo
-            }
-        });
-        this.dispatchEvent(e);
+        var e = $.Event("pageChange");
+        // var e = new CustomEvent('pageChange', {
+            // "detail": {
+                // "pageNo": pageNo
+            // }
+        // });
+        $(this.dom).trigger(e);
+        // this.dispatchEvent(e);
 
         // 阻止href='#'执行
         evt.preventDefault();
@@ -238,6 +262,7 @@ var PageWidget = function(id, data, value){
         this.bindPageButtonEvent();
         this.updatePageInfo();
         this.updatePaginationButton();
+        this.updateCurrentPageNo(this.value.currentPageNo);
         return this;
     };
     this.placeTo = placeTo;
@@ -257,6 +282,17 @@ var PageWidget = function(id, data, value){
         return this;
     };
     this.replaceTo = replaceTo;
+
+    /**
+     * 取得当前页号
+     *
+     * @public
+     * @return {string} 当前页号
+     */
+    var getCurrentPageNo = function(){
+        return this.dom ? this.dom.getAttribute(PAGE_NO_ATTRIBUTE) : "";
+    };
+    this.getCurrentPageNo = getCurrentPageNo;
 };
 PageWidget.prototype = Object.create(Widget.prototype);
 PageWidget.prototype.construtor = PageWidget;

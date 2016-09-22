@@ -36,9 +36,9 @@ var GridWidget = function(id, data, value){
      */
     var prepareHTML = function(){
         // 包含Title行
-        var retHTML = '<div class="table-responsive"';
+        var retHTML = '<div class="table-responsive grid-widget"';
         var rowCount = !!this.data && _util.isNumber(this.data.rowCount) ? this.data.rowCount + 1 : this.DEFAULT_ROW_COUNT + 1;
-        var tableHeight = this.ROW_HEIGHT * rowCount + 1;
+        var tableHeight = this.ROW_HEIGHT * rowCount + 2;
 
         if (this.value.length >= rowCount){
             // 包含Table Border
@@ -46,7 +46,7 @@ var GridWidget = function(id, data, value){
         }
         retHTML +=  '><table' +
             ' id="' + this.id + '"' +
-            ' class="table table-bordered grid-widget grid-nowrap grid-widget-hover"' +
+            ' class="table table-bordered grid-nowrap grid-widget-hover"' +
             '>';
         if (!_util.isEmpty(this.value)){
             retHTML = retHTML +
