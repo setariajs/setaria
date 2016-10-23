@@ -18,6 +18,69 @@ var _url = new function(){
     var SPLIT_CHAR = "/";
 
     /**
+     * url历史地址列表
+     * 最新的url在数组前面
+     *
+     * @private
+     * @type {Array}
+     */
+    var _urlHistory = [];
+
+    var _index = 0;
+
+    this.getCurrentIndex = function(){
+        return _index;
+    };
+
+    this.forward = function(url){
+        _index++;
+        while(_urlHistory.length > 0){
+            // 退回到之前的url后再forward的场合，删除从退至的url到顶部之间的url
+            if (_urlHistory[0].index >= _index){
+                // 删除数组最前面的元素
+                _log.debug(_urlHistory[0].url);
+                _urlHistory.shift();
+            }else{
+                break;
+            }
+        }
+
+        _log.debug("add " + url + " to history!");
+        // 将url添加至数组前方
+        _urlHistory.unshift({
+            "index": _index,
+            "url": url
+        });
+
+        _log.debug(_urlHistory.length);
+    };
+
+    this.back = function(url){
+        var ret = 0;
+        var i = 0;
+        if (!_util.isEmpty(_urlHistory)){
+            for (i = 0; i < _urlHistory.length; i++){
+                // 因为在回退时不会删除_urlHistory中的值，所以当进行连续两次回退操作时，
+                // 第二次的查找的开始位置是基于当前_index的值，也就是从第一次回退到的位置开始查找
+                if (_urlHistory[i].index <= _index){
+                    ret++;
+                    if (_urlHistory[i].url === url){
+                        // 回退index
+                        _index = _urlHistory[i].index - 1;
+                        break;
+                    }
+                }
+            }
+            // if (ret !== _urlHistory.length){
+                ret = -ret;
+            // }else{
+                // ret = 0;
+            // }
+        }
+        return ret;
+    };
+
+    /**
      * 获取当前窗口的完整Url
      *
      * @public

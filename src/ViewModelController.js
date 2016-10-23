@@ -14,7 +14,7 @@ var ViewModelController = function(configFilePath, completeHandler){
     var _viewModelCacheObject = {};
 
     // 最近一次使用的ViewModel对象
-    var _currentViewModelInfo = null;
+    this._currentViewModelInfo = null;
 
     /**
      * 取得ViewModelConfig
@@ -48,18 +48,29 @@ var ViewModelController = function(configFilePath, completeHandler){
     }
     _initialViewModelConfig();
 
+    this.initialHandler = function(func){
+        func.call(null);
+    };
+    this.unInitialHandler = function(func){
+        func.call(null);
+    };
+
     /**
      * 执行指定ViewModel的加载动作
      *
      * @param  {string}    viewModelName viewModel名称
      * @param  {ViewModel} viewModel     viewModel实例
      */
-    function _execViewModelInitial(viewModelName, viewModel){
+    this._execViewModelInitial = function(viewModelName, viewModel){
         // 输出日志
         _log.debug("ViewModel [ " + viewModelName + " ] init.");
-        // 执行ViewModel的加载函数(加载函数必须存在)
-        _action.doAction(viewModel.init.bind(viewModel));
-    }
+        if (_util.isFunction(this.initialHandler)){
+            this.initialHandler(function(){
+                // 执行ViewModel的加载函数(加载函数必须存在)
+                _action.doAction(viewModel.init.bind(viewModel));
+            });
+        }
+    };
 
     /**
      * 执行指定ViewModel的卸载动作
@@ -67,14 +78,18 @@ var ViewModelController = function(configFilePath, completeHandler){
      * @param  {string}    viewModelName viewModel名称
      * @param  {ViewModel} viewModel viewModel实例
      */
-    function _execViewModelUnInitial(viewModelName, viewModel){
+    this._execViewModelUnInitial = function(viewModelName, viewModel){
         // 输出日志
         _log.debug("ViewModel [ " + viewModelName + " ] unInit.");
-        // 执行ViewModel的卸载函数
-        if (_util.isFunction(viewModel.unInit)){
-            _action.doAction(viewModel.unInit.bind(viewModel));
+        if (_util.isFunction(this.unInitialHandler)){
+            this.unInitialHandler(function(){
+                // 执行ViewModel的卸载函数
+                if (_util.isFunction(viewModel.unInit)){
+                    _action.doAction(viewModel.unInit.bind(viewModel));
+                }
+            });
         }
-    }
+    };
 
     /**
      * 取得并加载指定的ViewModelClass
@@ -178,7 +193,7 @@ var ViewModelController = function(configFilePath, completeHandler){
         var that = this;
 
         // 对正在使用的ViewModel进行卸载操作
-        _execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
+        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
             _util.get(this._currentViewModelInfo, "instance", ""));
 
         // 取得业务画面的HTML，并在指定区域更新
@@ -198,13 +213,14 @@ var ViewModelController = function(configFilePath, completeHandler){
                         // 初期化VM的内部缓存
                         viewModel.cache = {};
                         // 加载指定ViewModel
-                        _execViewModelInitial(config.viewModelClass, viewModel);
+                        that._execViewModelInitial(config.viewModelClass, viewModel);
                         // 把VM Class实例存入缓存
                         _viewModelCacheObject[path] = viewModel;
                         // 存储当前使用的ViewModel实例
                         that._currentViewModelInfo = {
                             "instance": viewModel,
-                            "config": config
+                            "config": config,
+                            "path": path
                         };
                     }
                 });
@@ -221,11 +237,13 @@ var ViewModelController = function(configFilePath, completeHandler){
     this.backTo = function(path){
         // ViewModel配置信息
         var config = this.getViewConfigByPath(path);
+        // 传递的参数
+        var param = arguments;
         // 当前ViewModelController实例对象
         var that = this;
 
         // 对正在使用的ViewModel进行卸载操作
-        _execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
+        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
             _util.get(this._currentViewModelInfo, "instance", ""));
 
         if (!_util.isEmpty(config)){
@@ -237,18 +255,34 @@ var ViewModelController = function(configFilePath, completeHandler){
                 _ui.updateDocumentTitle(config.title);
                 // 取得缓存的VM
                 if (viewModel){
-                    // 加载指定ViewModel
-                    _execViewModelInitial(config.viewModelClass, viewModel);
-                    // 存储当前使用的ViewModel实例
-                    that._currentViewModelInfo = {
-                        "instance": viewModel,
-                        "config": config
-                    };
-                }else{
-                    // 抛出错误SESYSM001E
-                    _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
+                    var viewModelCacheObj = viewModel.cache;
+                    // 存在ViewModel的场合
+                    if (!_util.isEmpty(config.viewModelClass)){
+                        // load class file
+                        this.loadScript(config, config.viewModelClass, function(VMClass){
+                            // 如果对应的VM Class名存在
+                            if (_util.isFunction(VMClass)){
+                                // 把传递参数帮定制
+                                var Class = VMClass.bind.apply(VMClass, param);
+                                // 实例化VM Class
+                                var viewModel = new Class();
+                                // 初期化VM的内部缓存
+                                viewModel.cache = viewModelCacheObj;
+                                // 加载指定ViewModel
+                                that._execViewModelInitial(config.viewModelClass, viewModel);
+                                // 把VM Class实例存入缓存
+                                _viewModelCacheObject[path] = viewModel;
+                                // 存储当前使用的ViewModel实例
+                                that._currentViewModelInfo = {
+                                    "instance": viewModel,
+                                    "config": config,
+                                    "path": path
+                                };
+                            }
+                        });
+                    }
                 }
-            });
+            }.bind(this));
         }else{
             // 抛出错误SESYSM001E
             _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
@@ -278,5 +312,9 @@ var ViewModelController = function(configFilePath, completeHandler){
      */
     this.getViewModelConfig = function(){
         return _viewModelConfigs;
+    };
+
+    this.getCurrentViewModelInfo = function(){
+        return this._currentViewModelInfo;
     };
 };

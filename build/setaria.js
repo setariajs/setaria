@@ -520,7 +520,7 @@ var _html = new function(){
         if (domNode.is("form") && _util.isObject(data)){
             var key = null;
             for (key in data){
-                this.setFormItemValueByName(key, data[key]);
+                this.setFormItemValueByName(key, data[key], domNode[0]);
             }
         // DOM为其他控件时
         }else{
@@ -532,11 +532,17 @@ var _html = new function(){
      * 设置Form表单内控件的值
      *
      * @public
-     * @param {string} name  控件name属性值
-     * @param {string} value 控件的值
+     * @param {string}  name       控件name属性值
+     * @param {string}  value      控件的值
+     * @param {Element} parentNode 父节点
      */
-    this.setFormItemValueByName = function(name, value){
-        var selector = $("name=[" + name + "]");
+    this.setFormItemValueByName = function(name, value, parentNode){
+        var selector = null;
+        if (parentNode){
+            selector = $(parentNode).find("[name='" + name + "']");
+        }else{
+            selector = $("[name='" + name + "']");
+        }
         if (selector.is(":checkbox") ||
             selector.is(":radio")){
             selector.each(function(){
@@ -563,6 +569,18 @@ var _html = new function(){
         return domObj.length > 0 ? domObj[0] : null;
     };
 
+    this._validate = function(dom){
+        var ret = null;
+        // require check
+        if (dom.validity.valueMissing){
+            ret = "valueMissing";
+        }else if (dom.validity.patternMismatch){
+            ret = "patternMismatch";
+        }
+
+        return ret;
+    };
+
     /**
      * 对指定的控件进行校验
      *
@@ -575,6 +593,32 @@ var _html = new function(){
      */
     this.validate = function(id, handler){
         var ret = true;
+        var that = this;
+
+        _byId(id).find(":invalid").each(function(){
+            var dom = this;
+            var validityState = that._validate(dom);
+            var error = {
+                "dom": dom,
+                "validityState": validityState
+            };
+            $(dom).on("focus.validate", function(){
+                // 移除出错样式
+                _ui.removeValidationStyle(dom);
+            });
+            if (!_util.isEmpty(validityState)){
+                if (_util.isFunction(handler)){
+                    if (!handler(error)){
+                        _ui._showErrorMessage(error);
+                    }
+                }else{
+                    _ui._showErrorMessage(error);
+                }
+                ret = false;
+                // 只对第一个出错的项目进行处理
+                return false;
+            }
+        });
 
         return ret;
     };
@@ -606,7 +650,12 @@ var _html = new function(){
      * @param {string} id DOM ID
      */
     this.enable = function(id){
-        _byId(id).prop("disabled", false);
+        var selector = _byId(id);
+        // DOM节点为Form节点的场合
+        if (selector.is("form")){
+            selector = $("#" + id + " :input");
+        }
+        selector.prop("disabled", false);
     };
 
     /**
@@ -616,7 +665,12 @@ var _html = new function(){
      * @param {string} id DOM ID
      */
     this.disable = function(id){
-        _byId(id).prop("disabled", true);
+        var selector = _byId(id);
+        // DOM节点为Form节点的场合
+        if (selector.is("form")){
+            selector = $("#" + id + " :input");
+        }
+        selector.prop("disabled", true);
     };
 
     /**
@@ -699,6 +753,14 @@ var _http = new function(){
             var defaultTimeout = _config.DEFAULT_TIMEOUT || 20000;
             // 设值超时时间
             context.timeout = _util.get(context, "timeout", _config.DEFAULT_TIMEOUT);
+            var beforeSend = context.beforeSend;
+            // 显示overlay
+            if (!_util.isFunction(beforeSend)){
+                context.beforeSend = function(xhr) {
+                    // 显示Mask
+                    _ui.toggleProcessing(true);
+                };
+            }
             // ajax通信失败时的处理
             if (_util.isFunction(context.error)){
                 // 如果定义了失败时的回调函数
@@ -707,6 +769,10 @@ var _http = new function(){
                 // 使用默认ajax通信失败处理
                 context.error = _defaultErrorHandler;
             }
+            context.complete = function() {
+                // 隐藏显示的mask
+                _ui.toggleProcessing(false);
+            };
             // 开始ajax通信
             return $.ajax(context);
         }
@@ -739,11 +805,9 @@ var _http = new function(){
      * @param  {HTTPContext} context HTTP通信设定对象
      */
     this.doAsync = function(context){
-        if (!_util.isEmpty(context)){
-            // 使用异步调用
-            context.async = true;
-            _doXhr(context);
-        }
+        // 使用异步调用
+        context.async = true;
+        return _doXhr(context);
     };
 
     /**
@@ -753,11 +817,9 @@ var _http = new function(){
      * @param  {HTTPContext} context HTTP通信设定对象
      */
     this.doSync = function(context){
-        if (!_util.isEmpty(context)){
-            // 同步模式
-            context.async = false;
-            _doXhr(context);
-        }
+        // 同步模式
+        context.async = false;
+        return _doXhr(context);
     };
 };
 /**
@@ -936,9 +998,11 @@ var _message = new function(){
      * 取得Setaria配置信息
      *
      * @private
+     *
+     * @param  {string}  contextRoot
      * @return {Boolean} 配置信息取得成功的场合，返回true
      */
-    function _loadConfig(){
+    function _loadConfig(contextRoot){
         var ret = false;
         $("script").each(function(){
             // 配置文件路径
@@ -947,6 +1011,8 @@ var _message = new function(){
             var configContent = null;
 
             if (!_util.isEmpty(dataConfig)){
+                // 把当前路径信息写入配置对象
+                _config.SHELL_ROOT = contextRoot;
                 // 取得配置文件内容
                 configContent = _util.getFileContent(dataConfig, "json");
 
@@ -970,13 +1036,45 @@ var _message = new function(){
     }
 
     /**
+     * 取得当前路径
+     *
+     * @private
+     * @return {string}
+     */
+    function _getContextRoot(){
+        var ret = window.location.pathname;
+        var pathLength = null;
+        var pathArr = null;
+        // 取得配置文件绝对路径
+        if (ret !== "/"){
+            ret = ret.substring(1);
+            pathArr = ret.split("/");
+            if (pathArr.length > 1){
+                // 路径最后为文件的场合
+                if (pathArr[pathArr.length - 1].indexOf(".")){
+                    // 删除最后
+                    pathArr.pop();
+                }
+            }
+            ret = "/";
+            for (var i = 0; i < pathArr.length; i++){
+                ret += pathArr[i] + "/";
+            }
+        }
+        return ret;
+    }
+
+    /**
      * 启动函数
      *
+     * @param {Function} hanlder
      * @public
      */
-    this.start = function(){
+    this.start = function(handler){
+        // 取得当前路径
+        var contextRoot = _getContextRoot();
         // 取得配置信息
-        var loadConfigResult = _loadConfig();
+        var loadConfigResult = _loadConfig(contextRoot);
         // 当成功加载配置文件时
         if (loadConfigResult){
             // 更新引用文件的缓存
@@ -988,6 +1086,9 @@ var _message = new function(){
             window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
             // 绑定Hash Change事件
             this.bindHashChange();
+            if (_util.isFunction(handler)){
+                handler();
+            }
             // 跳转页面
             this.dispatcher(window._viewModelController);
         }
@@ -1266,6 +1367,45 @@ var _ui = new function(){
             document.title = title;
         }
     };
+
+    /**
+     * 显示校验错误
+     *
+     * error: {
+     *     "dom": [DOMObject],
+     *     "validityState": [String],#ValidityState
+     * }
+     *
+     * @protected
+     * @param  {Object} error 错误对象
+     */
+    this._showErrorMessage = function(error){
+        if (!_util.isEmpty(error)){
+            var dom = error.dom;
+            var validityState = error.validityState;
+            var errorMessage = dom.getAttribute(validityState + "Tips") ||
+                dom.getAttribute("tips") ||
+                _message.getMessage(validityState, [dom.getAttribute("data-elem-name")]);
+            error.errorMessage = errorMessage;
+            _ui.addValidationStyle(dom);
+            _ui.showErrorMessage(error);
+        }
+    };
+
+    /**
+     * 显示校验错误
+     *
+     * error: {
+     *     "dom": [DOMObject],
+     *     "validityState": [String],#ValidityState
+     * }
+     *
+     * @public
+     * @param  {Object} error 错误对象
+     */
+    this.showErrorMessage = function(error){
+        alert(error.errorMessage);
+    };
 };
 /**
  * URL模块
@@ -1285,6 +1425,69 @@ var _url = new function(){
      * @type {string}
      */
     var SPLIT_CHAR = "/";
+
+    /**
+     * url历史地址列表
+     * 最新的url在数组前面
+     *
+     * @private
+     * @type {Array}
+     */
+    var _urlHistory = [];
+
+    var _index = 0;
+
+    this.getCurrentIndex = function(){
+        return _index;
+    };
+
+    this.forward = function(url){
+        _index++;
+        while(_urlHistory.length > 0){
+            // 退回到之前的url后再forward的场合，删除从退至的url到顶部之间的url
+            if (_urlHistory[0].index >= _index){
+                // 删除数组最前面的元素
+                _log.debug(_urlHistory[0].url);
+                _urlHistory.shift();
+            }else{
+                break;
+            }
+        }
+
+        _log.debug("add " + url + " to history!");
+        // 将url添加至数组前方
+        _urlHistory.unshift({
+            "index": _index,
+            "url": url
+        });
+
+        _log.debug(_urlHistory.length);
+    };
+
+    this.back = function(url){
+        var ret = 0;
+        var i = 0;
+        if (!_util.isEmpty(_urlHistory)){
+            for (i = 0; i < _urlHistory.length; i++){
+                // 因为在回退时不会删除_urlHistory中的值，所以当进行连续两次回退操作时，
+                // 第二次的查找的开始位置是基于当前_index的值，也就是从第一次回退到的位置开始查找
+                if (_urlHistory[i].index <= _index){
+                    ret++;
+                    if (_urlHistory[i].url === url){
+                        // 回退index
+                        _index = _urlHistory[i].index - 1;
+                        break;
+                    }
+                }
+            }
+            // if (ret !== _urlHistory.length){
+                ret = -ret;
+            // }else{
+                // ret = 0;
+            // }
+        }
+        return ret;
+    };
 
     /**
      * 获取当前窗口的完整Url
@@ -1438,6 +1641,54 @@ var _url = new function(){
  */
 var _util = new function(){
     "use strict";
+
+    /**
+     * 日期解析失败时的消息ID
+     *
+     * @const
+     * @type {String}
+     */
+    var MSGID_FAILED_TO_PARSE = "SESYSM004E";
+
+    /**
+     * 日期的年(4位)
+     */
+    var FULLYEAR = "yyyy";
+
+    /**
+     * 日期的年(2位)
+     */
+    var YEAR = "yy";
+
+    /**
+     * 日期的月
+     */
+    var MONTH = "MM";
+
+    /**
+     * 日期的日
+     */
+    var DATE = "dd";
+
+    /**
+     * 日期的时(0-23)
+     */
+    var HOUR = "HH";
+
+    /**
+     * 日期的分
+     */
+    var MINUTES = "mm";
+
+    /**
+     * 日期的秒
+     */
+    var SECONDS = "ss";
+
+    /**
+     * 日期的毫秒
+     */
+    var MILLISECONDS = "SSS";
 
     /**
      * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
@@ -1621,6 +1872,113 @@ var _util = new function(){
     }
 
     /**
+     * _get
+     *
+     * @param  {String} string
+     * @param  {String} format
+     * @param  {String} part
+     * @return {Number}
+     */
+    function _getDate(string, format, part){
+        var start = format.indexOf(part);
+        if (start < 0) {
+            return null;
+        }
+        var value = string.substring(start, start + part.length);
+        if (isNaN(value)) {
+            throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+        }
+        return value - 0;
+    }
+
+    /**
+     * 替换指定日期格式中的指定部分
+     *
+     * @param {String} string
+     * @param {String} format
+     * @param {String} part　
+     * @param {String} mark
+     * @return {String}
+     */
+    function _replace(string, format, part, mark){
+        var start = format.indexOf(part);
+        if (start < 0) {
+            return string;
+        }
+        if (string.length < start + part.length) {
+            return string;
+        }
+        return string.substring(0, start) + mark + string.substring(start + part.length);
+    }
+
+    /**
+     * 检查日期格式是否合法
+     *
+     * @param {String} string 解析的日期字符串
+     * @param {String} format 日期字符串格式
+     * @return {Boolean} 结果
+     */
+    function _checkDateFormat(string, format){
+        if (!string || !format) {
+            return false;
+        }
+        var markedFormat = format;
+        markedFormat = markedFormat.replace(FULLYEAR, "####");
+        markedFormat = markedFormat.replace(MONTH, "##");
+        markedFormat = markedFormat.replace(DATE, "##");
+        markedFormat = markedFormat.replace(HOUR, "##");
+        markedFormat = markedFormat.replace(MINUTES, "##");
+        markedFormat = markedFormat.replace(SECONDS, "##");
+        markedFormat = markedFormat.replace(MILLISECONDS, "###");
+        markedFormat = markedFormat.replace(YEAR, "##");
+
+        var markedString = string;
+        markedString = _replace(markedString, format, FULLYEAR, "####");
+        markedString = _replace(markedString, format, MONTH, "##");
+        markedString = _replace(markedString, format, DATE, "##");
+        markedString = _replace(markedString, format, HOUR, "##");
+        markedString = _replace(markedString, format, MINUTES, "##");
+        markedString = _replace(markedString, format, SECONDS, "##");
+        markedString = _replace(markedString, format, MILLISECONDS, "###");
+        markedString = _replace(markedString, format, YEAR, "##");
+        return (markedFormat == markedString);
+    }
+
+    /**
+     * 检查日期是否合法
+     *
+     * @param {Number} fullYear 年
+     * @param {Number} month 月
+     * @param {Number} date 日
+     * @return {Boolean} 结果
+     */
+    function _checkDate(fullYear, month, date){
+        switch (month) {
+            case 0://Jan
+            case 2://Mar
+            case 4://May
+            case 6://Jul
+            case 7://Aug
+            case 9://Oct
+            case 11://Dec
+                return (date > 0 && date <= 31);
+            case 3://Apr
+            case 5://Jun
+            case 8://Sep
+            case 10://Nov
+                return (date > 0 && date <= 30);
+            case 1://Feb
+                if (fullYear % 100 === 0) {
+                    return (date > 0 && date <= 28);
+                } else if (fullYear % 4 === 0) {
+                    return (date > 0 && date <= 29);
+                } else {
+                    return (date > 0 && date <= 28);
+                }
+        }
+    }
+
+    /**
      * 检查输入值是否为空，无法判断基本类型（整数，布尔）
      *
      * @public
@@ -1798,29 +2156,120 @@ var _util = new function(){
     };
 
     /**
+     * 使用指定的格式把日期字符串转换为日期类型
+     *
+     * @param {String} string
+     * @param {String} format
+     * @return {Date}
+     */
+    this.parseDate = function(string, format){
+        if (!_checkDateFormat(string, format)) {
+            throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+        }
+
+        var result = new Date();
+        result.setTime(0);
+        var fullYear = _getDate(string, format, FULLYEAR);
+        var year = _getDate(string, format, YEAR);
+        var month = _getDate(string, format, MONTH);
+        var date = _getDate(string, format, DATE);
+        var hours = _getDate(string, format, HOUR);
+        var minutes = _getDate(string, format, MINUTES);
+        var seconds = _getDate(string, format, SECONDS);
+        var milliseconds = _getDate(string, format, MILLISECONDS);
+
+        if (fullYear) {
+            result.setFullYear(fullYear);
+        } else {
+            if (year) {
+                result.setYear(year);
+            }
+        }
+        if (month) {
+            if (month > 12 || month < 1) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setMonth((month + 11) % 12);
+        }
+        if (date) {
+            if (!_checkDate(result.getFullYear(), result.getMonth(), date)) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setDate(date);
+        }
+        if (hours) {
+            if (hours > 23 || hours < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setHours(hours);
+        }
+
+        if (minutes) {
+            if (minutes > 59 || date < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setMinutes(minutes);
+        }
+
+        if (seconds) {
+            if (seconds > 59 || seconds < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setSeconds(seconds);
+        }
+        if (milliseconds) {
+            if (milliseconds < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setMilliseconds(milliseconds);
+        }
+        return result;
+    };
+
+    /**
      * 转换日期对象到指定格式字符串
+     *
+     * @example
+     *
+     * "yyyy-MM-dd E HH:mm:ss" ==> 2009-03-10 二 20:09:04
+     * "yyyy-MM-dd EE hh:mm:ss" ==> 2009-03-10 周二 08:09:04
+     * "yyyy-MM-dd EEE hh:mm:ss" ==> 2009-03-10 星期二 08:09:04
      *
      * @public
      * @param  {Date}   dateObj
      * @param  {string} fmt      输出日期格式
      * @return {string} 指定格式字符串
      */
-    this.dateFormat = function(dateObj, fmt){ //author: meizz
+    this.dateFormat = function(dateObj, fmt){
         var o = {
-            "M+": dateObj.getMonth() + 1,
-            "d+": dateObj.getDate(),
-            "h+": dateObj.getHours(),
-            "m+": dateObj.getMinutes(),
-            "s+": dateObj.getSeconds(),
-            "q+": Math.floor((dateObj.getMonth() + 3) / 3),
-            "S": dateObj.getMilliseconds()
+            "M+" : dateObj.getMonth()+1, //月份
+            "d+" : dateObj.getDate(), //日
+            "h+" : dateObj.getHours()%12 === 0 ? 12 : dateObj.getHours()%12, //小时
+            "H+" : dateObj.getHours(), //小时
+            "m+" : dateObj.getMinutes(), //分
+            "s+" : dateObj.getSeconds(), //秒
+            "q+" : Math.floor((dateObj.getMonth()+3)/3), //季度
+            "S" : dateObj.getMilliseconds() //毫秒
         };
-        if (/(y+)/.test(fmt)){
-            fmt = fmt.replace(RegExp.$1, (dateObj.getFullYear() + "").substr(4 - RegExp.$1.length));
+        var week = {
+            "0" : "日",
+            "1" : "一",
+            "2" : "二",
+            "3" : "三",
+            "4" : "四",
+            "5" : "五",
+            "6" : "六"
+        };
+        if(/(y+)/.test(fmt)){
+            fmt=fmt.replace(RegExp.$1, (dateObj.getFullYear()+"").substr(4 - RegExp.$1.length));
         }
-        for (var k in o)
-        if (new RegExp("(" + k + ")").test(fmt)){
-            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]): (("00" + o[k]).substr(("" + o[k]).length)));
+        if(/(E+)/.test(fmt)){
+            fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "星期" : "周") : "")+week[dateObj.getDay()]);
+        }
+        for(var k in o){
+            if(new RegExp("("+ k +")").test(fmt)){
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+            }
         }
         return fmt;
     };
@@ -1840,34 +2289,51 @@ var _util = new function(){
     };
 
     /**
+     * maskString
+     *
+     * @param  {String} value
+     * @param  {Number} position       1:first,0:last
+     * @param  {Number} maskLength
+     * @param  {String} replaceString  char(1)
+     * @return {String}
+     */
+    function _maskString(value, position, maskLength, replaceString){
+        var ret = null;
+        maskLength = maskLength > value.length ? value.length : maskLength;
+        replaceString = _util.isEmpty(replaceString) ? "*" : replaceString;
+        var maskValue = new Array(maskLength + 1).join('*');
+        var maskPosition = (position === 1) ? maskLength : value.length - maskLength;
+        if (!_util.isEmpty(value)){
+            if (position === 1){
+                ret = maskValue + value.substr(maskPosition);
+            }else{
+                ret = value.substr(0, maskPosition) + maskValue;
+            }
+        }
+        return ret;
+    }
+
+    this.maskStringLeft = function(value, maskLength, replaceString){
+        return _maskString(value, 1, maskLength, replaceString);
+    };
+
+    this.maskStringRight = function(value, maskLength, replaceString){
+        return _maskString(value, 0, maskLength, replaceString);
+    };
+
+    /**
      * 读取本地配置文件
      *
      * @param  {string} filePath 配置文件路径
      */
     this.getFileContent = function(filePath, dataType){
         var ret = null;
-        var contextPath = window.location.pathname;
         var configContent = null;
         var pathIndex = 0;
         var fileAbsolutePath = window.location.origin;
         var context = new HTTPContext();
 
-        // 取得配置文件绝对路径
-        if (!_util.isEmpty(contextPath) &&
-            contextPath !== "/"){
-            contextPath = contextPath.substring(1);
-            if (contextPath.split("/")[0].indexOf(".") === -1){
-                pathIndex = contextPath.indexOf("/");
-                if (pathIndex !== -1){
-                    contextPath = "/" + contextPath.substring(0, pathIndex + 1);
-                }
-            }else{
-                contextPath = "/";
-            }
-        }
-        fileAbsolutePath += contextPath + filePath;
-
-        context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
+        context.url = _config.SHELL_ROOT + filePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.error = function(jqXHR, textStatus, errorThrown){
@@ -2121,7 +2587,7 @@ var ViewModelController = function(configFilePath, completeHandler){
     var _viewModelCacheObject = {};
 
     // 最近一次使用的ViewModel对象
-    var _currentViewModelInfo = null;
+    this._currentViewModelInfo = null;
 
     /**
      * 取得ViewModelConfig
@@ -2155,18 +2621,29 @@ var ViewModelController = function(configFilePath, completeHandler){
     }
     _initialViewModelConfig();
 
+    this.initialHandler = function(func){
+        func.call(null);
+    };
+    this.unInitialHandler = function(func){
+        func.call(null);
+    };
+
     /**
      * 执行指定ViewModel的加载动作
      *
      * @param  {string}    viewModelName viewModel名称
      * @param  {ViewModel} viewModel     viewModel实例
      */
-    function _execViewModelInitial(viewModelName, viewModel){
+    this._execViewModelInitial = function(viewModelName, viewModel){
         // 输出日志
         _log.debug("ViewModel [ " + viewModelName + " ] init.");
-        // 执行ViewModel的加载函数(加载函数必须存在)
-        _action.doAction(viewModel.init.bind(viewModel));
-    }
+        if (_util.isFunction(this.initialHandler)){
+            this.initialHandler(function(){
+                // 执行ViewModel的加载函数(加载函数必须存在)
+                _action.doAction(viewModel.init.bind(viewModel));
+            });
+        }
+    };
 
     /**
      * 执行指定ViewModel的卸载动作
@@ -2174,14 +2651,18 @@ var ViewModelController = function(configFilePath, completeHandler){
      * @param  {string}    viewModelName viewModel名称
      * @param  {ViewModel} viewModel viewModel实例
      */
-    function _execViewModelUnInitial(viewModelName, viewModel){
+    this._execViewModelUnInitial = function(viewModelName, viewModel){
         // 输出日志
         _log.debug("ViewModel [ " + viewModelName + " ] unInit.");
-        // 执行ViewModel的卸载函数
-        if (_util.isFunction(viewModel.unInit)){
-            _action.doAction(viewModel.unInit.bind(viewModel));
+        if (_util.isFunction(this.unInitialHandler)){
+            this.unInitialHandler(function(){
+                // 执行ViewModel的卸载函数
+                if (_util.isFunction(viewModel.unInit)){
+                    _action.doAction(viewModel.unInit.bind(viewModel));
+                }
+            });
         }
-    }
+    };
 
     /**
      * 取得并加载指定的ViewModelClass
@@ -2285,7 +2766,7 @@ var ViewModelController = function(configFilePath, completeHandler){
         var that = this;
 
         // 对正在使用的ViewModel进行卸载操作
-        _execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
+        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
             _util.get(this._currentViewModelInfo, "instance", ""));
 
         // 取得业务画面的HTML，并在指定区域更新
@@ -2305,13 +2786,14 @@ var ViewModelController = function(configFilePath, completeHandler){
                         // 初期化VM的内部缓存
                         viewModel.cache = {};
                         // 加载指定ViewModel
-                        _execViewModelInitial(config.viewModelClass, viewModel);
+                        that._execViewModelInitial(config.viewModelClass, viewModel);
                         // 把VM Class实例存入缓存
                         _viewModelCacheObject[path] = viewModel;
                         // 存储当前使用的ViewModel实例
                         that._currentViewModelInfo = {
                             "instance": viewModel,
-                            "config": config
+                            "config": config,
+                            "path": path
                         };
                     }
                 });
@@ -2328,11 +2810,13 @@ var ViewModelController = function(configFilePath, completeHandler){
     this.backTo = function(path){
         // ViewModel配置信息
         var config = this.getViewConfigByPath(path);
+        // 传递的参数
+        var param = arguments;
         // 当前ViewModelController实例对象
         var that = this;
 
         // 对正在使用的ViewModel进行卸载操作
-        _execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
+        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
             _util.get(this._currentViewModelInfo, "instance", ""));
 
         if (!_util.isEmpty(config)){
@@ -2344,18 +2828,34 @@ var ViewModelController = function(configFilePath, completeHandler){
                 _ui.updateDocumentTitle(config.title);
                 // 取得缓存的VM
                 if (viewModel){
-                    // 加载指定ViewModel
-                    _execViewModelInitial(config.viewModelClass, viewModel);
-                    // 存储当前使用的ViewModel实例
-                    that._currentViewModelInfo = {
-                        "instance": viewModel,
-                        "config": config
-                    };
-                }else{
-                    // 抛出错误SESYSM001E
-                    _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
+                    var viewModelCacheObj = viewModel.cache;
+                    // 存在ViewModel的场合
+                    if (!_util.isEmpty(config.viewModelClass)){
+                        // load class file
+                        this.loadScript(config, config.viewModelClass, function(VMClass){
+                            // 如果对应的VM Class名存在
+                            if (_util.isFunction(VMClass)){
+                                // 把传递参数帮定制
+                                var Class = VMClass.bind.apply(VMClass, param);
+                                // 实例化VM Class
+                                var viewModel = new Class();
+                                // 初期化VM的内部缓存
+                                viewModel.cache = viewModelCacheObj;
+                                // 加载指定ViewModel
+                                that._execViewModelInitial(config.viewModelClass, viewModel);
+                                // 把VM Class实例存入缓存
+                                _viewModelCacheObject[path] = viewModel;
+                                // 存储当前使用的ViewModel实例
+                                that._currentViewModelInfo = {
+                                    "instance": viewModel,
+                                    "config": config,
+                                    "path": path
+                                };
+                            }
+                        });
+                    }
                 }
-            });
+            }.bind(this));
         }else{
             // 抛出错误SESYSM001E
             _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
@@ -2385,5 +2885,9 @@ var ViewModelController = function(configFilePath, completeHandler){
      */
     this.getViewModelConfig = function(){
         return _viewModelConfigs;
+    };
+
+    this.getCurrentViewModelInfo = function(){
+        return this._currentViewModelInfo;
     };
 };

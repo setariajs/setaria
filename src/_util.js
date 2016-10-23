@@ -10,6 +10,54 @@ var _util = new function(){
     "use strict";
 
     /**
+     * 日期解析失败时的消息ID
+     *
+     * @const
+     * @type {String}
+     */
+    var MSGID_FAILED_TO_PARSE = "SESYSM004E";
+
+    /**
+     * 日期的年(4位)
+     */
+    var FULLYEAR = "yyyy";
+
+    /**
+     * 日期的年(2位)
+     */
+    var YEAR = "yy";
+
+    /**
+     * 日期的月
+     */
+    var MONTH = "MM";
+
+    /**
+     * 日期的日
+     */
+    var DATE = "dd";
+
+    /**
+     * 日期的时(0-23)
+     */
+    var HOUR = "HH";
+
+    /**
+     * 日期的分
+     */
+    var MINUTES = "mm";
+
+    /**
+     * 日期的秒
+     */
+    var SECONDS = "ss";
+
+    /**
+     * 日期的毫秒
+     */
+    var MILLISECONDS = "SSS";
+
+    /**
      * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
      * of an array-like value.
      */
@@ -191,6 +239,113 @@ var _util = new function(){
     }
 
     /**
+     * _get
+     *
+     * @param  {String} string
+     * @param  {String} format
+     * @param  {String} part
+     * @return {Number}
+     */
+    function _getDate(string, format, part){
+        var start = format.indexOf(part);
+        if (start < 0) {
+            return null;
+        }
+        var value = string.substring(start, start + part.length);
+        if (isNaN(value)) {
+            throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+        }
+        return value - 0;
+    }
+
+    /**
+     * 替换指定日期格式中的指定部分
+     *
+     * @param {String} string
+     * @param {String} format
+     * @param {String} part　
+     * @param {String} mark
+     * @return {String}
+     */
+    function _replace(string, format, part, mark){
+        var start = format.indexOf(part);
+        if (start < 0) {
+            return string;
+        }
+        if (string.length < start + part.length) {
+            return string;
+        }
+        return string.substring(0, start) + mark + string.substring(start + part.length);
+    }
+
+    /**
+     * 检查日期格式是否合法
+     *
+     * @param {String} string 解析的日期字符串
+     * @param {String} format 日期字符串格式
+     * @return {Boolean} 结果
+     */
+    function _checkDateFormat(string, format){
+        if (!string || !format) {
+            return false;
+        }
+        var markedFormat = format;
+        markedFormat = markedFormat.replace(FULLYEAR, "####");
+        markedFormat = markedFormat.replace(MONTH, "##");
+        markedFormat = markedFormat.replace(DATE, "##");
+        markedFormat = markedFormat.replace(HOUR, "##");
+        markedFormat = markedFormat.replace(MINUTES, "##");
+        markedFormat = markedFormat.replace(SECONDS, "##");
+        markedFormat = markedFormat.replace(MILLISECONDS, "###");
+        markedFormat = markedFormat.replace(YEAR, "##");
+
+        var markedString = string;
+        markedString = _replace(markedString, format, FULLYEAR, "####");
+        markedString = _replace(markedString, format, MONTH, "##");
+        markedString = _replace(markedString, format, DATE, "##");
+        markedString = _replace(markedString, format, HOUR, "##");
+        markedString = _replace(markedString, format, MINUTES, "##");
+        markedString = _replace(markedString, format, SECONDS, "##");
+        markedString = _replace(markedString, format, MILLISECONDS, "###");
+        markedString = _replace(markedString, format, YEAR, "##");
+        return (markedFormat == markedString);
+    }
+
+    /**
+     * 检查日期是否合法
+     *
+     * @param {Number} fullYear 年
+     * @param {Number} month 月
+     * @param {Number} date 日
+     * @return {Boolean} 结果
+     */
+    function _checkDate(fullYear, month, date){
+        switch (month) {
+            case 0://Jan
+            case 2://Mar
+            case 4://May
+            case 6://Jul
+            case 7://Aug
+            case 9://Oct
+            case 11://Dec
+                return (date > 0 && date <= 31);
+            case 3://Apr
+            case 5://Jun
+            case 8://Sep
+            case 10://Nov
+                return (date > 0 && date <= 30);
+            case 1://Feb
+                if (fullYear % 100 === 0) {
+                    return (date > 0 && date <= 28);
+                } else if (fullYear % 4 === 0) {
+                    return (date > 0 && date <= 29);
+                } else {
+                    return (date > 0 && date <= 28);
+                }
+        }
+    }
+
+    /**
      * 检查输入值是否为空，无法判断基本类型（整数，布尔）
      *
      * @public
@@ -368,29 +523,120 @@ var _util = new function(){
     };
 
     /**
+     * 使用指定的格式把日期字符串转换为日期类型
+     *
+     * @param {String} string
+     * @param {String} format
+     * @return {Date}
+     */
+    this.parseDate = function(string, format){
+        if (!_checkDateFormat(string, format)) {
+            throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+        }
+
+        var result = new Date();
+        result.setTime(0);
+        var fullYear = _getDate(string, format, FULLYEAR);
+        var year = _getDate(string, format, YEAR);
+        var month = _getDate(string, format, MONTH);
+        var date = _getDate(string, format, DATE);
+        var hours = _getDate(string, format, HOUR);
+        var minutes = _getDate(string, format, MINUTES);
+        var seconds = _getDate(string, format, SECONDS);
+        var milliseconds = _getDate(string, format, MILLISECONDS);
+
+        if (fullYear) {
+            result.setFullYear(fullYear);
+        } else {
+            if (year) {
+                result.setYear(year);
+            }
+        }
+        if (month) {
+            if (month > 12 || month < 1) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setMonth((month + 11) % 12);
+        }
+        if (date) {
+            if (!_checkDate(result.getFullYear(), result.getMonth(), date)) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setDate(date);
+        }
+        if (hours) {
+            if (hours > 23 || hours < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setHours(hours);
+        }
+
+        if (minutes) {
+            if (minutes > 59 || date < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setMinutes(minutes);
+        }
+
+        if (seconds) {
+            if (seconds > 59 || seconds < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setSeconds(seconds);
+        }
+        if (milliseconds) {
+            if (milliseconds < 0) {
+                throw new SystemMessage(MSGID_FAILED_TO_PARSE, [string, format]);
+            }
+            result.setMilliseconds(milliseconds);
+        }
+        return result;
+    };
+
+    /**
      * 转换日期对象到指定格式字符串
+     *
+     * @example
+     *
+     * "yyyy-MM-dd E HH:mm:ss" ==> 2009-03-10 二 20:09:04
+     * "yyyy-MM-dd EE hh:mm:ss" ==> 2009-03-10 周二 08:09:04
+     * "yyyy-MM-dd EEE hh:mm:ss" ==> 2009-03-10 星期二 08:09:04
      *
      * @public
      * @param  {Date}   dateObj
      * @param  {string} fmt      输出日期格式
      * @return {string} 指定格式字符串
      */
-    this.dateFormat = function(dateObj, fmt){ //author: meizz
+    this.dateFormat = function(dateObj, fmt){
         var o = {
-            "M+": dateObj.getMonth() + 1,
-            "d+": dateObj.getDate(),
-            "h+": dateObj.getHours(),
-            "m+": dateObj.getMinutes(),
-            "s+": dateObj.getSeconds(),
-            "q+": Math.floor((dateObj.getMonth() + 3) / 3),
-            "S": dateObj.getMilliseconds()
+            "M+" : dateObj.getMonth()+1, //月份
+            "d+" : dateObj.getDate(), //日
+            "h+" : dateObj.getHours()%12 === 0 ? 12 : dateObj.getHours()%12, //小时
+            "H+" : dateObj.getHours(), //小时
+            "m+" : dateObj.getMinutes(), //分
+            "s+" : dateObj.getSeconds(), //秒
+            "q+" : Math.floor((dateObj.getMonth()+3)/3), //季度
+            "S" : dateObj.getMilliseconds() //毫秒
         };
-        if (/(y+)/.test(fmt)){
-            fmt = fmt.replace(RegExp.$1, (dateObj.getFullYear() + "").substr(4 - RegExp.$1.length));
+        var week = {
+            "0" : "日",
+            "1" : "一",
+            "2" : "二",
+            "3" : "三",
+            "4" : "四",
+            "5" : "五",
+            "6" : "六"
+        };
+        if(/(y+)/.test(fmt)){
+            fmt=fmt.replace(RegExp.$1, (dateObj.getFullYear()+"").substr(4 - RegExp.$1.length));
         }
-        for (var k in o)
-        if (new RegExp("(" + k + ")").test(fmt)){
-            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]): (("00" + o[k]).substr(("" + o[k]).length)));
+        if(/(E+)/.test(fmt)){
+            fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "星期" : "周") : "")+week[dateObj.getDay()]);
+        }
+        for(var k in o){
+            if(new RegExp("("+ k +")").test(fmt)){
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+            }
         }
         return fmt;
     };
@@ -410,34 +656,51 @@ var _util = new function(){
     };
 
     /**
+     * maskString
+     *
+     * @param  {String} value
+     * @param  {Number} position       1:first,0:last
+     * @param  {Number} maskLength
+     * @param  {String} replaceString  char(1)
+     * @return {String}
+     */
+    function _maskString(value, position, maskLength, replaceString){
+        var ret = null;
+        maskLength = maskLength > value.length ? value.length : maskLength;
+        replaceString = _util.isEmpty(replaceString) ? "*" : replaceString;
+        var maskValue = new Array(maskLength + 1).join('*');
+        var maskPosition = (position === 1) ? maskLength : value.length - maskLength;
+        if (!_util.isEmpty(value)){
+            if (position === 1){
+                ret = maskValue + value.substr(maskPosition);
+            }else{
+                ret = value.substr(0, maskPosition) + maskValue;
+            }
+        }
+        return ret;
+    }
+
+    this.maskStringLeft = function(value, maskLength, replaceString){
+        return _maskString(value, 1, maskLength, replaceString);
+    };
+
+    this.maskStringRight = function(value, maskLength, replaceString){
+        return _maskString(value, 0, maskLength, replaceString);
+    };
+
+    /**
      * 读取本地配置文件
      *
      * @param  {string} filePath 配置文件路径
      */
     this.getFileContent = function(filePath, dataType){
         var ret = null;
-        var contextPath = window.location.pathname;
         var configContent = null;
         var pathIndex = 0;
         var fileAbsolutePath = window.location.origin;
         var context = new HTTPContext();
 
-        // 取得配置文件绝对路径
-        if (!_util.isEmpty(contextPath) &&
-            contextPath !== "/"){
-            contextPath = contextPath.substring(1);
-            if (contextPath.split("/")[0].indexOf(".") === -1){
-                pathIndex = contextPath.indexOf("/");
-                if (pathIndex !== -1){
-                    contextPath = "/" + contextPath.substring(0, pathIndex + 1);
-                }
-            }else{
-                contextPath = "/";
-            }
-        }
-        fileAbsolutePath += contextPath + filePath;
-
-        context.url = fileAbsolutePath + "?_=" + _config.createCacheToken();
+        context.url = _config.SHELL_ROOT + filePath + "?_=" + _config.createCacheToken();
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.error = function(jqXHR, textStatus, errorThrown){

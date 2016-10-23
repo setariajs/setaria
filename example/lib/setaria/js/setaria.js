@@ -520,7 +520,7 @@ var _html = new function(){
         if (domNode.is("form") && _util.isObject(data)){
             var key = null;
             for (key in data){
-                this.setFormItemValueByName(key, data[key]);
+                this.setFormItemValueByName(key, data[key], domNode[0]);
             }
         // DOM为其他控件时
         }else{
@@ -532,11 +532,17 @@ var _html = new function(){
      * 设置Form表单内控件的值
      *
      * @public
-     * @param {string} name  控件name属性值
-     * @param {string} value 控件的值
+     * @param {string}  name       控件name属性值
+     * @param {string}  value      控件的值
+     * @param {Element} parentNode 父节点
      */
-    this.setFormItemValueByName = function(name, value){
-        var selector = $("name=[" + name + "]");
+    this.setFormItemValueByName = function(name, value, parentNode){
+        var selector = null;
+        if (parentNode){
+            selector = $(parentNode).find("[name='" + name + "']");
+        }else{
+            selector = $("[name='" + name + "']");
+        }
         if (selector.is(":checkbox") ||
             selector.is(":radio")){
             selector.each(function(){
@@ -606,7 +612,12 @@ var _html = new function(){
      * @param {string} id DOM ID
      */
     this.enable = function(id){
-        _byId(id).prop("disabled", false);
+        var selector = _byId(id);
+        // DOM节点为Form节点的场合
+        if (selector.is("form")){
+            selector = $("#" + id + " :input");
+        }
+        selector.prop("disabled", false);
     };
 
     /**
@@ -616,7 +627,12 @@ var _html = new function(){
      * @param {string} id DOM ID
      */
     this.disable = function(id){
-        _byId(id).prop("disabled", true);
+        var selector = _byId(id);
+        // DOM节点为Form节点的场合
+        if (selector.is("form")){
+            selector = $("#" + id + " :input");
+        }
+        selector.prop("disabled", true);
     };
 
     /**
@@ -972,9 +988,10 @@ var _message = new function(){
     /**
      * 启动函数
      *
+     * @param {Function} hanlder
      * @public
      */
-    this.start = function(){
+    this.start = function(handler){
         // 取得配置信息
         var loadConfigResult = _loadConfig();
         // 当成功加载配置文件时
@@ -988,6 +1005,9 @@ var _message = new function(){
             window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
             // 绑定Hash Change事件
             this.bindHashChange();
+            if (_util.isFunction(handler)){
+                handler();
+            }
             // 跳转页面
             this.dispatcher(window._viewModelController);
         }
@@ -1285,6 +1305,67 @@ var _url = new function(){
      * @type {string}
      */
     var SPLIT_CHAR = "/";
+
+    /**
+     * url历史地址列表
+     * 最新的url在数组前面
+     *
+     * @private
+     * @type {Array}
+     */
+    var _urlHistory = [];
+
+    var _index = 0;
+
+    this.forward = function(url){
+        _index++;
+        while(_urlHistory.length > 0){
+            // 退回到之前的url后再forward的场合，删除从退至的url到顶部之间的url
+            if (_urlHistory[0].index >= _index){
+                // 删除数组最前面的元素
+                _urlHistory.shift();
+            }else{
+                break;
+            }
+        }
+
+        // 将url添加至数组前方
+        _urlHistory.unshift({
+            "index": _index,
+            "url": url
+        });
+    };
+
+    this.back = function(url){
+        var ret = 0;
+        var i = 0;
+        if (!_util.isEmpty(_urlHistory)){
+            for (i = 0; i < _urlHistory.length; i++){
+                if (_urlHistory[i].url === url){
+                    // 回退index
+                    _index = _urlHistory[i].index;
+                    break;
+                }
+                ret++;
+            }
+            if (ret !== _urlHistory.length){
+                ret = -(ret + 1);
+            }else{
+                ret = 0;
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * 获取当前窗口的完整Url
+     *
+     * @public
+     * @return {string} 当前窗口的完整Url
+     */
+    this.getCurrentUrl = function(){
+        return window.location.href;
+    };
 
     /**
      * 取得Url中的Hash参数
@@ -1790,27 +1871,47 @@ var _util = new function(){
     /**
      * 转换日期对象到指定格式字符串
      *
+     * @example
+     *
+     * "yyyy-MM-dd E HH:mm:ss" ==> 2009-03-10 二 20:09:04
+     * "yyyy-MM-dd EE hh:mm:ss" ==> 2009-03-10 周二 08:09:04
+     * "yyyy-MM-dd EEE hh:mm:ss" ==> 2009-03-10 星期二 08:09:04
+     *
      * @public
      * @param  {Date}   dateObj
      * @param  {string} fmt      输出日期格式
      * @return {string} 指定格式字符串
      */
-    this.dateFormat = function(dateObj, fmt){ //author: meizz
+    this.dateFormat = function(dateObj, fmt){
         var o = {
-            "M+": dateObj.getMonth() + 1,
-            "d+": dateObj.getDate(),
-            "h+": dateObj.getHours(),
-            "m+": dateObj.getMinutes(),
-            "s+": dateObj.getSeconds(),
-            "q+": Math.floor((dateObj.getMonth() + 3) / 3),
-            "S": dateObj.getMilliseconds()
+            "M+" : dateObj.getMonth()+1, //月份
+            "d+" : dateObj.getDate(), //日
+            "h+" : dateObj.getHours()%12 === 0 ? 12 : dateObj.getHours()%12, //小时
+            "H+" : dateObj.getHours(), //小时
+            "m+" : dateObj.getMinutes(), //分
+            "s+" : dateObj.getSeconds(), //秒
+            "q+" : Math.floor((dateObj.getMonth()+3)/3), //季度
+            "S" : dateObj.getMilliseconds() //毫秒
         };
-        if (/(y+)/.test(fmt)){
-            fmt = fmt.replace(RegExp.$1, (dateObj.getFullYear() + "").substr(4 - RegExp.$1.length));
+        var week = {
+            "0" : "日",
+            "1" : "一",
+            "2" : "二",
+            "3" : "三",
+            "4" : "四",
+            "5" : "五",
+            "6" : "六"
+        };
+        if(/(y+)/.test(fmt)){
+            fmt=fmt.replace(RegExp.$1, (dateObj.getFullYear()+"").substr(4 - RegExp.$1.length));
         }
-        for (var k in o)
-        if (new RegExp("(" + k + ")").test(fmt)){
-            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]): (("00" + o[k]).substr(("" + o[k]).length)));
+        if(/(E+)/.test(fmt)){
+            fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "星期" : "周") : "")+week[dateObj.getDay()]);
+        }
+        for(var k in o){
+            if(new RegExp("("+ k +")").test(fmt)){
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+            }
         }
         return fmt;
     };
@@ -2341,9 +2442,6 @@ var ViewModelController = function(configFilePath, completeHandler){
                         "instance": viewModel,
                         "config": config
                     };
-                }else{
-                    // 抛出错误SESYSM001E
-                    _ui.showMessage(new SystemMessage("SESYSM001E", [path]), "error");
                 }
             });
         }else{

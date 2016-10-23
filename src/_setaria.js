@@ -11,9 +11,11 @@
      * 取得Setaria配置信息
      *
      * @private
+     *
+     * @param  {string}  contextRoot
      * @return {Boolean} 配置信息取得成功的场合，返回true
      */
-    function _loadConfig(){
+    function _loadConfig(contextRoot){
         var ret = false;
         $("script").each(function(){
             // 配置文件路径
@@ -22,6 +24,8 @@
             var configContent = null;
 
             if (!_util.isEmpty(dataConfig)){
+                // 把当前路径信息写入配置对象
+                _config.SHELL_ROOT = contextRoot;
                 // 取得配置文件内容
                 configContent = _util.getFileContent(dataConfig, "json");
 
@@ -45,13 +49,45 @@
     }
 
     /**
+     * 取得当前路径
+     *
+     * @private
+     * @return {string}
+     */
+    function _getContextRoot(){
+        var ret = window.location.pathname;
+        var pathLength = null;
+        var pathArr = null;
+        // 取得配置文件绝对路径
+        if (ret !== "/"){
+            ret = ret.substring(1);
+            pathArr = ret.split("/");
+            if (pathArr.length > 1){
+                // 路径最后为文件的场合
+                if (pathArr[pathArr.length - 1].indexOf(".")){
+                    // 删除最后
+                    pathArr.pop();
+                }
+            }
+            ret = "/";
+            for (var i = 0; i < pathArr.length; i++){
+                ret += pathArr[i] + "/";
+            }
+        }
+        return ret;
+    }
+
+    /**
      * 启动函数
      *
+     * @param {Function} hanlder
      * @public
      */
-    this.start = function(){
+    this.start = function(handler){
+        // 取得当前路径
+        var contextRoot = _getContextRoot();
         // 取得配置信息
-        var loadConfigResult = _loadConfig();
+        var loadConfigResult = _loadConfig(contextRoot);
         // 当成功加载配置文件时
         if (loadConfigResult){
             // 更新引用文件的缓存
@@ -63,6 +99,9 @@
             window._viewModelController = new ViewModelController(defaultViewModelConfigFile);
             // 绑定Hash Change事件
             this.bindHashChange();
+            if (_util.isFunction(handler)){
+                handler();
+            }
             // 跳转页面
             this.dispatcher(window._viewModelController);
         }

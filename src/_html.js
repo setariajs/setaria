@@ -135,7 +135,7 @@ var _html = new function(){
         if (domNode.is("form") && _util.isObject(data)){
             var key = null;
             for (key in data){
-                this.setFormItemValueByName(key, data[key]);
+                this.setFormItemValueByName(key, data[key], domNode[0]);
             }
         // DOM为其他控件时
         }else{
@@ -147,11 +147,17 @@ var _html = new function(){
      * 设置Form表单内控件的值
      *
      * @public
-     * @param {string} name  控件name属性值
-     * @param {string} value 控件的值
+     * @param {string}  name       控件name属性值
+     * @param {string}  value      控件的值
+     * @param {Element} parentNode 父节点
      */
-    this.setFormItemValueByName = function(name, value){
-        var selector = $("name=[" + name + "]");
+    this.setFormItemValueByName = function(name, value, parentNode){
+        var selector = null;
+        if (parentNode){
+            selector = $(parentNode).find("[name='" + name + "']");
+        }else{
+            selector = $("[name='" + name + "']");
+        }
         if (selector.is(":checkbox") ||
             selector.is(":radio")){
             selector.each(function(){
@@ -178,6 +184,18 @@ var _html = new function(){
         return domObj.length > 0 ? domObj[0] : null;
     };
 
+    this._validate = function(dom){
+        var ret = null;
+        // require check
+        if (dom.validity.valueMissing){
+            ret = "valueMissing";
+        }else if (dom.validity.patternMismatch){
+            ret = "patternMismatch";
+        }
+
+        return ret;
+    };
+
     /**
      * 对指定的控件进行校验
      *
@@ -190,6 +208,32 @@ var _html = new function(){
      */
     this.validate = function(id, handler){
         var ret = true;
+        var that = this;
+
+        _byId(id).find(":invalid").each(function(){
+            var dom = this;
+            var validityState = that._validate(dom);
+            var error = {
+                "dom": dom,
+                "validityState": validityState
+            };
+            $(dom).on("focus.validate", function(){
+                // 移除出错样式
+                _ui.removeValidationStyle(dom);
+            });
+            if (!_util.isEmpty(validityState)){
+                if (_util.isFunction(handler)){
+                    if (!handler(error)){
+                        _ui._showErrorMessage(error);
+                    }
+                }else{
+                    _ui._showErrorMessage(error);
+                }
+                ret = false;
+                // 只对第一个出错的项目进行处理
+                return false;
+            }
+        });
 
         return ret;
     };
@@ -221,7 +265,12 @@ var _html = new function(){
      * @param {string} id DOM ID
      */
     this.enable = function(id){
-        _byId(id).prop("disabled", false);
+        var selector = _byId(id);
+        // DOM节点为Form节点的场合
+        if (selector.is("form")){
+            selector = $("#" + id + " :input");
+        }
+        selector.prop("disabled", false);
     };
 
     /**
@@ -231,7 +280,12 @@ var _html = new function(){
      * @param {string} id DOM ID
      */
     this.disable = function(id){
-        _byId(id).prop("disabled", true);
+        var selector = _byId(id);
+        // DOM节点为Form节点的场合
+        if (selector.is("form")){
+            selector = $("#" + id + " :input");
+        }
+        selector.prop("disabled", true);
     };
 
     /**

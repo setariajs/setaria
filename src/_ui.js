@@ -203,4 +203,43 @@ var _ui = new function(){
             document.title = title;
         }
     };
+
+    /**
+     * 显示校验错误
+     *
+     * error: {
+     *     "dom": [DOMObject],
+     *     "validityState": [String],#ValidityState
+     * }
+     *
+     * @protected
+     * @param  {Object} error 错误对象
+     */
+    this._showErrorMessage = function(error){
+        if (!_util.isEmpty(error)){
+            var dom = error.dom;
+            var validityState = error.validityState;
+            var errorMessage = dom.getAttribute(validityState + "Tips") ||
+                dom.getAttribute("tips") ||
+                _message.getMessage(validityState, [dom.getAttribute("data-elem-name")]);
+            error.errorMessage = errorMessage;
+            _ui.addValidationStyle(dom);
+            _ui.showErrorMessage(error);
+        }
+    };
+
+    /**
+     * 显示校验错误
+     *
+     * error: {
+     *     "dom": [DOMObject],
+     *     "validityState": [String],#ValidityState
+     * }
+     *
+     * @public
+     * @param  {Object} error 错误对象
+     */
+    this.showErrorMessage = function(error){
+        alert(error.errorMessage);
+    };
 };

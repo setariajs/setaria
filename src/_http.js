@@ -20,6 +20,14 @@ var _http = new function(){
             var defaultTimeout = _config.DEFAULT_TIMEOUT || 20000;
             // 设值超时时间
             context.timeout = _util.get(context, "timeout", _config.DEFAULT_TIMEOUT);
+            var beforeSend = context.beforeSend;
+            // 显示overlay
+            if (!_util.isFunction(beforeSend)){
+                context.beforeSend = function(xhr) {
+                    // 显示Mask
+                    _ui.toggleProcessing(true);
+                };
+            }
             // ajax通信失败时的处理
             if (_util.isFunction(context.error)){
                 // 如果定义了失败时的回调函数
@@ -28,6 +36,10 @@ var _http = new function(){
                 // 使用默认ajax通信失败处理
                 context.error = _defaultErrorHandler;
             }
+            context.complete = function() {
+                // 隐藏显示的mask
+                _ui.toggleProcessing(false);
+            };
             // 开始ajax通信
             return $.ajax(context);
         }
@@ -60,11 +72,9 @@ var _http = new function(){
      * @param  {HTTPContext} context HTTP通信设定对象
      */
     this.doAsync = function(context){
-        if (!_util.isEmpty(context)){
-            // 使用异步调用
-            context.async = true;
-            _doXhr(context);
-        }
+        // 使用异步调用
+        context.async = true;
+        return _doXhr(context);
     };
 
     /**
@@ -74,10 +84,8 @@ var _http = new function(){
      * @param  {HTTPContext} context HTTP通信设定对象
      */
     this.doSync = function(context){
-        if (!_util.isEmpty(context)){
-            // 同步模式
-            context.async = false;
-            _doXhr(context);
-        }
+        // 同步模式
+        context.async = false;
+        return _doXhr(context);
     };
 };

@@ -1,5 +1,6 @@
 {
     "SESYSM001E": "Page Not Found." ,
     "SESYSM002E": "Error return without exception set.",
-    "SESYSM003E": "The Message file does not exist"
+    "SESYSM003E": "The Message file does not exist.",
+    "SESYSM004E": "The Date is valid."
 }
