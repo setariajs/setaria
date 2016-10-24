@@ -4,6 +4,8 @@
   "sourceDir": "src",
   "destDir": "build",
   "docDir": "doc",
+  "widgetName": "widget",
+  "widgetDir": "widget",
   "devDependencies": {
     "chai": "^3.5.0",
     "grunt": "^1.0.1",

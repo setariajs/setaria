@@ -21,11 +21,17 @@ module.exports = function(grunt) {
                 // 定义一个用于插入合并输出文件之间的字符
                 separator: ''
             },
-            dist: {
-                // 将要被合并的文件
-                src: ['<%= pkg.sourceDir %>/*.js'],
-                // 合并后的JS文件的存放位置
-                dest: '<%= pkg.destDir %>/<%= pkg.name %>.js'
+            // dist: {
+            //     // 将要被合并的文件
+            //     src: ['<%= pkg.sourceDir %>/*.js'],
+            //     // 合并后的JS文件的存放位置
+            //     dest: '<%= pkg.destDir %>/<%= pkg.name %>.js'
+            // }
+            core_and_widget: {
+                files: {
+                    '<%= pkg.destDir %>/<%= pkg.name %>.js': ['<%= pkg.sourceDir %>/*.js'],
+                    '<%= pkg.destDir %>/<%= pkg.name %>.<%= pkg.widgetName %>.js': ['<%= pkg.sourceDir %>/<%= pkg.widgetDir %>/Widget.js']
+                }
             }
         },
         uglify: {
@@ -35,7 +41,8 @@ module.exports = function(grunt) {
             },
             dist: {
                 files: {
-                    '<%= pkg.destDir %>/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+                    '<%= pkg.destDir %>/<%= pkg.name %>.min.js': ['<%= pkg.destDir %>/<%= pkg.name %>.js'],
+                    '<%= pkg.destDir %>/<%= pkg.name %>.<%= pkg.widgetName %>.min.js': ['<%= pkg.destDir %>/<%= pkg.name %>.<%= pkg.widgetName %>.js']
                 }
             }
         },

@@ -33,10 +33,45 @@ Widget.POS = {
 /**
  * 默认样式
  *
- * @private
+ * @public
  * @type {string}
  */
 Widget.prototype.baseClass = "";
+
+/**
+ * 控件Html文本
+ *
+ * @public
+ * @type {string}
+ */
+Widget.prototype.templateString = "";
+
+/**
+ * 生成控件Html文本
+ *
+ * @public
+ * @return {string} 控件Html文本
+ */
+Widget.prototype.prepareHTML = function(){
+    return this.templateHtml;
+};
+
+/**
+ * 根据输入值组装控件Html文本
+ * @param  {Object} param 参数
+ * @return {string} Html文本
+ */
+Widget.prototype.buildTemplateString = function(param){
+    var ret = "";
+    var KEY_PREFIX = "{{";
+    var KEY_SUFFIX = "}}";
+    if (!_util.isEmpty(param) && !_util.isEmpty(this.templateString)){
+        for (var key in param){
+
+        }
+    }
+    return ret;
+};
 
 /**
  * 生成控件HTML字符串
@@ -223,7 +258,7 @@ Widget.prototype.addEventListener = function(eventName, callbackFunc){
  * @param  {Event} event 事件对象
  */
 Widget.prototype.dispatchEvent = function(event){
-    $(this.dom).trigger(event);
+    this.dom.dispatchEvent(event);
 };
 
 /**
@@ -244,10 +279,4 @@ Widget.prototype.find = function(id){
  * @private
  */
 Widget.prototype.bindWidgetEvent = function(){
-};
-
-
-Widget.prototype.createWidgetInstance = function(id, widgetType){
-    var WidgetClass = window[widgetType]();
-    return new WidgetClass().find(id);
 };

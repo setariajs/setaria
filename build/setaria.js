@@ -518,14 +518,26 @@ var _html = new function(){
         var domNode = _byId(id);
         // 如果DOM是form时
         if (domNode.is("form") && _util.isObject(data)){
-            var key = null;
-            for (key in data){
+            for (var key in data){
                 this.setFormItemValueByName(key, data[key], domNode[0]);
             }
+        // 当DOM为自定义控件时
+        }else if (!_util.isEmpty(domNode.attr("data-widget-type"))){
+            this._setWidgetValue(id, domNode.attr("data-widget-type"));
         // DOM为其他控件时
         }else{
             domNode.val(data);
         }
+    };
+
+    this._getWidgetValue = function(id, widgetType){
+        var instance = Widget.prototype.createWidgetInstance(id, widgetType);
+        return instance.getValue();
+    };
+
+    this._setWidgetValue = function(id, widgetType, value){
+        var instance = Widget.prototype.createWidgetInstance(id, widgetType);
+        instance.setValue(value);
     };
 
     /**
