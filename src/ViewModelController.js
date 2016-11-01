@@ -58,36 +58,36 @@ var ViewModelController = function(configFilePath, completeHandler){
     /**
      * 执行指定ViewModel的加载动作
      *
-     * @param  {string}    viewModelName viewModel名称
-     * @param  {ViewModel} viewModel     viewModel实例
+     * @param  {string}    viewModelConfig viewModel配置
+     * @param  {ViewModel} viewModel       viewModel实例
      */
-    this._execViewModelInitial = function(viewModelName, viewModel){
+    this._execViewModelInitial = function(viewModelConfig, viewModel, path, param){
         // 输出日志
-        _log.debug("ViewModel [ " + viewModelName + " ] init.");
+        _log.debug("ViewModel [ " + viewModelConfig.viewModelClass + " ] init.");
         if (_util.isFunction(this.initialHandler)){
             this.initialHandler(function(){
                 // 执行ViewModel的加载函数(加载函数必须存在)
                 _action.doAction(viewModel.init.bind(viewModel));
-            });
+            }, viewModelConfig, path, param);
         }
     };
 
     /**
      * 执行指定ViewModel的卸载动作
      *
-     * @param  {string}    viewModelName viewModel名称
-     * @param  {ViewModel} viewModel viewModel实例
+     * @param  {string}    viewModelConfig viewModel配置
+     * @param  {ViewModel} viewModel       viewModel实例
      */
-    this._execViewModelUnInitial = function(viewModelName, viewModel){
+    this._execViewModelUnInitial = function(viewModelConfig, viewModel, path){
         // 输出日志
-        _log.debug("ViewModel [ " + viewModelName + " ] unInit.");
+        _log.debug("ViewModel [ " + viewModelConfig.viewModelClass + " ] unInit.");
         if (_util.isFunction(this.unInitialHandler)){
             this.unInitialHandler(function(){
                 // 执行ViewModel的卸载函数
                 if (_util.isFunction(viewModel.unInit)){
                     _action.doAction(viewModel.unInit.bind(viewModel));
                 }
-            });
+            }, viewModelConfig, path);
         }
     };
 
@@ -193,8 +193,9 @@ var ViewModelController = function(configFilePath, completeHandler){
         var that = this;
 
         // 对正在使用的ViewModel进行卸载操作
-        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
-            _util.get(this._currentViewModelInfo, "instance", ""));
+        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config", {}),
+            _util.get(this._currentViewModelInfo, "instance", ""),
+            _util.get(this._currentViewModelInfo, "path", ""));
 
         // 取得业务画面的HTML，并在指定区域更新
         _ui.updateHTML(this.getTemplatePath(config.template), function(){
@@ -213,7 +214,7 @@ var ViewModelController = function(configFilePath, completeHandler){
                         // 初期化VM的内部缓存
                         viewModel.cache = {};
                         // 加载指定ViewModel
-                        that._execViewModelInitial(config.viewModelClass, viewModel);
+                        that._execViewModelInitial(config, viewModel, path, param);
                         // 把VM Class实例存入缓存
                         _viewModelCacheObject[path] = viewModel;
                         // 存储当前使用的ViewModel实例
@@ -243,8 +244,9 @@ var ViewModelController = function(configFilePath, completeHandler){
         var that = this;
 
         // 对正在使用的ViewModel进行卸载操作
-        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config.viewModelClass", ""),
-            _util.get(this._currentViewModelInfo, "instance", ""));
+        this._execViewModelUnInitial(_util.get(this._currentViewModelInfo, "config", {}),
+            _util.get(this._currentViewModelInfo, "instance", ""),
+            _util.get(this._currentViewModelInfo, "path", ""));
 
         if (!_util.isEmpty(config)){
             // 渲染制定画面对应的模版
@@ -269,7 +271,7 @@ var ViewModelController = function(configFilePath, completeHandler){
                                 // 初期化VM的内部缓存
                                 viewModel.cache = viewModelCacheObj;
                                 // 加载指定ViewModel
-                                that._execViewModelInitial(config.viewModelClass, viewModel);
+                                that._execViewModelInitial(config, viewModel, path, param);
                                 // 把VM Class实例存入缓存
                                 _viewModelCacheObject[path] = viewModel;
                                 // 存储当前使用的ViewModel实例

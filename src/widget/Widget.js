@@ -134,6 +134,8 @@ Widget.prototype.placeTo = function(targetNode, position){
     }
     // 更新控件节点对象
     this.updateDom();
+    // 存储初始数据
+    this.initData();
     // 绑定控件自定义事件
     this.bindWidgetEvent();
     return this;
@@ -151,6 +153,8 @@ Widget.prototype.replaceTo = function(targetNode){
     $(targetNode).replaceWith(this.createHTML());
     // 更新控件节点对象
     this.updateDom();
+    // 存储初始数据
+    this.initData();
     // 绑定控件自定义事件
     this.bindWidgetEvent();
     return this;
@@ -238,6 +242,9 @@ Widget.prototype.find = function(id){
     return this;
 };
 
+Widget.prototype.initData = function(){
+};
+
 /**
  * 控件内部事件绑定函数
  *
@@ -246,8 +253,76 @@ Widget.prototype.find = function(id){
 Widget.prototype.bindWidgetEvent = function(){
 };
 
-
+/**
+ * 根据控件ID和类型创建指定控件的实例
+ *
+ * @public
+ * @param  {String} id
+ * @param  {String} widgetType
+ * @return {Widget}
+ */
 Widget.prototype.createWidgetInstance = function(id, widgetType){
-    var WidgetClass = window[widgetType]();
+    var WidgetClass = window[widgetType];
     return new WidgetClass().find(id);
+};
+
+/**
+ * 控件Html文本
+ *
+ * @public
+ * @type {string}
+ */
+Widget.prototype.templateString = "";
+
+/**
+ * 根据输入值组装控件Html文本
+ * @param  {Object} param 参数
+ * @return {string} Html文本
+ */
+Widget.prototype.buildTemplateString = function(param){
+    var ret = "";
+    var KEY_PREFIX = "{{";
+    var KEY_SUFFIX = "}}";
+    if (!_util.isEmpty(param) && !_util.isEmpty(this.templateString)){
+        ret = this.templateString.replace(/{{(\w*)?}}/gi, function(match, key){
+            if (!_util.isEmpty(param[key])){
+                return param[key];
+            }else{
+                return "";
+            }
+        });
+    }
+    return ret;
+};
+
+/**
+ * 在控件主节点上存储数据
+ *
+ * @public
+ * @param {String} key
+ * @param {String} value
+ */
+Widget.prototype.setData = function(key, value){
+    var dom = this.getDom();
+    if (dom){
+        $(dom).data(key, value);
+    }
+};
+
+/**
+ * 从控件主节点上取得数据
+ *
+ * 不指定key时，取得所有存储的数据
+ *
+ * @public
+ * @param  {String} key
+ * @return {*}
+ */
+Widget.prototype.getData = function(key){
+    var ret = null;
+    var dom = this.getDom();
+    if (dom){
+        ret = $(dom).data(key);
+    }
+    return ret;
 };

@@ -54,7 +54,17 @@ var _html = new function(){
      * @return {boolean} 如果是Form控件，则返回true
      */
     function _isFormDOM(id){
-        return _byId(id).prop("tagName") === "FORM";
+        return _byId(id).is("form");
+    }
+
+    /**
+     * 判断指定节点是否是自定义控件
+     *
+     * @param  {Selector}  selector
+     * @return {Boolean}   自定义控件的场合返回true
+     */
+    function _isCustomWidgetDOM(selector){
+        return !_util.isEmpty(selector.attr("data-widget-type")) && window.Widget;
     }
 
     /**
@@ -66,8 +76,16 @@ var _html = new function(){
      */
     function _serializeObject(formId){
         var ret = {};
-
-        var serializeArray = _byId(formId).serializeArray();
+        var formDom = _byId(formId);
+        var serializeArray = formDom.serializeArray();
+        var getWidgetValueFunc = _getWidgetValue;
+        // 查找对应的name值，如果为自定义控件的场合，使用自定义控件的接口取得值
+        $.each(serializeArray, function(){
+            var selector = formDom.find('[name="' + this.name + '"]');
+            if (_isCustomWidgetDOM(selector)){
+                this.value = getWidgetValueFunc(selector.attr("id"), selector.attr("data-widget-type"));
+            }
+        });
         $.each(serializeArray, function(){
             // 对应的键值已存在的场合
             if (!_util.isEmpty(ret[this.name])){
@@ -88,6 +106,16 @@ var _html = new function(){
         return ret;
     }
 
+    function _getWidgetValue(id, widgetType){
+        var instance = Widget.prototype.createWidgetInstance(id, widgetType);
+        return instance.getValue();
+    }
+
+    function _setWidgetValue(id, widgetType, value){
+        var instance = Widget.prototype.createWidgetInstance(id, widgetType);
+        instance.setValue(value);
+    }
+
     /**
      * 根据DOM ID取得指定DOM的值
      *
@@ -97,9 +125,13 @@ var _html = new function(){
      */
     this.getValue = function(id){
         var ret = null;
+        var selector = _byId(id);
         if (!_util.isEmpty(id)){
+            // 自定义控件的场合
+            if (_isCustomWidgetDOM(selector)){
+                ret = _getWidgetValue(selector.attr("id"), selector.attr("data-widget-type"));
             // Form控件的场合
-            if(_isFormDOM(id)){
+            }else if(_isFormDOM(id)){
                 ret = _serializeObject(id);
             // 其他场合
             }else {
@@ -118,8 +150,38 @@ var _html = new function(){
      * @param  {string} name 节点name属性值
      * @return {(Object | string)} 控件的值
      */
-    this.getFormItemValueByName = function(name){
-
+    this.getFormItemValueByName = function(name, parentNode){
+        var ret = null;
+        var selector = null;
+        if (parentNode){
+            selector = $(parentNode).find("[name='" + name + "']");
+        }else{
+            selector = $("[name='" + name + "']");
+        }
+        // 自定义控件的场合
+        if (_isCustomWidgetDOM(selector)){
+            ret = _getWidgetValue(selector.attr("id"), selector.attr("data-widget-type"));
+        // checkbox的场合
+        }else if (selector.is(":checkbox")){
+            selector.each(function(){
+                if (this.prop("checked") === true){
+                    ret = ret || [];
+                    ret.push(this.val());
+                }
+            });
+        // radio的场合
+        }else if (selector.is(":radio")){
+            selector.each(function(){
+                if (this.prop("checked") === true){
+                    ret = this.val();
+                    return;
+                }
+            });
+        // 其他的场合
+        }else{
+            selector.val();
+        }
+        return ret;
     };
 
     /**
@@ -130,29 +192,19 @@ var _html = new function(){
      * @param {(Object | string)} data 更新值
      */
     this.setValue = function(id, data){
-        var domNode = _byId(id);
+        var selector = _byId(id);
         // 如果DOM是form时
-        if (domNode.is("form") && _util.isObject(data)){
+        if (_isFormDOM(id) && _util.isObject(data)){
             for (var key in data){
-                this.setFormItemValueByName(key, data[key], domNode[0]);
+                this.setFormItemValueByName(key, data[key], selector[0]);
             }
         // 当DOM为自定义控件时
-        }else if (!_util.isEmpty(domNode.attr("data-widget-type"))){
-            this._setWidgetValue(id, domNode.attr("data-widget-type"));
+        }else if (_isCustomWidgetDOM(selector)){
+            _setWidgetValue(id, selector.attr("data-widget-type"), data);
         // DOM为其他控件时
         }else{
-            domNode.val(data);
+            selector.val(data);
         }
-    };
-
-    this._getWidgetValue = function(id, widgetType){
-        var instance = Widget.prototype.createWidgetInstance(id, widgetType);
-        return instance.getValue();
-    };
-
-    this._setWidgetValue = function(id, widgetType, value){
-        var instance = Widget.prototype.createWidgetInstance(id, widgetType);
-        instance.setValue(value);
     };
 
     /**
@@ -170,7 +222,11 @@ var _html = new function(){
         }else{
             selector = $("[name='" + name + "']");
         }
-        if (selector.is(":checkbox") ||
+        // 自定义控件的场合
+        if (_isCustomWidgetDOM(selector)){
+            _setWidgetValue(selector.attr("id"), selector.attr("data-widget-type"), value);
+        // checkbox或radio的场合
+        }else if (selector.is(":checkbox") ||
             selector.is(":radio")){
             selector.each(function(){
                 if (this.val() === value){
@@ -179,6 +235,7 @@ var _html = new function(){
                     this.prop("checked", false);
                 }
             });
+        // 其他的场合
         }else{
             selector.val(value);
         }
@@ -237,13 +294,19 @@ var _html = new function(){
                 if (_util.isFunction(handler)){
                     if (!handler(error)){
                         _ui._showErrorMessage(error);
+                        ret = false;
+                    }else{
+                        ret = true;
                     }
                 }else{
                     _ui._showErrorMessage(error);
+                    ret = false;
                 }
-                ret = false;
+
                 // 只对第一个出错的项目进行处理
-                return false;
+                if (ret === false){
+                    return false;
+                }
             }
         });
 

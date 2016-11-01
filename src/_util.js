@@ -665,12 +665,14 @@ var _util = new function(){
      * @return {String}
      */
     function _maskString(value, position, maskLength, replaceString){
-        var ret = null;
-        maskLength = maskLength > value.length ? value.length : maskLength;
-        replaceString = _util.isEmpty(replaceString) ? "*" : replaceString;
-        var maskValue = new Array(maskLength + 1).join('*');
-        var maskPosition = (position === 1) ? maskLength : value.length - maskLength;
+        var ret = "";
+        var maskValue = null;
+        var maskPosition = null;
         if (!_util.isEmpty(value)){
+            maskLength = maskLength > value.length ? value.length : maskLength;
+            replaceString = _util.isEmpty(replaceString) ? "*" : replaceString;
+            maskValue = new Array(maskLength + 1).join('*');
+            maskPosition = (position === 1) ? maskLength : value.length - maskLength;
             if (position === 1){
                 ret = maskValue + value.substr(maskPosition);
             }else{
