@@ -54,15 +54,9 @@ var _http = new function(){
      * @param  {string} errorThrown 异常对象
      */
     function _defaultErrorHandler(jqXHR, textStatus, errorThrown){
-        var errorMsg;
-        var msgList = [];
-        if (textStatus === "timeout"){
-            errorMsg = new SystemMessage("SESYSM005E");
-        }else{
-            errorMsg = jqXHR.statusText;
-        }
-        msgList.push(errorMsg);
-        _ui.showMessage(msgList, "error");
+        // 显示网络错误
+        _ui.showMessage([new SystemMessage("SESYSM006E")], "error");
+        _log.error(_util.isEmpty(textStatus) ? textStatus : errorThrown);
     }
 
     /**

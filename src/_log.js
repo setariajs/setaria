@@ -15,7 +15,7 @@ var _log = new function(){
      * @param {*} obj 输出的对象
      */
     this.debug = function(obj){
-        if (_config.DEBUG_MODE === "true"){
+        if (_config.DEBUG_MODE === true){
             console.log(obj);
         }
     };

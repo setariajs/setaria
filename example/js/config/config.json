@@ -31,7 +31,7 @@
     "MESSAGE_FILE": "js/config/message.json",
 
     "//": "系统模式",
-    "DEBUG_MODE": "true",
+    "DEBUG_MODE": true,
 
     "//": ":: optional config ::",
     "//": "模式窗口控件ID",

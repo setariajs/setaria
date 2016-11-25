@@ -58,7 +58,8 @@ var _config = new function(){
      * @return {Function} 缓存值
      */
     this.createCacheToken = function(){
-        return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
+        // return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
+        return Math.floor(Math.random() * 100000000000000);
     };
 
     /**
@@ -336,7 +337,9 @@ var _handler = new function(){
     this.doCatch = function(e, evt){
         e = e.message ? e : new SystemMessage("SESYSM002E");
         // 在画面显示错误
-        _ui.showMessage(e, "error");
+        if (_config.DEBUG_MODE === true){
+            _ui.showMessage(e, "error");
+        }
     };
 
     /**
@@ -862,15 +865,9 @@ var _http = new function(){
      * @param  {string} errorThrown 异常对象
      */
     function _defaultErrorHandler(jqXHR, textStatus, errorThrown){
-        var errorMsg;
-        var msgList = [];
-        if (textStatus === "timeout"){
-            errorMsg = new SystemMessage("SESYSM005E");
-        }else{
-            errorMsg = jqXHR.statusText;
-        }
-        msgList.push(errorMsg);
-        _ui.showMessage(msgList, "error");
+        // 显示网络错误
+        _ui.showMessage([new SystemMessage("SESYSM006E")], "error");
+        _log.error(_util.isEmpty(textStatus) ? textStatus : errorThrown);
     }
 
     /**
@@ -914,7 +911,7 @@ var _log = new function(){
      * @param {*} obj 输出的对象
      */
     this.debug = function(obj){
-        if (_config.DEBUG_MODE === "true"){
+        if (_config.DEBUG_MODE === true){
             console.log(obj);
         }
     };
@@ -1074,10 +1071,9 @@ var _message = new function(){
      *
      * @private
      *
-     * @param  {string}  contextRoot
      * @return {Boolean} 配置信息取得成功的场合，返回true
      */
-    function _loadConfig(contextRoot){
+    function _loadConfig(){
         var ret = false;
         $("script").each(function(){
             // 配置文件路径
@@ -1086,8 +1082,6 @@ var _message = new function(){
             var configContent = null;
 
             if (!_util.isEmpty(dataConfig)){
-                // 把当前路径信息写入配置对象
-                _config.SHELL_ROOT = contextRoot;
                 // 取得配置文件内容
                 configContent = _util.getFileContent(dataConfig, "json");
 
@@ -1146,10 +1140,11 @@ var _message = new function(){
      * @public
      */
     this.start = function(handler){
-        // 取得当前路径
-        var contextRoot = _getContextRoot();
+        // 取得资源根目录
+        var shellRoot = _util.isEmpty(_config.SHELL_ROOT) ? _getContextRoot() : _config.SHELL_ROOT;
+        _config.SHELL_ROOT = shellRoot;
         // 取得配置信息
-        var loadConfigResult = _loadConfig(contextRoot);
+        var loadConfigResult = _loadConfig();
         // 当成功加载配置文件时
         if (loadConfigResult){
             // 更新引用文件的缓存
@@ -1415,19 +1410,24 @@ var _ui = new function(){
 
         // 取得HTML文件中的内容
         if (!_util.isEmpty(viewModelTemplateUrl)){
-            viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
-            // 无法加载指定Html文件的场合
-            if (_util.isObject(viewModelTemplateHTML)){
-                if (viewModelTemplateHTML.textStatus === "error"){
-                    _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
-                }
-            }else{
-                // 在指定区域刷新取得的HTML文本
-                $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
-            }
+            // 加载指定的HTML并在HTML加载完毕后执行回调函数
+            $("#" + _config.MAIN_AREA_ID).load(_util.getResourceFilePath(viewModelTemplateUrl), function(){
+                // 调用回调函数
+                handler();
+            });
+            // viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
+            // // 无法加载指定Html文件的场合
+            // if (_util.isObject(viewModelTemplateHTML)){
+            //     if (viewModelTemplateHTML.textStatus === "error"){
+            //         _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+            //     }
+            // }else{
+            //     // 在指定区域刷新取得的HTML文本
+            //     $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            // }
         }
         // 调用回调函数
-        handler();
+        // handler();
     };
 
     /**
@@ -2398,6 +2398,10 @@ var _util = new function(){
         return _maskString(value, 0, maskLength, replaceString);
     };
 
+    this.getResourceFilePath = function(filePath){
+        return _config.SHELL_ROOT + filePath + "?_=" + _config.createCacheToken();
+    };
+
     /**
      * 读取本地配置文件
      *
@@ -2405,12 +2409,9 @@ var _util = new function(){
      */
     this.getFileContent = function(filePath, dataType){
         var ret = null;
-        var configContent = null;
-        var pathIndex = 0;
-        var fileAbsolutePath = window.location.origin;
         var context = new HTTPContext();
 
-        context.url = _config.SHELL_ROOT + filePath + "?_=" + _config.createCacheToken();
+        context.url = this.getResourceFilePath(filePath);
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.error = function(jqXHR, textStatus, errorThrown){
@@ -2863,8 +2864,6 @@ var ViewModelController = function(configFilePath, completeHandler){
                         var viewModel = new Class();
                         // 初期化VM的内部缓存
                         viewModel.cache = {};
-                        // 加载指定ViewModel
-                        that._execViewModelInitial(config, viewModel, path, param);
                         // 把VM Class实例存入缓存
                         _viewModelCacheObject[path] = viewModel;
                         // 存储当前使用的ViewModel实例
@@ -2873,6 +2872,8 @@ var ViewModelController = function(configFilePath, completeHandler){
                             "config": config,
                             "path": path
                         };
+                        // 加载指定ViewModel
+                        that._execViewModelInitial(config, viewModel, path, param);
                     }
                 });
             }
@@ -2920,8 +2921,6 @@ var ViewModelController = function(configFilePath, completeHandler){
                                 var viewModel = new Class();
                                 // 初期化VM的内部缓存
                                 viewModel.cache = viewModelCacheObj;
-                                // 加载指定ViewModel
-                                that._execViewModelInitial(config, viewModel, path, param);
                                 // 把VM Class实例存入缓存
                                 _viewModelCacheObject[path] = viewModel;
                                 // 存储当前使用的ViewModel实例
@@ -2930,6 +2929,8 @@ var ViewModelController = function(configFilePath, completeHandler){
                                     "config": config,
                                     "path": path
                                 };
+                                // 加载指定ViewModel
+                                that._execViewModelInitial(config, viewModel, path, param);
                             }
                         });
                     }

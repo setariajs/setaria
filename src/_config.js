@@ -15,7 +15,8 @@ var _config = new function(){
      * @return {Function} 缓存值
      */
     this.createCacheToken = function(){
-        return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
+        // return this.APP_REVISION ? this.APP_REVISION : Math.floor(Math.random() * 100000000000000);
+        return Math.floor(Math.random() * 100000000000000);
     };
 
     /**

@@ -176,19 +176,24 @@ var _ui = new function(){
 
         // 取得HTML文件中的内容
         if (!_util.isEmpty(viewModelTemplateUrl)){
-            viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
-            // 无法加载指定Html文件的场合
-            if (_util.isObject(viewModelTemplateHTML)){
-                if (viewModelTemplateHTML.textStatus === "error"){
-                    _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
-                }
-            }else{
-                // 在指定区域刷新取得的HTML文本
-                $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
-            }
+            // 加载指定的HTML并在HTML加载完毕后执行回调函数
+            $("#" + _config.MAIN_AREA_ID).load(_util.getResourceFilePath(viewModelTemplateUrl), function(){
+                // 调用回调函数
+                handler();
+            });
+            // viewModelTemplateHTML = _util.getFileContent(viewModelTemplateUrl, "html");
+            // // 无法加载指定Html文件的场合
+            // if (_util.isObject(viewModelTemplateHTML)){
+            //     if (viewModelTemplateHTML.textStatus === "error"){
+            //         _ui.showMessage(new SystemMessage("SESYSM001E"), "error");
+            //     }
+            // }else{
+            //     // 在指定区域刷新取得的HTML文本
+            //     $("#" + _config.MAIN_AREA_ID).html(viewModelTemplateHTML);
+            // }
         }
         // 调用回调函数
-        handler();
+        // handler();
     };
 
     /**

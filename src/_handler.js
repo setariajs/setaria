@@ -28,7 +28,9 @@ var _handler = new function(){
     this.doCatch = function(e, evt){
         e = e.message ? e : new SystemMessage("SESYSM002E");
         // 在画面显示错误
-        _ui.showMessage(e, "error");
+        if (_config.DEBUG_MODE === true){
+            _ui.showMessage(e, "error");
+        }
     };
 
     /**

@@ -213,8 +213,6 @@ var ViewModelController = function(configFilePath, completeHandler){
                         var viewModel = new Class();
                         // 初期化VM的内部缓存
                         viewModel.cache = {};
-                        // 加载指定ViewModel
-                        that._execViewModelInitial(config, viewModel, path, param);
                         // 把VM Class实例存入缓存
                         _viewModelCacheObject[path] = viewModel;
                         // 存储当前使用的ViewModel实例
@@ -223,6 +221,8 @@ var ViewModelController = function(configFilePath, completeHandler){
                             "config": config,
                             "path": path
                         };
+                        // 加载指定ViewModel
+                        that._execViewModelInitial(config, viewModel, path, param);
                     }
                 });
             }
@@ -270,8 +270,6 @@ var ViewModelController = function(configFilePath, completeHandler){
                                 var viewModel = new Class();
                                 // 初期化VM的内部缓存
                                 viewModel.cache = viewModelCacheObj;
-                                // 加载指定ViewModel
-                                that._execViewModelInitial(config, viewModel, path, param);
                                 // 把VM Class实例存入缓存
                                 _viewModelCacheObject[path] = viewModel;
                                 // 存储当前使用的ViewModel实例
@@ -280,6 +278,8 @@ var ViewModelController = function(configFilePath, completeHandler){
                                     "config": config,
                                     "path": path
                                 };
+                                // 加载指定ViewModel
+                                that._execViewModelInitial(config, viewModel, path, param);
                             }
                         });
                     }

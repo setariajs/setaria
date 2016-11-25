@@ -12,10 +12,9 @@
      *
      * @private
      *
-     * @param  {string}  contextRoot
      * @return {Boolean} 配置信息取得成功的场合，返回true
      */
-    function _loadConfig(contextRoot){
+    function _loadConfig(){
         var ret = false;
         $("script").each(function(){
             // 配置文件路径
@@ -24,8 +23,6 @@
             var configContent = null;
 
             if (!_util.isEmpty(dataConfig)){
-                // 把当前路径信息写入配置对象
-                _config.SHELL_ROOT = contextRoot;
                 // 取得配置文件内容
                 configContent = _util.getFileContent(dataConfig, "json");
 
@@ -84,10 +81,11 @@
      * @public
      */
     this.start = function(handler){
-        // 取得当前路径
-        var contextRoot = _getContextRoot();
+        // 取得资源根目录
+        var shellRoot = _util.isEmpty(_config.SHELL_ROOT) ? _getContextRoot() : _config.SHELL_ROOT;
+        _config.SHELL_ROOT = shellRoot;
         // 取得配置信息
-        var loadConfigResult = _loadConfig(contextRoot);
+        var loadConfigResult = _loadConfig();
         // 当成功加载配置文件时
         if (loadConfigResult){
             // 更新引用文件的缓存

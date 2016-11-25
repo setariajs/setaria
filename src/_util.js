@@ -690,6 +690,10 @@ var _util = new function(){
         return _maskString(value, 0, maskLength, replaceString);
     };
 
+    this.getResourceFilePath = function(filePath){
+        return _config.SHELL_ROOT + filePath + "?_=" + _config.createCacheToken();
+    };
+
     /**
      * 读取本地配置文件
      *
@@ -697,12 +701,9 @@ var _util = new function(){
      */
     this.getFileContent = function(filePath, dataType){
         var ret = null;
-        var configContent = null;
-        var pathIndex = 0;
-        var fileAbsolutePath = window.location.origin;
         var context = new HTTPContext();
 
-        context.url = _config.SHELL_ROOT + filePath + "?_=" + _config.createCacheToken();
+        context.url = this.getResourceFilePath(filePath);
         context.method = "GET";
         context.dataType = dataType ? dataType : "text";
         context.error = function(jqXHR, textStatus, errorThrown){
