@@ -1,5 +1,5 @@
 # setaria.js
-The WebFramework for Single Page Application.
+The WebFramework for Single Page Application..
 
 **v0.1.0 version Release**
 
