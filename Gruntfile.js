@@ -50,7 +50,7 @@ module.exports = function(grunt) {
             dist : {
                 src: ['src/*.js'],
                 options: {
-                    destination: 'doc',
+                    destination: 'docs',
                     configure: 'conf.json',
                     template: './node_modules/minami'
                 },
