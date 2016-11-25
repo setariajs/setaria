@@ -6,4 +6,4 @@ The WebFramework for Single Page Application.
 # API v0.1.0 List
 [Docs](http://bluejfox.github.io/setaria.js/)
 
-
+Master
