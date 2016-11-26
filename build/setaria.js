@@ -830,7 +830,7 @@ var _http = new function(){
             // 超时时间(ms)
             var defaultTimeout = _config.DEFAULT_TIMEOUT || 20000;
             // 设值超时时间
-            context.timeout = _util.get(context, "timeout", _config.DEFAULT_TIMEOUT);
+            context.timeout = _util.get(context, "timeout", defaultTimeout);
             var beforeSend = context.beforeSend;
             // 显示overlay
             if (!_util.isFunction(beforeSend)){
