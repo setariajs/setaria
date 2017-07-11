@@ -1,0 +1,8 @@
+{
+  "resultCode": 1,
+  "exceptions": [
+    {
+      "message": "无法取得指定的Mock文件"
+    }
+  ]
+}
