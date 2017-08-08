@@ -1,8 +1,6 @@
 // M[Message Catagory]XXX[Message Type]
 // Message Catagory:
 //   AM Application Message
-//   CM Common Message
-//   BM Bussiness Message
 // Message Type:
 //   E Error
 //   I Info
@@ -15,9 +13,6 @@ const MESSAGE = {
   MAM005E: '认证过期或无权访问此服务，请点击注销按钮重新登录。',
   MAM006E: '无法找到指定的画面。',
   MAM007E: '服务调用出现未知错误，请重试或联系管理员。',
-  MCM001I: '{0}数据已成功新增。',
-  MCM002I: '{0}数据已成功修改。',
-  MCM003I: '{0}数据已成功删除。',
-  MCM004W: '此操作将删除这条数据，是否继续？',
-};
-export default MESSAGE;
+  MAM008E: '无法找到指定的消息定义文件'
+}
+export default MESSAGE

@@ -3,69 +3,62 @@
  * @version 1.0
  * @author HanL
  */
-import axios from 'axios';
-import ApplicationError from '@/model/ApplicationError';
-import store from '@/model/store';
-import Util from '@/model/Util';
+import axios from 'axios'
+import ApplicationError from './ApplicationError'
 
 const REQUEST_TYPE = {
   GET: 'get',
   POST: 'post',
   PUT: 'put',
-  DELETE: 'delete',
-};
+  DELETE: 'delete'
+}
 
-function execute(type, url, data, config = {}) {
-  let ret = null;
-  let p = null;
-  const axiosConfig = config;
+function execute (type, url, data, config = {}) {
+  let ret = null
+  let p = null
+  const axiosConfig = config
   if (type === REQUEST_TYPE.GET) {
-    axiosConfig.params = data;
-    p = axios[REQUEST_TYPE.GET](url, axiosConfig);
+    axiosConfig.params = data
+    p = axios[REQUEST_TYPE.GET](url, axiosConfig)
   } else {
-    p = axios[type](url, data, axiosConfig);
+    p = axios[type](url, data, axiosConfig)
   }
-  // 设置加载提示状态
-  store().commit('loading', true);
+
   ret = new Promise((resolve, reject) => {
     p.then((res) => {
-      resolve(res);
-      // 重置加载提示状态
-      store().commit('loading', false);
+      resolve(res)
     }).catch((error) => {
-      let rejectError = error;
+      let rejectError = error
       if (error.message.indexOf('timeout of') === 0) {
-        // 取得配置的服务调用超时时间
-        const timeout = parseInt(Util.getConfigValue('SERVICE_TIME_OUT'), 10) / 1000;
-        rejectError = new ApplicationError('MAM003E', [timeout]);
+        // TODO 取得配置的服务调用超时时间
+        const timeout = 1000
+        rejectError = new ApplicationError('MAM003E', [timeout])
       } else if (error.response) {
         // 服务器错误
         if (error.response.status >= 500) {
-          rejectError = new ApplicationError('MAM001E');
+          rejectError = new ApplicationError('MAM001E')
         }
       }
-      reject(rejectError);
-      // 重置加载提示状态
-      store().commit('loading', false);
-    });
-  });
-  return ret;
+      reject(rejectError)
+    })
+  })
+  return ret
 }
 
 export default class Http {
-  static get(url, data, config) {
-    return execute(REQUEST_TYPE.GET, url, data, config);
+  static get (url, data, config) {
+    return execute(REQUEST_TYPE.GET, url, data, config)
   }
 
-  static post(url, data, config) {
-    return execute(REQUEST_TYPE.POST, url, data, config);
+  static post (url, data, config) {
+    return execute(REQUEST_TYPE.POST, url, data, config)
   }
 
-  static put(url, data, config) {
-    return execute(REQUEST_TYPE.PUT, url, data, config);
+  static put (url, data, config) {
+    return execute(REQUEST_TYPE.PUT, url, data, config)
   }
 
-  static delete(url, data, config) {
-    return execute(REQUEST_TYPE.DELETE, url, data, config);
+  static delete (url, data, config) {
+    return execute(REQUEST_TYPE.DELETE, url, data, config)
   }
 }

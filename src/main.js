@@ -1,32 +1,19 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import Vue from 'vue';
-import App from '@/App';
-import context from '@/component/plugin/context';
-import { router, navigate } from '@/component/plugin/navigate/index';
-import store from '@/component/plugin/store';
-import UI from '@/component/ui';
-import Util from '@/model/Util';
+import applyMixin from './mixin'
 
-// 加载公用UI控件
-// Vue.use(UI);
-// 生产环境的场合
-if (Util.isProdunctionEnv()) {
-  // 不显示Vue日志和警告
-  Vue.config.silent = true;
-  // 不显示Vue产品信息
-  Vue.config.productionTip = false;
+export function install (_Vue) {
+  if (Vue) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(
+        '[setaria] already installed. Vue.use(Setaria) should be called only once.'
+      )
+    }
+    return
+  }
+  Vue = _Vue
+  applyMixin(Vue)
 }
 
-Vue.use(UI);
-Vue.use(context);
-Vue.use(navigate);
-
-/* eslint-disable no-new */
-new Vue({
-  el: '#main',
-  router,
-  store,
-  template: '<App/>',
-  components: { App },
-});
+// auto install in dist mode
+if (typeof window !== 'undefined' && window.Vue) {
+  install(window.Vue)
+}
