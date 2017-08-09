@@ -46,12 +46,12 @@ function genConfig (opts) {
     banner,
     moduleName: 'Setaria',
     plugins: [
-      rollCommonjs(),
+      // rollCommonjs(),
       replace({
         __VERSION__: version
       }),
-      buble(),
-      rollResolve()
+      buble()
+      // rollResolve()
     ]
   }
 

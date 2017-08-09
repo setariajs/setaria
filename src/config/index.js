@@ -1,5 +1,5 @@
 export default {
   message: '',
   errorHanlder: null,
-  router: []
+  router: {}
 }

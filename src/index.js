@@ -5,6 +5,7 @@ import ApplicationError from './model/ApplicationError'
 import ErrorHandler from './model/ErrorHandler'
 import Http from './model/Http'
 import Message from './model/Message'
+import store from './plugin/store'
 import util from './util'
 
 // -- 环境变量设置
@@ -22,6 +23,7 @@ ErrorHandler.catchError()
 export default {
   install,
   config,
+  store,
   version: '__VERSION__',
   ApplicationError,
   Http,

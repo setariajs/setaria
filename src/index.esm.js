@@ -5,6 +5,8 @@ import ApplicationError from './model/ApplicationError'
 import ErrorHandler from './model/ErrorHandler'
 import Http from './model/Http'
 import Message from './model/Message'
+import Navigate from './plugin/navigate/index'
+import store from './plugin/store'
 import util from './util'
 
 // -- 环境变量设置
@@ -22,6 +24,10 @@ ErrorHandler.catchError()
 export default {
   install,
   config,
+  plugin: {
+    Navigate,
+    store
+  },
   version: '__VERSION__'
 }
 
