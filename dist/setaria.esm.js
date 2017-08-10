@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.2
+ * Setaria v0.0.4
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -910,7 +910,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.2'
+  version: '0.0.4'
 };
 
 export { ApplicationError, Http, Message, Util as util };export default index_esm;
