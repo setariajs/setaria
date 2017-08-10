@@ -26,7 +26,7 @@ export default class Navigate extends VueRouter {
     // }
     // this.routeHistroy.history.push(this.currentRoute.fullPath)
     // this.routeHistroy.currentIndex = this.routeHistroy.history.length - 1
-    store().commit('common/direction', 'forward')
+    store.commit('common/direction', 'forward')
     this.push({
       name,
       params,
@@ -34,13 +34,18 @@ export default class Navigate extends VueRouter {
     })
   }
 
+  push (location, onComplete, onAbort) {
+    store.commit('common/direction', 'forward')
+    super.push(location, onComplete, onAbort)
+  }
+
   forward () {
-    store().commit('common/direction', 'forward')
+    store.commit('common/direction', 'forward')
     super.forward()
   }
 
   backTo () {
-    store().commit('common/direction', 'back')
+    store.commit('common/direction', 'back')
     super.back()
   }
 }
