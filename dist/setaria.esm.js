@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.1
+ * Setaria v0.0.2
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -860,7 +860,7 @@ var Navigate = (function (VueRouter$$1) {
     // }
     // this.routeHistroy.history.push(this.currentRoute.fullPath)
     // this.routeHistroy.currentIndex = this.routeHistroy.history.length - 1
-    store().commit('common/direction', 'forward');
+    store.commit('common/direction', 'forward');
     this.push({
       name: name,
       params: params,
@@ -868,13 +868,18 @@ var Navigate = (function (VueRouter$$1) {
     });
   };
 
+  Navigate.prototype.push = function push (location, onComplete, onAbort) {
+    store.commit('common/direction', 'forward');
+    VueRouter$$1.prototype.push.call(this, location, onComplete, onAbort);
+  };
+
   Navigate.prototype.forward = function forward () {
-    store().commit('common/direction', 'forward');
+    store.commit('common/direction', 'forward');
     VueRouter$$1.prototype.forward.call(this);
   };
 
   Navigate.prototype.backTo = function backTo () {
-    store().commit('common/direction', 'back');
+    store.commit('common/direction', 'back');
     VueRouter$$1.prototype.back.call(this);
   };
 
@@ -905,7 +910,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.1'
+  version: '0.0.2'
 };
 
 export { ApplicationError, Http, Message, Util as util };export default index_esm;

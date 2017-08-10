@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.1
+ * Setaria v0.0.2
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -12,6 +12,7 @@ var _ = _interopDefault(require('lodash'));
 var moment = _interopDefault(require('moment'));
 require('moment/locale/zh-cn');
 var axios = _interopDefault(require('axios'));
+var VueRouter = _interopDefault(require('vue-router'));
 var Vuex = _interopDefault(require('vuex'));
 
 var config = {
@@ -556,6 +557,108 @@ Http.delete = function delete$1 (url, data, config) {
   return execute(REQUEST_TYPE.DELETE, url, data, config)
 };
 
+// import config from '../../config/index'
+// import ApplicationError from '../../model/ApplicationError'
+// import util from '../../util'
+
+// function getDirection (to, from, next) {
+//   const params = to.params
+//   const currentPageFullPath = from.fullPath
+//   let direction = store.state.common.direction
+//   let isExistForwardPage = false
+//   const nextPageFullPath = to.fullPath
+//   const history = routeHistroy.history
+//   if (params && params.$$direction === 'forward') {
+//     direction = 'forward'
+//     // 保存跳转方向
+//     store.commit('common/direction', direction)
+//   }
+//   // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
+//   if (direction !== 'forward' && direction !== 'back') {
+//     if (history.length === 0) {
+//       routeHistroy.currentIndex = 0
+//       history.push(currentPageFullPath)
+//       next()
+//       return
+//     }
+//     if (history.length > 0) {
+//       // 当前游标处于最末尾
+//       if (routeHistroy.currentIndex === history.length - 1) {
+//         const path = history[routeHistroy.currentIndex]
+//         // 跳转画面的路径为前画面的场合
+//         if (path === nextPageFullPath) {
+//           direction = 'back'
+//         } else {
+//           direction = 'forward'
+//         }
+//       // 当前画面拥有次画面
+//       } else {
+//         let path = null
+//         // 判断目标画面是否为前画面
+//         if (routeHistroy.currentIndex !== 0) {
+//           path = history[routeHistroy.currentIndex]
+//           if (path === nextPageFullPath) {
+//             direction = 'back'
+//           }
+//         }
+//         // 判断目标画面是否为次画面
+//         if (direction === '') {
+//           path = history[routeHistroy.currentIndex + 1]
+//           if (path === nextPageFullPath) {
+//             direction = 'forward'
+//             isExistForwardPage = true
+//           }
+//         }
+//       }
+//       // 保存跳转方向
+//       store.commit('common/direction', direction)
+//     }
+//   }
+//
+//   if (direction === '') {
+//     direction = 'forward'
+//     // 保存跳转方向
+//     store.commit('common/direction', direction)
+//   }
+//
+//   // 更新浏览历史
+//   if (direction === 'back') {
+//     if (routeHistroy.currentIndex === 0) {
+//       routeHistroy.currentIndex = null
+//     } else {
+//       history[routeHistroy.currentIndex] = currentPageFullPath
+//       routeHistroy.currentIndex -= 1
+//     }
+//   } else if (direction === 'forward') {
+//     if (!isExistForwardPage) {
+//       if (routeHistroy.currentIndex < history.length - 1) {
+//         let index = history.length - 1
+//         for (index; index > routeHistroy.currentIndex; index -= 1) {
+//           history.splice(index, 1)
+//         }
+//       }
+//       history.push(currentPageFullPath)
+//     } else {
+//       history[routeHistroy.currentIndex + 1] = currentPageFullPath
+//     }
+//     routeHistroy.currentIndex += 1
+//   }
+//   next()
+// }
+
+function install$1 (Vue) {
+  if (install$1.installed) {
+    return
+  }
+  install$1.installed = true;
+  VueRouter.install(Vue);
+  Vue.mixin({
+    destroyed: function destroyed () {
+      this.$store.commit('common/direction', '');
+    }
+  });
+}
+
 // initial state
 var state = {
   direction: '',
@@ -697,6 +800,101 @@ function create (Store) {
 Vue$1.use(Vuex);
 var store = create(Vuex.Store);
 
+var updateDirection = function (to, from, next) {
+  var params = to.params;
+  var currentPageFullPath = from.fullPath;
+  var direction = store.state.common.direction;
+  var nextPageFullPath = to.fullPath;
+  if (params && params.$$direction === 'forward') {
+    direction = 'forward';
+    // 保存跳转方向
+    store.commit('common/direction', direction);
+  }
+  // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
+  store.commit('common/updateDirection', {
+    current: currentPageFullPath,
+    next: nextPageFullPath
+  });
+  // if (direction === '') {
+  //   direction = 'forward'
+  //   // 保存跳转方向
+  //   store.commit('common/direction', direction)
+  // }
+  next();
+};
+
+var updateHistory = function (to, from, next) {
+  var currentPageFullPath = from.fullPath;
+  var nextPageFullPath = to.fullPath;
+  store.commit('common/updateHistory', {
+    current: currentPageFullPath,
+    next: nextPageFullPath
+  });
+  next();
+};
+
+// TODO: 引入Router的方式不太恰当，但在navigate插件中需要注册路由全局钩子，不知该如何取得router对象
+// 限制1: 不支持同一路由不同参数间画面的跳转 /user/1 -> /user/2
+// 限制2: 不支持<router-link>的方式跳转，且此链接内如果定义path，则params不生效（vue-router的限制）
+// 限制3: 新增<navi-link>用于定义静态路由链接。
+var Navigate = (function (VueRouter$$1) {
+  function Navigate (options) {
+    if ( options === void 0 ) options = {};
+
+    VueRouter$$1.call(this, options);
+    // 注册全局路由钩子
+    this.beforeEach(updateDirection);
+    this.beforeEach(updateHistory);
+  }
+
+  if ( VueRouter$$1 ) Navigate.__proto__ = VueRouter$$1;
+  Navigate.prototype = Object.create( VueRouter$$1 && VueRouter$$1.prototype );
+  Navigate.prototype.constructor = Navigate;
+
+  Navigate.prototype.forwardTo = function forwardTo (name, params, query) {
+    if ( params === void 0 ) params = {};
+    if ( query === void 0 ) query = {};
+
+    // 删除
+    // if (this.routeHistroy.currentIndex !== this.routeHistroy.history.length - 1) {
+    //   let index = this.routeHistroy.history.length - 1
+    //   for (index; index > this.routeHistroy.currentIndex; index -= 1) {
+    //     this.routeHistroy.history.splice(index - 1, 1)
+    //   }
+    // }
+    // this.routeHistroy.history.push(this.currentRoute.fullPath)
+    // this.routeHistroy.currentIndex = this.routeHistroy.history.length - 1
+    store.commit('common/direction', 'forward');
+    this.push({
+      name: name,
+      params: params,
+      query: query
+    });
+  };
+
+  Navigate.prototype.push = function push (location, onComplete, onAbort) {
+    store.commit('common/direction', 'forward');
+    VueRouter$$1.prototype.push.call(this, location, onComplete, onAbort);
+  };
+
+  Navigate.prototype.forward = function forward () {
+    store.commit('common/direction', 'forward');
+    VueRouter$$1.prototype.forward.call(this);
+  };
+
+  Navigate.prototype.backTo = function backTo () {
+    store.commit('common/direction', 'back');
+    VueRouter$$1.prototype.back.call(this);
+  };
+
+  return Navigate;
+}(VueRouter));
+
+Navigate.install = install$1;
+if (typeof window !== 'undefined' && window.Vue) {
+  window.Vue.use(Navigate);
+}
+
 // -- 环境变量设置
 // 生产环境的场合
 if (Util.isProdunctionEnv()) {
@@ -712,8 +910,11 @@ ErrorHandler.catchError();
 var index = {
   install: install,
   config: config,
-  store: store,
-  version: '0.0.1',
+  plugin: {
+    Navigate: Navigate,
+    store: store
+  },
+  version: '0.0.2',
   ApplicationError: ApplicationError,
   Http: Http,
   Message: Message,
