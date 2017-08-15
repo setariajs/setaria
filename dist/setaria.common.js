@@ -486,10 +486,10 @@ ErrorHandler.parseError = function parseError (error, source) {
   }
 
   // 实现了Vue.config.errorHandler接口的场合，Vue不会在控制台显示错误。
-  if (isErrorFromVue) {
-    /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-    console.error(error);
-  }
+  // if (isErrorFromVue) {
+  // /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+  // console.error(error)
+  // }
   return ret
 };
 
@@ -666,7 +666,9 @@ var state = {
   routeHistory: {
     currentIndex: null,
     history: []
-  }
+  },
+  token: '',
+  user: null
 };
 
 // getters
@@ -688,6 +690,14 @@ var mutations = {
   loading: function loading (stateObj, val) {
     var s = stateObj;
     s.loading = val;
+  },
+  token: function token (stateObj, val) {
+    var s = stateObj;
+    s.token = val;
+  },
+  user: function user (stateObj, val) {
+    var s = stateObj;
+    s.user = val;
   },
   updateDirection: function updateDirection (stateObj, ref) {
     var current = ref.current;
