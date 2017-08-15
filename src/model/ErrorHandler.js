@@ -104,10 +104,10 @@ export default class ErrorHandler {
     }
 
     // 实现了Vue.config.errorHandler接口的场合，Vue不会在控制台显示错误。
-    if (isErrorFromVue) {
-      /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-      console.error(error)
-    }
+    // if (isErrorFromVue) {
+    //   /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+    //   console.error(error)
+    // }
     return ret
   }
 }

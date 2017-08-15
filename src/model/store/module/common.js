@@ -5,7 +5,9 @@ const state = {
   routeHistory: {
     currentIndex: null,
     history: []
-  }
+  },
+  token: '',
+  user: null
 }
 
 // getters
@@ -27,6 +29,14 @@ const mutations = {
   loading (stateObj, val) {
     const s = stateObj
     s.loading = val
+  },
+  token (stateObj, val) {
+    const s = stateObj
+    s.token = val
+  },
+  user (stateObj, val) {
+    const s = stateObj
+    s.user = val
   },
   updateDirection (stateObj, { current, next }) {
     let direction = stateObj.direction
