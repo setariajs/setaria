@@ -74,9 +74,13 @@ export default class ErrorHandler {
     // 没有捕获Promise中抛出的异常
     // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
     } else if (error instanceof PromiseRejectionEvent) {
-      const { id, params = [] }: Object = error.reason
-      if (id !== null && id !== undefined) {
-        ret = new ApplicationError(id, params)
+      const { id, message, noIdMessage }: Object = error.reason
+      // ApplicationError
+      if (noIdMessage !== null && noIdMessage !== undefined) {
+        ret = new ApplicationError(id, [], noIdMessage)
+      // Error
+      } else if (message !== null && message !== undefined) {
+        ret = new ApplicationError('', [], message)
       } else {
         ret = new ApplicationError('MAM004E')
       }

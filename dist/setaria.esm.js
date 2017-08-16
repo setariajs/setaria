@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.6
+ * Setaria v0.0.7
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -399,9 +399,14 @@ ErrorHandler.parseError = function parseError (error, source) {
   } else if (error instanceof PromiseRejectionEvent) {
     var ref = error.reason;
       var id = ref.id;
-      var params = ref.params; if ( params === void 0 ) params = [];
-    if (id !== null && id !== undefined) {
-      ret = new ApplicationError(id, params);
+      var message = ref.message;
+      var noIdMessage = ref.noIdMessage;
+    // ApplicationError
+    if (noIdMessage !== null && noIdMessage !== undefined) {
+      ret = new ApplicationError(id, [], noIdMessage);
+    // Error
+    } else if (message !== null && message !== undefined) {
+      ret = new ApplicationError('', [], message);
     } else {
       ret = new ApplicationError('MAM004E');
     }
@@ -411,8 +416,8 @@ ErrorHandler.parseError = function parseError (error, source) {
     if (Util.isProdunctionEnv()) {
       ret = new ApplicationError('MAM004E');
     } else {
-      var message = error.message;
-      ret = new ApplicationError('', [], message);
+      var message$1 = error.message;
+      ret = new ApplicationError('', [], message$1);
     }
   // // 来源：未知
   // } else if (error instanceof Object
@@ -1006,7 +1011,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.6'
+  version: '0.0.7'
 };
 
 export { ApplicationError, Http, Message, Storage, Util as util };export default index_esm;

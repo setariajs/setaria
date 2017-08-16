@@ -110,7 +110,7 @@
       },
       doThrowPromiseException () {
         Http.get('/api/weather').then((res) => {
-          throw new ApplicationError('MCM007E')
+          throw new ApplicationError('111', null, '222')
         })
       },
       doSaveToLocalStorage (val) {
