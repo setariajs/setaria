@@ -1,3 +1,4 @@
+/* @flow */
 import _ from 'lodash'
 import moment from 'moment'
 import 'moment/locale/zh-cn'
@@ -7,7 +8,7 @@ export default class Util {
    * 判断当前执行环境是否为生产环境
    * @return {Boolean} 生产环境的场合，返回true
    */
-  static isProdunctionEnv () {
+  static isProdunctionEnv (): boolean {
     return process.env.NODE_ENV === 'production'
   }
 
@@ -16,18 +17,15 @@ export default class Util {
    * @param  {String} format 指定格式（moment格式）
    * @return {String} 当前时间
    */
-  static getNow (format = 'LL') {
+  static getNow (format: string = 'LL'): string {
     return moment().format(format)
   }
 
   /**
    * 对日期使用指定格式进行格式化
-   * @param  {Date|String} date   日期
-   * @param  {String}      format 格式化字符串
-   * @return {String}      格式化后的日期
    */
-  static formatDate (date, format = 'YYYY-MM-DD') {
-    let ret = ''
+  static formatDate (date: ?Date | string, format: string = 'YYYY-MM-DD'): string {
+    let ret: string = ''
     if (moment(date).isValid() && date !== undefined) {
       ret = moment(date).format(format)
     }
@@ -36,11 +34,9 @@ export default class Util {
 
   /**
    * 字符串类型日期转换成日期对象
-   * @param  {String} val
-   * @return {Date}
    */
-  static toDate (val) {
-    let ret = val
+  static toDate (val: string): ?Date | ?string {
+    let ret: string = val
     if (!Util.isEmpty(val)) {
       ret = moment(val).toDate()
     }
@@ -49,131 +45,102 @@ export default class Util {
 
   /**
    * 对时间进行加法计算
-   * @param  {String|Date} date 指定时间
-   * @param  {Number}      val  值
-   * @param  {String}      type 类型
-   * @return {Date}        计算后的时间
+   * 例：addDateTime(new Date(), 7, 'days')
    */
-  static addDateTime (date, val, type) {
+  static addDateTime (date: string | Date, val: number, type: string): ?Date {
     return moment(date).add(val, type)
   }
 
   /**
    * 对时间进行减法计算
-   * @param  {String|Date} date 指定时间
-   * @param  {Number}      val  值
-   * @param  {String}      type 类型
-   * @return {Date}        计算后的时间
+   * 例：subtractDateTime(new Date(), 7, 'days')
    */
-  static subtractDateTime (date, val, type) {
+  static subtractDateTime (date: string | Date, val: number, type: string): ?Date {
     return moment(date).subtract(val, type)
   }
 
   /**
    * 检查输入值是否为空
    * 注意：无法判断基本类型（整数，布尔）
-   * @param  {*}       value 检查的值
-   * @return {Boolean} 值为空的场合返回true
    */
-  static isEmpty (value) {
+  static isEmpty (value: any): boolean {
     return _.isEmpty(value)
   }
 
   /**
    * 判断两个输入值值是否相等
    * 主要用于对数组或对象进行判断
-   * @param  {*}       value 输入值
-   * @param  {*}       other 输入值
-   * @return {Boolean} 两个值相等的场合返回true
    */
-  static isEqual (value, other) {
+  static isEqual (value: any, other: any): boolean {
     return _.isEqual(value, other)
   }
 
   /**
    * 检查输入值是否为数字
-   * @param  {*}       value 输入值
-   * @return {Boolean} 输入值为数字的场合，返回true
    */
-  static isNumber (value) {
+  static isNumber (value: any): boolean {
     return _.isNumber(value)
   }
 
   /**
    * 检查输入值是否为字符串
-   * @param  {*}       value 输入值
-   * @return {Boolean} 输入值为字符串类型的场合，返回true
    */
-  static isString (value) {
+  static isString (value: any): boolean {
     return _.isString(value)
   }
 
   /**
    * 检查输入值是否为日期
-   * @param  {*}       value 输入值
-   * @return {Boolean} 输入值为日期的场合，返回true
    */
-  static isDate (value) {
+  static isDate (value: any): boolean {
     return _.isDate(value)
   }
 
   /**
    * 检查输入值是否为数组
-   * @param  {*}       value 检查的值
-   * @return {Boolean} 是数组的场合，返回true
    */
-  static isArray (value) {
+  static isArray (value: any): boolean {
     return _.isArray(value)
   }
 
   /**
    * 检查输入值是否为对象
-   * @param  {*}       value 输入值
-   * @return {Boolean} 输入值为对象的场合，返回true
    */
-  static isObject (value) {
+  static isObject (value: any): boolean {
     return _.isObject(value)
   }
 
   /**
    * 检查输入值是否为函数
-   * @param  {*}       value 输入值
-   * @return {Boolean} 输入值为函数的场合，返回true
    */
-  static isFunction (value) {
+  static isFunction (value: any): boolean {
     return _.isFunction(value)
   }
 
   /**
    * 取得对象中指定的值
-   * @param  {Object} object
-   * @param  {String} path
-   * @param  {*}      defaultValue
-   * @return {*}      指定的值
    */
-  static get (object, path, defaultValue = null) {
+  static get (object: Object, path: string, defaultValue: ?any = null): any {
     return _.get(object, path, defaultValue)
   }
 
   /**
    * 对指定对象进行深拷贝
-   * @param  {*} objects 欲拷贝的值
-   * @return {*} 拷贝后的值
    */
-  static cloneDeep (objects) {
+  static cloneDeep (objects: any): any {
     return _.cloneDeep(objects)
   }
 
   /**
    * 取得url中指定参数的值
-   * @param  {String} paramKey
-   * @return {String|Array}
    */
-  static getUrlParameter (paramKey) {
-    const urlParam = window.location.search.substring(1)
-    const urlVariables = urlParam.split('&')
-    let ret = urlVariables.find(key => key.split('=')[0] === paramKey)
-    if (ret) {
+  static getUrlParameter (paramKey: string): ?string {
+    const urlParam: string = window.location.search.substring(1)
+    const urlVariables: Array<string> = urlParam.split('&')
+    let ret: ?string = urlVariables.find(key => key.split('=')[0] === paramKey)
+    if (ret === null || ret === undefined) {
+      ret = ''
+    } else {
       ret = ret.split('=')[1]
     }
     return ret

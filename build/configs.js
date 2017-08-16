@@ -3,6 +3,7 @@ const buble = require('rollup-plugin-buble')
 const replace = require('rollup-plugin-replace')
 const rollResolve = require('rollup-plugin-node-resolve')
 const rollCommonjs = require('rollup-plugin-commonjs')
+const flow = require('rollup-plugin-flow-no-whitespace')
 const version = process.env.VERSION || require('../package.json').version
 const banner =
 `/**
@@ -46,6 +47,7 @@ function genConfig (opts) {
     banner,
     moduleName: 'Setaria',
     plugins: [
+      flow(),
       // rollCommonjs(),
       replace({
         __VERSION__: version

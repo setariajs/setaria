@@ -1,3 +1,4 @@
+/* @flow */
 import config from '../config/index'
 import systemMessage from '../config/message'
 import util from '../util'
@@ -9,40 +10,41 @@ export const MESSAGE_TYPE = {
   ERROR: 'error'
 }
 
-function getCustomMessageObject () {
-  let ret = {}
-  const customMessageObject = config.message
-  if (!util.isEmpty(customMessageObject)) {
-    // 文件路径的场合
-    if (util.isString(customMessageObject)) {
-      // TODO 在非Webpack环境下取得消息文件
-    } else if (util.isObject(customMessageObject)) {
-      ret = customMessageObject
-    }
-  }
-  return ret
+/**
+ * 取得自定义消息对象
+ */
+function getCustomMessageObject (): ?Object {
+  return config.message ? config.message : {}
 }
 
-function getMessageObject () {
+/**
+ * 取得系统消息对象和自定义消息对象
+ */
+function getMessageObject (): Object {
   return Object.assign({}, systemMessage, getCustomMessageObject())
 }
 
-function getMessageById (id) {
-  const messageObject = getMessageObject()
-  return messageObject[id]
+/**
+ * 根据消息ID取得对应的消息
+ */
+function getMessageById (id: string): ?string {
+  return getMessageObject()[id]
 }
 
 /**
  * 格式化指定消息
- * @param  {String} id     消息ID
- * @param  {Array}  params 消息参数
- * @return {String} 已格式化的消息
  */
-function formatMessage (id = '', params) {
-  let ret = util.isEmpty(getMessageById(id)) ? '' : getMessageById(id)
+function formatMessage (id: string = '', params: Array<string | number> = []) {
+  const message: ?string = getMessageById(id)
+  let ret: string = (message === null || message === undefined) ? '' : message
   if (!util.isEmpty(ret) && !util.isEmpty(params)) {
-    params.forEach((item, index) => {
-      ret = ret.split(`{${index}}`).join(params[index])
+    params.forEach((item: string | number, index: number) => {
+      const replaceString: string = `{${index}}`
+      // 存在要替换的字符串的场合
+      if (ret.indexOf(replaceString) !== -1) {
+        const str = (typeof item === 'number') ? item.toString() : item
+        ret = ret.split(replaceString).join(str)
+      }
     })
   }
   return ret
@@ -50,12 +52,10 @@ function formatMessage (id = '', params) {
 
 /**
  * 根据消息ID取得对应的消息类型
- * @param  {String} id 消息ID
- * @return {String} 消息类型
  */
-function getMessageType (id = null) {
-  let ret = ''
-  const type = id !== null ? id.charAt(id.length - 1) : ''
+function getMessageType (id: string): string {
+  let ret: string = ''
+  const type = id.charAt(id.length - 1)
   switch (type) {
     case 'E':
       ret = 'error'
@@ -64,16 +64,18 @@ function getMessageType (id = null) {
       ret = 'warning'
       break
     case 'I':
-      ret = 'info'
-      break
     default:
-      ret = 'error'
+      ret = 'info'
   }
   return ret
 }
 
 export default class Message {
-  constructor (id, params, message) {
+  id: string;
+  params: Array<string | number>;
+  type: string;
+  message: string;
+  constructor (id?: string = '', params?: Array<string | number> = [], message?: string = '') {
     this.id = id
     this.type = getMessageType(id)
     this.params = params
@@ -83,11 +85,14 @@ export default class Message {
     }
   }
 
-  getMessage () {
+  /**
+   * 取得消息内容
+   */
+  getMessage (): string {
     return this.message
   }
 
-  toString () {
+  toString (): string {
     return this.message
   }
 }

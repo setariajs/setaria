@@ -1,9 +1,9 @@
 /**
- * Setaria v0.0.4
+ * Setaria v0.0.5
  * (c) 2017 Ray Han
  * @license MIT
  */
-import Vue$1 from 'vue';
+import Vue from 'vue';
 import _ from 'lodash';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
@@ -11,64 +11,29 @@ import axios from 'axios';
 import VueRouter from 'vue-router';
 import Vuex from 'vuex';
 
-var config = {
-  message: '',
-  errorHanlder: null,
-  router: {}
-};
+/*  */
 
-var applyMixin = function () {
-  // const version = Number(Vue.version.split('.')[0])
+var config = ({
+  message: null,
+  errorHanlder: null
+});
 
-  // if (version >= 2) {
-  //   Vue.mixin({ beforeCreate: vuexInit })
-  // } else {
-  //   // override init and inject vuex init procedure
-  //   // for 1.x backwards compatibility.
-  //   const _init = Vue.prototype._init
-  //   Vue.prototype._init = function (options = {}) {
-  //     options.init = options.init
-  //       ? [vuexInit].concat(options.init)
-  //       : vuexInit
-  //     _init.call(this, options)
-  //   }
-  // }
-
-  // /**
-  //  * Vuex init hook, injected into each instances init hooks list.
-  //  */
-  //
-  // function vuexInit () {
-  //   const options = this.$options
-  //   // store injection
-  //   if (options.store) {
-  //     this.$store = typeof options.store === 'function'
-  //       ? options.store()
-  //       : options.store
-  //   } else if (options.parent && options.parent.$store) {
-  //     this.$store = options.parent.$store
-  //   }
-  // }
-};
+// import applyMixin from './mixin'
 
 function install (_Vue) {
-  if (Vue) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(
-        '[setaria] already installed. Vue.use(Setaria) should be called only once.'
-      );
-    }
-    return
-  }
-  Vue = _Vue;
-  applyMixin(Vue);
+  // if (Vue) {
+  //   if (process.env.NODE_ENV !== 'production') {
+  //     console.error(
+  //       '[setaria] already installed. Vue.use(Setaria) should be called only once.'
+  //     )
+  //   }
+  //   return
+  // }
+  // Vue = _Vue
+  // applyMixin(Vue)
 }
 
-// auto install in dist mode
-if (typeof window !== 'undefined' && window.Vue) {
-  install(window.Vue);
-}
-
+/*  */
 var Util = function Util () {};
 
 Util.isProdunctionEnv = function isProdunctionEnv () {
@@ -88,9 +53,6 @@ Util.getNow = function getNow (format) {
 
 /**
  * 对日期使用指定格式进行格式化
- * @param{Date|String} date 日期
- * @param{String}    format 格式化字符串
- * @return {String}    格式化后的日期
  */
 Util.formatDate = function formatDate (date, format) {
     if ( format === void 0 ) format = 'YYYY-MM-DD';
@@ -104,8 +66,6 @@ Util.formatDate = function formatDate (date, format) {
 
 /**
  * 字符串类型日期转换成日期对象
- * @param{String} val
- * @return {Date}
  */
 Util.toDate = function toDate (val) {
   var ret = val;
@@ -117,10 +77,7 @@ Util.toDate = function toDate (val) {
 
 /**
  * 对时间进行加法计算
- * @param{String|Date} date 指定时间
- * @param{Number}    val值
- * @param{String}    type 类型
- * @return {Date}      计算后的时间
+ * 例：addDateTime(new Date(), 7, 'days')
  */
 Util.addDateTime = function addDateTime (date, val, type) {
   return moment(date).add(val, type)
@@ -128,10 +85,7 @@ Util.addDateTime = function addDateTime (date, val, type) {
 
 /**
  * 对时间进行减法计算
- * @param{String|Date} date 指定时间
- * @param{Number}    val值
- * @param{String}    type 类型
- * @return {Date}      计算后的时间
+ * 例：subtractDateTime(new Date(), 7, 'days')
  */
 Util.subtractDateTime = function subtractDateTime (date, val, type) {
   return moment(date).subtract(val, type)
@@ -140,8 +94,6 @@ Util.subtractDateTime = function subtractDateTime (date, val, type) {
 /**
  * 检查输入值是否为空
  * 注意：无法判断基本类型（整数，布尔）
- * @param{*}     value 检查的值
- * @return {Boolean} 值为空的场合返回true
  */
 Util.isEmpty = function isEmpty (value) {
   return _.isEmpty(value)
@@ -150,9 +102,6 @@ Util.isEmpty = function isEmpty (value) {
 /**
  * 判断两个输入值值是否相等
  * 主要用于对数组或对象进行判断
- * @param{*}     value 输入值
- * @param{*}     other 输入值
- * @return {Boolean} 两个值相等的场合返回true
  */
 Util.isEqual = function isEqual (value, other) {
   return _.isEqual(value, other)
@@ -160,8 +109,6 @@ Util.isEqual = function isEqual (value, other) {
 
 /**
  * 检查输入值是否为数字
- * @param{*}     value 输入值
- * @return {Boolean} 输入值为数字的场合，返回true
  */
 Util.isNumber = function isNumber (value) {
   return _.isNumber(value)
@@ -169,8 +116,6 @@ Util.isNumber = function isNumber (value) {
 
 /**
  * 检查输入值是否为字符串
- * @param{*}     value 输入值
- * @return {Boolean} 输入值为字符串类型的场合，返回true
  */
 Util.isString = function isString (value) {
   return _.isString(value)
@@ -178,8 +123,6 @@ Util.isString = function isString (value) {
 
 /**
  * 检查输入值是否为日期
- * @param{*}     value 输入值
- * @return {Boolean} 输入值为日期的场合，返回true
  */
 Util.isDate = function isDate (value) {
   return _.isDate(value)
@@ -187,8 +130,6 @@ Util.isDate = function isDate (value) {
 
 /**
  * 检查输入值是否为数组
- * @param{*}     value 检查的值
- * @return {Boolean} 是数组的场合，返回true
  */
 Util.isArray = function isArray (value) {
   return _.isArray(value)
@@ -196,8 +137,6 @@ Util.isArray = function isArray (value) {
 
 /**
  * 检查输入值是否为对象
- * @param{*}     value 输入值
- * @return {Boolean} 输入值为对象的场合，返回true
  */
 Util.isObject = function isObject (value) {
   return _.isObject(value)
@@ -205,8 +144,6 @@ Util.isObject = function isObject (value) {
 
 /**
  * 检查输入值是否为函数
- * @param{*}     value 输入值
- * @return {Boolean} 输入值为函数的场合，返回true
  */
 Util.isFunction = function isFunction (value) {
   return _.isFunction(value)
@@ -214,10 +151,6 @@ Util.isFunction = function isFunction (value) {
 
 /**
  * 取得对象中指定的值
- * @param{Object} object
- * @param{String} path
- * @param{*}    defaultValue
- * @return {*}    指定的值
  */
 Util.get = function get (object, path, defaultValue) {
     if ( defaultValue === void 0 ) defaultValue = null;
@@ -227,8 +160,6 @@ Util.get = function get (object, path, defaultValue) {
 
 /**
  * 对指定对象进行深拷贝
- * @param{*} objects 欲拷贝的值
- * @return {*} 拷贝后的值
  */
 Util.cloneDeep = function cloneDeep (objects) {
   return _.cloneDeep(objects)
@@ -236,14 +167,14 @@ Util.cloneDeep = function cloneDeep (objects) {
 
 /**
  * 取得url中指定参数的值
- * @param{String} paramKey
- * @return {String|Array}
  */
 Util.getUrlParameter = function getUrlParameter (paramKey) {
   var urlParam = window.location.search.substring(1);
   var urlVariables = urlParam.split('&');
   var ret = urlVariables.find(function (key) { return key.split('=')[0] === paramKey; });
-  if (ret) {
+  if (ret === null || ret === undefined) {
+    ret = '';
+  } else {
     ret = ret.split('=')[1];
   }
   return ret
@@ -257,16 +188,18 @@ Util.getUrlParameter = function getUrlParameter (paramKey) {
 //   I Info
 //   W Warning
 var MESSAGE = {
-  MAM001E: '服务调用出现网络错误，无法调用指定服务，请检查网络。',
+  MAM001E: '调用远程服务的过程中出现未知错误，请重试或联系管理员。',
   MAM002E: '由于您长时间未操作，登录状态已过期，请重新登录。',
   MAM003E: '服务未在预定时间（{0}秒）内返回结果，请联系管理员或稍后重试。',
   MAM004E: '客户端出现错误，请重试或联系管理员。',
   MAM005E: '认证过期或无权访问此服务，请点击注销按钮重新登录。',
   MAM006E: '无法找到指定的画面。',
-  MAM007E: '服务调用出现未知错误，请重试或联系管理员。',
-  MAM008E: '无法找到指定的{0}定义文件。'
+  MAM007E: '请求的服务访问超时，请联系管理员或稍后重试。',
+  MAM008E: '无法找到指定的{0}定义文件。',
+  MAM404E: '请求的服务不存在。'
 };
 
+/*  */
 var MESSAGE_TYPE = {
   SUCCESS: 'success',
   WARNING: 'warning',
@@ -274,42 +207,44 @@ var MESSAGE_TYPE = {
   ERROR: 'error'
 };
 
+/**
+ * 取得自定义消息对象
+ */
 function getCustomMessageObject () {
-  var ret = {};
-  var customMessageObject = config.message;
-  if (!Util.isEmpty(customMessageObject)) {
-    // 文件路径的场合
-    if (Util.isString(customMessageObject)) {
-      // TODO 在非Webpack环境下取得消息文件
-    } else if (Util.isObject(customMessageObject)) {
-      ret = customMessageObject;
-    }
-  }
-  return ret
+  return config.message ? config.message : {}
 }
 
+/**
+ * 取得系统消息对象和自定义消息对象
+ */
 function getMessageObject () {
   return Object.assign({}, MESSAGE, getCustomMessageObject())
 }
 
+/**
+ * 根据消息ID取得对应的消息
+ */
 function getMessageById (id) {
-  var messageObject = getMessageObject();
-  return messageObject[id]
+  return getMessageObject()[id]
 }
 
 /**
  * 格式化指定消息
- * @param  {String} id     消息ID
- * @param  {Array}  params 消息参数
- * @return {String} 已格式化的消息
  */
 function formatMessage (id, params) {
   if ( id === void 0 ) id = '';
+  if ( params === void 0 ) params = [];
 
-  var ret = Util.isEmpty(getMessageById(id)) ? '' : getMessageById(id);
+  var message = getMessageById(id);
+  var ret = (message === null || message === undefined) ? '' : message;
   if (!Util.isEmpty(ret) && !Util.isEmpty(params)) {
     params.forEach(function (item, index) {
-      ret = ret.split(("{" + index + "}")).join(params[index]);
+      var replaceString = "{" + index + "}";
+      // 存在要替换的字符串的场合
+      if (ret.indexOf(replaceString) !== -1) {
+        var str = (typeof item === 'number') ? item.toString() : item;
+        ret = ret.split(replaceString).join(str);
+      }
     });
   }
   return ret
@@ -317,14 +252,10 @@ function formatMessage (id, params) {
 
 /**
  * 根据消息ID取得对应的消息类型
- * @param  {String} id 消息ID
- * @return {String} 消息类型
  */
 function getMessageType (id) {
-  if ( id === void 0 ) id = null;
-
   var ret = '';
-  var type = id !== null ? id.charAt(id.length - 1) : '';
+  var type = id.charAt(id.length - 1);
   switch (type) {
     case 'E':
       ret = 'error';
@@ -333,15 +264,17 @@ function getMessageType (id) {
       ret = 'warning';
       break
     case 'I':
-      ret = 'info';
-      break
     default:
-      ret = 'error';
+      ret = 'info';
   }
   return ret
 }
 
 var Message = function Message (id, params, message) {
+  if ( id === void 0 ) id = '';
+  if ( params === void 0 ) params = [];
+  if ( message === void 0 ) message = '';
+
   this.id = id;
   this.type = getMessageType(id);
   this.params = params;
@@ -351,6 +284,9 @@ var Message = function Message (id, params, message) {
   }
 };
 
+/**
+ * 取得消息内容
+ */
 Message.prototype.getMessage = function getMessage () {
   return this.message
 };
@@ -359,20 +295,29 @@ Message.prototype.toString = function toString () {
   return this.message
 };
 
+/*  */
 var ERROR_PREFIX = 'Setaria Error';
 var ERROR_MSG_SPLICER = ':';
 
 var ApplicationError = (function (Error) {
   function ApplicationError (id, params, message) {
+    if ( id === void 0 ) id = '';
+    if ( params === void 0 ) params = [];
+    if ( message === void 0 ) message = '';
+
     var msg = message;
+    if (Util.isEmpty(id)) {
+      id = 'unknown';
+    }
     if (Util.isEmpty(message)) {
       msg = new Message(id, params, message).getMessage();
-      msg = ERROR_PREFIX + "[" + id + "]" + ERROR_MSG_SPLICER + msg;
     }
-    Error.call(this, msg);
+    var fullMessage = ERROR_PREFIX + "[" + id + "]" + ERROR_MSG_SPLICER + msg;
+    Error.call(this, fullMessage);
     this.id = id;
     this.params = params;
     this.type = MESSAGE_TYPE.ERROR;
+    this.fullMessage = fullMessage;
     this.message = msg;
   }
 
@@ -383,39 +328,41 @@ var ApplicationError = (function (Error) {
   return ApplicationError;
 }(Error));
 
+/*  */
 function isSetariaError (error) {
   var ret = false;
-  if (Util.isObject(error) && !Util.isEmpty(error.id)) {
+  if (error instanceof Object && error !== null &&
+    error !== undefined && error.id !== null &&
+    error.id !== undefined) {
     ret = true;
-  } else if (Util.isString(error)) {
+  } else if (typeof error === 'string') {
     ret = error.indexOf(ERROR_PREFIX) !== -1;
   }
   return ret
 }
 
 function parseSetariaError (error) {
-  var msg = error;
-  if (Util.isObject(error)) {
-    msg = error.message;
-  }
   // 删除浏览器添加的错误信息前缀
-  msg = msg.replace('Uncaught Error: ', '');
+  error = error.replace('Uncaught Error: ', '');
   // 解析错误信息，取得错误代码和错误内容
-  var msgArr = msg.split(ERROR_MSG_SPLICER);
+  var msgArr = error.split(ERROR_MSG_SPLICER);
   var id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
   var message = msgArr[1];
-  return new ApplicationError(id, null, message)
+  return new ApplicationError(id, [], message)
 }
 
 var ErrorHandler = function ErrorHandler () {};
 
 ErrorHandler.catchError = function catchError () {
-  Vue$1.config.errorHandler = function (err, vm) {
+  // Vue异常
+  Vue.config.errorHandler = function (err, vm) {
     ErrorHandler.handleError(err, vm);
   };
+  // JavaScript执行期异常
   window.onerror = function (err) {
     ErrorHandler.handleError(err);
   };
+  // promise异常
   window.onunhandledrejection = function (err) {
     ErrorHandler.handleError(err);
   };
@@ -423,46 +370,47 @@ ErrorHandler.catchError = function catchError () {
 
 /**
  * 处理捕获的异常
- * @param{String|Object} error异常
- * @param{Object}      source 触发异常的示例
  */
 ErrorHandler.handleError = function handleError (error, source) {
   // 取得错误内容
-  var errorObject = ErrorHandler.parseError(error, source);
-  if (Util.isFunction(config.errorHanlder)) {
+  var errorObject = this.parseError(error, source);
+  if (typeof config.errorHanlder === 'function') {
     config.errorHanlder(errorObject, error);
   }
 };
 
 /**
  * 解析异常
- * @param{[type]} error[description]
- * @param{[type]} source [description]
- * @return {[type]}      [description]
  */
 ErrorHandler.parseError = function parseError (error, source) {
   var ret = null;
   var isErrorFromVue = source instanceof Object;
   // 自定义异常对象的场合
   if (isSetariaError(error)) {
-    ret = parseSetariaError(error);
-  // Promise中没有捕获的错误
-  // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
-  } else if (!Util.isEmpty(error.reason)) {
-    ret = error.reason;
-  // 执行期异常的场合
-  } else if (error instanceof Error) {
-    if (Util.isProdunctionEnv()) {
-      ret = new ApplicationError('MAM004E');
+    if (typeof error === 'string') {
+      ret = parseSetariaError(error);
     } else {
       ret = error;
     }
-  // 来源：组件渲染
-  } else if (isErrorFromVue) {
+  // 没有捕获Promise中抛出的异常
+  // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
+  } else if (error instanceof PromiseRejectionEvent) {
+    var ref = error.reason;
+      var id = ref.id;
+      var params = ref.params; if ( params === void 0 ) params = [];
+    if (id !== null && id !== undefined) {
+      ret = new ApplicationError(id, params);
+    } else {
+      ret = new ApplicationError('MAM004E');
+    }
+  // 组件渲染或组件事件函数执行时抛出异常的场合
+  // 执行期异常的场合
+  } else if (isErrorFromVue || error instanceof Error) {
     if (Util.isProdunctionEnv()) {
       ret = new ApplicationError('MAM004E');
     } else {
-      ret = error;
+      var message = error.message;
+      ret = new ApplicationError('', [], message);
     }
   // // 来源：未知
   // } else if (error instanceof Object
@@ -470,25 +418,25 @@ ErrorHandler.parseError = function parseError (error, source) {
   // ret = new ApplicationError(null, null, error.message)
   // 在事件函数中抛出ApplicationError的场合
   // 没有捕获的错误。（来源：事件函数中的运行期错误）
-  } else if (Util.isString(error)) {
+  } else if (typeof error === 'string') {
     if (error.indexOf('Uncaught Error: ') === 0) {
-      ret = error.replace('Uncaught Error: ', '');
+      ret = new ApplicationError('', [], error.replace('Uncaught Error: ', ''));
+    } else {
+      ret = new ApplicationError('', [], error);
     }
-    ret = new ApplicationError(null, null, ret);
-  }
-  if (ret === null || ret === undefined ||
-    (!Util.isEmpty(ret) && Util.isEmpty(ret.message))) {
+  } else {
     ret = new ApplicationError('MAM004E');
   }
 
   // 实现了Vue.config.errorHandler接口的场合，Vue不会在控制台显示错误。
-  // if (isErrorFromVue) {
-  // /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-  // console.error(error)
-  // }
+  if (isErrorFromVue) {
+    /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+    console.error(error);
+  }
   return ret
 };
 
+/*  */
 /**
  * 远程服务调用模块
  * @version 1.0
@@ -498,41 +446,59 @@ var REQUEST_TYPE = {
   GET: 'get',
   POST: 'post',
   PUT: 'put',
-  DELETE: 'delete'
+  DELETE: 'delete',
+  OPTIONS: 'options',
+  PATCH: 'patch'
 };
+
+function getHttpStatusMessage (status) {
+  var ret = new ApplicationError('MAM001E');
+  if (status !== null && status !== undefined) {
+    var id = null;
+    switch (status) {
+      case 404:
+        id = '404';
+        break
+      default:
+        id = '001';
+    }
+    ret = new ApplicationError(("MAM" + id + "E"));
+  }
+  return ret
+}
 
 function execute (type, url, data, config) {
   if ( config === void 0 ) config = {};
 
-  var ret = null;
-  var p = null;
-  var axiosConfig = config;
-  if (type === REQUEST_TYPE.GET) {
-    axiosConfig.params = data;
-    p = axios[REQUEST_TYPE.GET](url, axiosConfig);
-  } else {
-    p = axios[type](url, data, axiosConfig);
-  }
-
-  ret = new Promise(function (resolve, reject) {
+  return new Promise(function (resolve, reject) {
+    var p = null;
+    var axiosConfig = config;
+    if (type === REQUEST_TYPE.GET || type === REQUEST_TYPE.DELETE ||
+      type === REQUEST_TYPE.OPTIONS) {
+      axiosConfig.params = data;
+      p = axios[type](url, axiosConfig);
+    } else {
+      p = axios[type](url, data, axiosConfig);
+    }
     p.then(function (res) {
       resolve(res);
     }).catch(function (error) {
-      var rejectError = error;
+      var rejectError = new ApplicationError('MAM001E');
+      if (error.response !== null && error.response !== undefined &&
+        typeof error.response.status === 'number') {
+        rejectError = getHttpStatusMessage(error.response.status);
+      }
       if (error.message.indexOf('timeout of') === 0) {
-        // TODO 取得配置的服务调用超时时间
-        var timeout = 1000;
-        rejectError = new ApplicationError('MAM003E', [timeout]);
-      } else if (error.response) {
-        // 服务器错误
-        if (error.response.status >= 500) {
-          rejectError = new ApplicationError('MAM001E');
+        var timeout = error.config.timeout;
+        if (timeout === undefined || timeout === null) {
+          rejectError = new ApplicationError('MAM007E');
+        } else {
+          rejectError = new ApplicationError('MAM003E', [timeout]);
         }
       }
       reject(rejectError);
     });
-  });
-  return ret
+  })
 }
 
 var Http = function Http () {};
@@ -551,6 +517,122 @@ Http.put = function put (url, data, config) {
 
 Http.delete = function delete$1 (url, data, config) {
   return execute(REQUEST_TYPE.DELETE, url, data, config)
+};
+
+Http.options = function options (url, data, config) {
+  return execute(REQUEST_TYPE.OPTIONS, url, data, config)
+};
+
+Http.patch = function patch (url, data, config) {
+  return execute(REQUEST_TYPE.PATCH, url, data, config)
+};
+
+/*  */
+var STORAGE_KEY = '__Setaria_Storage_';
+/**
+ * Storage生命期类型
+ * @type {Object}
+ */
+var STORAGE_TYPE = {
+  LOCAL: 'local',
+  SESSION: 'session'
+};
+
+
+
+/**
+ * 取得指定生命周期的Storage实例。
+ * 目前支持的生命周期：
+ *   local: 永久存在，即使浏览器关闭也不会删除
+ *   session: 浏览器使用期间存在，重新载入页面或恢复时也不会删除
+ */
+function getStorageInstance (scope) {
+  return scope === STORAGE_TYPE.LOCAL ? window.localStorage : window.sessionStorage
+}
+
+/**
+ * 更新指定Storage实例内的Store对象
+ */
+function setStorageObjectByScope (scope, storageObject) {
+  var storage = getStorageInstance(scope);
+  storage.setItem(STORAGE_KEY, JSON.stringify(storageObject));
+}
+
+/**
+ * 取得指定Storage实例内的Store对象
+ * @param  {String} scope 生命期
+ * @return {Object} Store对象
+ */
+function getStorageObjectByScope (scope) {
+  var storage = getStorageInstance(scope);
+  var storageObject = storage.getItem(STORAGE_KEY);
+  // Storage对象没有被创建过的场合
+  if (storageObject === null) {
+    storage.setItem(STORAGE_KEY, JSON.stringify({}));
+  }
+  return JSON.parse(storage.getItem(STORAGE_KEY))
+}
+
+/**
+ * 在指定生命周期的Storage实例内进行设值
+ */
+function setItem (scope, key, value) {
+  var storageObject = getStorageObjectByScope(scope);
+  storageObject[key] = value;
+  setStorageObjectByScope(scope, storageObject);
+}
+
+/**
+ * 在指定生命周期的Storage实例内进行取值
+ */
+function getItem (scope, key) {
+  return getStorageObjectByScope(scope)[key]
+}
+
+/**
+ * 删除指定生命周期的Storage实例内的指定值
+ * @param  {String} scope 生命期
+ * @param  {String} key   键
+ */
+function removeItem (scope, key) {
+  var storageObject = getStorageObjectByScope(scope);
+  delete storageObject[key];
+  setStorageObjectByScope(scope, storageObject);
+}
+
+/**
+ * 删除指定生命周期的Storage实例内的所有值
+ * @param  {String} scope 生命期
+ */
+function removeAllItem (scope) {
+  setStorageObjectByScope(scope, {});
+}
+
+var Storage = function Storage () {};
+
+Storage.setLocalItem = function setLocalItem (key, value) {
+  setItem(STORAGE_TYPE.LOCAL, key, value);
+};
+Storage.getLocalItem = function getLocalItem (key) {
+  return getItem(STORAGE_TYPE.LOCAL, key)
+};
+Storage.removeLocalItem = function removeLocalItem (key) {
+  removeItem(STORAGE_TYPE.LOCAL, key);
+};
+Storage.clearLocal = function clearLocal () {
+  removeAllItem(STORAGE_TYPE.LOCAL);
+};
+Storage.setSessionItem = function setSessionItem (key, value) {
+  setItem(STORAGE_TYPE.SESSION, key, value);
+};
+Storage.getSessionItem = function getSessionItem (key) {
+  return getItem(STORAGE_TYPE.SESSION, key)
+};
+Storage.removeSessionItem = function removeSessionItem (key) {
+  removeItem(STORAGE_TYPE.SESSION, key);
+};
+Storage.clearSession = function clearSession () {
+  removeAllItem(STORAGE_TYPE.SESSION);
 };
 
 // import config from '../../config/index'
@@ -642,13 +724,13 @@ Http.delete = function delete$1 (url, data, config) {
 //   next()
 // }
 
-function install$1 (Vue) {
+function install$1 (Vue$$1) {
   if (install$1.installed) {
     return
   }
   install$1.installed = true;
-  VueRouter.install(Vue);
-  Vue.mixin({
+  VueRouter.install(Vue$$1);
+  Vue$$1.mixin({
     destroyed: function destroyed () {
       this.$store.commit('common/direction', '');
     }
@@ -788,6 +870,7 @@ var common = {
   mutations: mutations
 };
 
+/*  */
 var debug = process.env.NODE_ENV !== 'production';
 var structure = {
   modules: {
@@ -803,7 +886,8 @@ function create (Store) {
   return store$2
 }
 
-Vue$1.use(Vuex);
+/*  */
+Vue.use(Vuex);
 var store = create(Vuex.Store);
 
 var updateDirection = function (to, from, next) {
@@ -905,9 +989,9 @@ if (typeof window !== 'undefined' && window.Vue) {
 // 生产环境的场合
 if (Util.isProdunctionEnv()) {
   // 不显示Vue日志和警告
-  Vue$1.config.silent = true;
+  Vue.config.silent = true;
   // 不显示Vue产品信息
-  Vue$1.config.productionTip = false;
+  Vue.config.productionTip = false;
 }
 
 // -- 异常处理
@@ -920,7 +1004,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.4'
+  version: '0.0.5'
 };
 
-export { ApplicationError, Http, Message, Util as util };export default index_esm;
+export { ApplicationError, Http, Message, Storage, Util as util };export default index_esm;

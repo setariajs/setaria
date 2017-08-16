@@ -36,10 +36,26 @@
         <input type="button" @click="doThrowException" value="抛出异常信息">
       </li>
     </ul>
+    <ul>
+      Storage
+      <li>
+        <input type="text" v-model="storageValue">
+      </li>
+      <li>
+        {{ storageType }}: {{ dispStorageValue }}
+      </li>
+      <li>
+        <input type="radio" value="local" v-model="storageType">Local
+        <input type="radio" value="session" v-model="storageType">Session
+        <input type="button" @click="doSaveToLocalStorage(storageValue)" :value="storageButtonLabel">
+      </li>
+    </ul>
   </div>
 </template>
 <script>
-  import Setaria, { ApplicationError, Http, Message, util } from 'setaria'
+  import Setaria, { ApplicationError, Http, Message, Storage, util } from 'setaria'
+
+  const STORAGE_KEY = 'storageKey'
 
   export default {
     data () {
@@ -47,14 +63,28 @@
         now: null,
         msg: '',
         weather: '',
-        exception: {}
+        exception: {},
+        storageValue: '',
+        dispStorageValue: '',
+        storageType: 'local'
+      }
+    },
+    watch: {
+      storageType () {
+        this.storageValue = this.getStorageValue()
+      }
+    },
+    computed: {
+      storageButtonLabel () {
+        return `存储信息至${this.storageType}`
       }
     },
     created () {
       Setaria.config.errorHanlder = (err) => {
         this.exception = err
       }
-      throw new ApplicationError('MAM003E', [100])
+      this.storageValue = this.getStorageValue()
+      throw new ApplicationError('', null, 'eee')
     },
     methods: {
       doGetMessage () {
@@ -70,6 +100,24 @@
       },
       doThrowException () {
         throw new ApplicationError('MAM008E')
+      },
+      doSaveToLocalStorage (val) {
+        if (this.storageType === 'local') {
+          Storage.setLocalItem(STORAGE_KEY, val)
+        } else {
+          Storage.setSessionItem(STORAGE_KEY, val)
+        }
+        this.getStorageValue()
+      },
+      getStorageValue () {
+        let ret = ''
+        if (this.storageType === 'local') {
+          this.dispStorageValue = Storage.getLocalItem(STORAGE_KEY)
+        } else {
+          this.dispStorageValue = Storage.getSessionItem(STORAGE_KEY)
+        }
+        ret = this.dispStorageValue
+        return ret
       }
     }
   }

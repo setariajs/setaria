@@ -1,21 +1,22 @@
+/* @flow */
 import common from './module/common'
 
-const debug = process.env.NODE_ENV !== 'production'
-const structure = {
+const debug: boolean = process.env.NODE_ENV !== 'production'
+const structure: Object = {
   modules: {
     common
   },
   strict: debug
 }
 
-let store
+let store: Object
 
-export function create (Store) {
+export function create (Store: Function) {
   store = new Store(structure)
   return store
 }
 
-function get () {
+function get (): ?Object {
   return store
 }
 
