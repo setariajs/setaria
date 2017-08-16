@@ -16,14 +16,20 @@ function isSetariaError (error: string | Object | Error | PromiseRejectionEvent)
   return ret
 }
 
-function parseSetariaError (error: string): ApplicationError {
-  // 删除浏览器添加的错误信息前缀
-  error = error.replace('Uncaught Error: ', '')
-  // 解析错误信息，取得错误代码和错误内容
-  const msgArr: Array<string> = error.split(ERROR_MSG_SPLICER)
-  const id: string = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
-  const message: string = msgArr[1]
-  return new ApplicationError(id, [], message)
+function parseSetariaError (error: string | Object): ApplicationError {
+  let id: string = ''
+  let message: ?string = ''
+  if (typeof error === 'string') {
+    // 删除浏览器添加的错误信息前缀
+    error = error.replace('Uncaught Error: ', '')
+    // 解析错误信息，取得错误代码和错误内容
+    const msgArr: Array<string> = error.split(ERROR_MSG_SPLICER)
+    id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
+    message = msgArr[1]
+    return new ApplicationError(id, [], message)
+  } else {
+    return new ApplicationError(error.id, [], error.noIdMessage)
+  }
 }
 
 export default class ErrorHandler {
@@ -64,11 +70,7 @@ export default class ErrorHandler {
     const isErrorFromVue: boolean = source instanceof Object
     // 自定义异常对象的场合
     if (isSetariaError(error)) {
-      if (typeof error === 'string') {
-        ret = parseSetariaError(error)
-      } else {
-        ret = error
-      }
+      ret = parseSetariaError(error)
     // 没有捕获Promise中抛出的异常
     // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
     } else if (error instanceof PromiseRejectionEvent) {
@@ -80,7 +82,7 @@ export default class ErrorHandler {
       }
     // 组件渲染或组件事件函数执行时抛出异常的场合
     // 执行期异常的场合
-    } else if (isErrorFromVue || error instanceof Error) {
+    } else if (isErrorFromVue && error instanceof Error) {
       if (util.isProdunctionEnv()) {
         ret = new ApplicationError('MAM004E')
       } else {

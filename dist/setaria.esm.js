@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.5
+ * Setaria v0.0.6
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -317,8 +317,8 @@ var ApplicationError = (function (Error) {
     this.id = id;
     this.params = params;
     this.type = MESSAGE_TYPE.ERROR;
-    this.fullMessage = fullMessage;
-    this.message = msg;
+    this.noIdMessage = msg;
+    this.message = fullMessage;
   }
 
   if ( Error ) ApplicationError.__proto__ = Error;
@@ -342,13 +342,19 @@ function isSetariaError (error) {
 }
 
 function parseSetariaError (error) {
-  // 删除浏览器添加的错误信息前缀
-  error = error.replace('Uncaught Error: ', '');
-  // 解析错误信息，取得错误代码和错误内容
-  var msgArr = error.split(ERROR_MSG_SPLICER);
-  var id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
-  var message = msgArr[1];
-  return new ApplicationError(id, [], message)
+  var id = '';
+  var message = '';
+  if (typeof error === 'string') {
+    // 删除浏览器添加的错误信息前缀
+    error = error.replace('Uncaught Error: ', '');
+    // 解析错误信息，取得错误代码和错误内容
+    var msgArr = error.split(ERROR_MSG_SPLICER);
+    id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
+    message = msgArr[1];
+    return new ApplicationError(id, [], message)
+  } else {
+    return new ApplicationError(error.id, [], error.noIdMessage)
+  }
 }
 
 var ErrorHandler = function ErrorHandler () {};
@@ -387,11 +393,7 @@ ErrorHandler.parseError = function parseError (error, source) {
   var isErrorFromVue = source instanceof Object;
   // 自定义异常对象的场合
   if (isSetariaError(error)) {
-    if (typeof error === 'string') {
-      ret = parseSetariaError(error);
-    } else {
-      ret = error;
-    }
+    ret = parseSetariaError(error);
   // 没有捕获Promise中抛出的异常
   // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
   } else if (error instanceof PromiseRejectionEvent) {
@@ -405,7 +407,7 @@ ErrorHandler.parseError = function parseError (error, source) {
     }
   // 组件渲染或组件事件函数执行时抛出异常的场合
   // 执行期异常的场合
-  } else if (isErrorFromVue || error instanceof Error) {
+  } else if (isErrorFromVue && error instanceof Error) {
     if (Util.isProdunctionEnv()) {
       ret = new ApplicationError('MAM004E');
     } else {
@@ -1004,7 +1006,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.5'
+  version: '0.0.6'
 };
 
 export { ApplicationError, Http, Message, Storage, Util as util };export default index_esm;

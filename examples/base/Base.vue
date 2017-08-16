@@ -30,10 +30,13 @@
     <ul>
       异常处理
       <li>
-        异常信息：id: {{ exception.id }}, message: {{ exception.message }}
+        普通异常信息：id: {{ exception.id }}, message: {{ exception.message }}
       </li>
       <li>
         <input type="button" @click="doThrowException" value="抛出异常信息">
+      </li>
+      <li>
+        <input type="button" @click="doThrowPromiseException" value="抛出Promise异常信息">
       </li>
     </ul>
     <ul>
@@ -58,6 +61,7 @@
   const STORAGE_KEY = 'storageKey'
 
   export default {
+    name: 'Base',
     data () {
       return {
         now: null,
@@ -80,11 +84,14 @@
       }
     },
     created () {
-      Setaria.config.errorHanlder = (err) => {
-        this.exception = err
+      Setaria.config.errorHanlder = ({ id, noIdMessage }) => {
+        this.exception = {
+          id,
+          message: noIdMessage
+        }
       }
       this.storageValue = this.getStorageValue()
-      throw new ApplicationError('', null, 'eee')
+      throw new ApplicationError('MCM005E', [this.$options.name])
     },
     methods: {
       doGetMessage () {
@@ -99,7 +106,12 @@
         })
       },
       doThrowException () {
-        throw new ApplicationError('MAM008E')
+        throw new ApplicationError('MCM006E')
+      },
+      doThrowPromiseException () {
+        Http.get('/api/weather').then((res) => {
+          throw new ApplicationError('MCM007E')
+        })
       },
       doSaveToLocalStorage (val) {
         if (this.storageType === 'local') {

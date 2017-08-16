@@ -9,7 +9,7 @@ export default class ApplicationError extends Error {
   id: string;
   params: Array<string | number>;
   type: string;
-  fullMessage: string;
+  noIdMessage: string;
   message: string;
   constructor (id?: string = '', params?: Array<string | number> = [], message?: string = '') {
     let msg: string = message
@@ -24,7 +24,7 @@ export default class ApplicationError extends Error {
     this.id = id
     this.params = params
     this.type = MESSAGE_TYPE.ERROR
-    this.fullMessage = fullMessage
-    this.message = msg
+    this.noIdMessage = msg
+    this.message = fullMessage
   }
 }
