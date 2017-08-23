@@ -1,31 +1,30 @@
 <template>
   <div>
-    PageA
+    PageC
     <input type="button" @click="$router.forwardTo('PageB')" value="Go to PageB">
-    <input type="button" @click="$router.forwardTo('PageC')" value="Go to PageC">
   </div>
 </template>
 <script>
   export default {
     created () {
-      console.log('A Created')
+      console.log('C Created')
     },
     beforeDestroy () {
-      console.log('A beforeDestroy')
+      console.log('C beforeDestroy')
     },
     destroyed () {
-      console.log('A Destroyed')
+      console.log('C Destroyed')
     },
     beforeRouteEnter (to, from, next) {
-      console.log('A beforeRouteEnter')
+      console.log('C beforeRouteEnter')
       next()
     },
     beforeRouteUpdate (to, from, next) {
-      console.log('A beforeRouteUpdate')
+      console.log('C beforeRouteUpdate')
       next()
     },
     beforeRouteLeave (to, from, next) {
-      console.log('A beforeRouteLeave')
+      console.log('C beforeRouteLeave')
       next()
     }
   }

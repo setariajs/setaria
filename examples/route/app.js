@@ -5,6 +5,13 @@ import App from './App.vue'
 
 Vue.use(Setaria.plugin.Navigate)
 const navi = new Setaria.plugin.Navigate(router)
+navi.beforeEach((to, from, next) => {
+  console.log('beforeEach')
+  next()
+})
+navi.afterEach((route) => {
+  console.log('afterEach')
+})
 
 new Vue({
   el: '#app',

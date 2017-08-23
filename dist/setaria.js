@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.7
+ * Setaria v0.0.8
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -647,106 +647,20 @@ Storage.clearSession = function clearSession () {
   removeAllItem(STORAGE_TYPE.SESSION);
 };
 
-// import config from '../../config/index'
-// import ApplicationError from '../../model/ApplicationError'
-// import util from '../../util'
-
-// function getDirection (to, from, next) {
-//   const params = to.params
-//   const currentPageFullPath = from.fullPath
-//   let direction = store.state.common.direction
-//   let isExistForwardPage = false
-//   const nextPageFullPath = to.fullPath
-//   const history = routeHistroy.history
-//   if (params && params.$$direction === 'forward') {
-//     direction = 'forward'
-//     // 保存跳转方向
-//     store.commit('common/direction', direction)
-//   }
-//   // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
-//   if (direction !== 'forward' && direction !== 'back') {
-//     if (history.length === 0) {
-//       routeHistroy.currentIndex = 0
-//       history.push(currentPageFullPath)
-//       next()
-//       return
-//     }
-//     if (history.length > 0) {
-//       // 当前游标处于最末尾
-//       if (routeHistroy.currentIndex === history.length - 1) {
-//         const path = history[routeHistroy.currentIndex]
-//         // 跳转画面的路径为前画面的场合
-//         if (path === nextPageFullPath) {
-//           direction = 'back'
-//         } else {
-//           direction = 'forward'
-//         }
-//       // 当前画面拥有次画面
-//       } else {
-//         let path = null
-//         // 判断目标画面是否为前画面
-//         if (routeHistroy.currentIndex !== 0) {
-//           path = history[routeHistroy.currentIndex]
-//           if (path === nextPageFullPath) {
-//             direction = 'back'
-//           }
-//         }
-//         // 判断目标画面是否为次画面
-//         if (direction === '') {
-//           path = history[routeHistroy.currentIndex + 1]
-//           if (path === nextPageFullPath) {
-//             direction = 'forward'
-//             isExistForwardPage = true
-//           }
-//         }
-//       }
-//       // 保存跳转方向
-//       store.commit('common/direction', direction)
-//     }
-//   }
-//
-//   if (direction === '') {
-//     direction = 'forward'
-//     // 保存跳转方向
-//     store.commit('common/direction', direction)
-//   }
-//
-//   // 更新浏览历史
-//   if (direction === 'back') {
-//     if (routeHistroy.currentIndex === 0) {
-//       routeHistroy.currentIndex = null
-//     } else {
-//       history[routeHistroy.currentIndex] = currentPageFullPath
-//       routeHistroy.currentIndex -= 1
-//     }
-//   } else if (direction === 'forward') {
-//     if (!isExistForwardPage) {
-//       if (routeHistroy.currentIndex < history.length - 1) {
-//         let index = history.length - 1
-//         for (index; index > routeHistroy.currentIndex; index -= 1) {
-//           history.splice(index, 1)
-//         }
-//       }
-//       history.push(currentPageFullPath)
-//     } else {
-//       history[routeHistroy.currentIndex + 1] = currentPageFullPath
-//     }
-//     routeHistroy.currentIndex += 1
-//   }
-//   next()
-// }
-
 function install$1 (Vue$$1) {
   if (install$1.installed) {
     return
   }
   install$1.installed = true;
   VueRouter.install(Vue$$1);
-  Vue$$1.mixin({
-    destroyed: function destroyed () {
-      this.$store.commit('common/direction', '');
-    }
-  });
+  // Vue.mixin({
+  //   beforeMounted (to, from, next) {
+  //     if (this.$store) {
+  //       this.$store.commit('common/direction', '')
+  //     }
+  //     next()
+  //   }
+  // })
 }
 
 // initial state
@@ -794,23 +708,17 @@ var mutations = {
     var next = ref.next;
 
     var direction = stateObj.direction;
-    console.log('updateDirection', direction);
     var routeHistory = stateObj.routeHistory;
     if (direction !== 'forward' && direction !== 'back') {
       if (routeHistory.history.length > 0) {
         // 当前游标处于最末尾
         if (routeHistory.currentIndex === routeHistory.history.length - 1) {
-          // const path = routeHistory.history[routeHistory.currentIndex]
-          // if (path === next) {
           direction = 'back';
-          // } else {
-            // direction = 'forward'
-          // }
         } else {
           var path = null;
           // 判断目标画面是否为前画面
           if (routeHistory.currentIndex !== 0) {
-            path = routeHistory.history[routeHistory.currentIndex];
+            path = routeHistory.history[routeHistory.currentIndex - 1];
             if (path === next) {
               direction = 'back';
             }
@@ -832,7 +740,6 @@ var mutations = {
       // 保存跳转方向
       stateObj.direction = direction;
     }
-    console.log(stateObj.direction);
   },
   updateHistory: function updateHistory (stateObj, ref) {
     var current = ref.current;
@@ -947,6 +854,9 @@ var Navigate = (function (VueRouter$$1) {
     // 注册全局路由钩子
     this.beforeEach(updateDirection);
     this.beforeEach(updateHistory);
+    this.afterEach(function () {
+      store.commit('common/direction', '');
+    });
   }
 
   if ( VueRouter$$1 ) Navigate.__proto__ = VueRouter$$1;
@@ -1016,7 +926,7 @@ var index = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.7',
+  version: '0.0.8',
   ApplicationError: ApplicationError,
   Http: Http,
   Message: Message,

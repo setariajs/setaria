@@ -40,23 +40,17 @@ const mutations = {
   },
   updateDirection (stateObj, { current, next }) {
     let direction = stateObj.direction
-    console.log('updateDirection', direction)
     const routeHistory = stateObj.routeHistory
     if (direction !== 'forward' && direction !== 'back') {
       if (routeHistory.history.length > 0) {
         // 当前游标处于最末尾
         if (routeHistory.currentIndex === routeHistory.history.length - 1) {
-          // const path = routeHistory.history[routeHistory.currentIndex]
-          // if (path === next) {
           direction = 'back'
-          // } else {
-            // direction = 'forward'
-          // }
         } else {
           let path = null
           // 判断目标画面是否为前画面
           if (routeHistory.currentIndex !== 0) {
-            path = routeHistory.history[routeHistory.currentIndex]
+            path = routeHistory.history[routeHistory.currentIndex - 1]
             if (path === next) {
               direction = 'back'
             }
@@ -78,7 +72,6 @@ const mutations = {
       // 保存跳转方向
       stateObj.direction = direction
     }
-    console.log(stateObj.direction)
   },
   updateHistory (stateObj, { current, next }) {
     const direction = stateObj.direction

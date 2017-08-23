@@ -14,6 +14,9 @@ export default class Navigate extends VueRouter {
     // 注册全局路由钩子
     this.beforeEach(updateDirection)
     this.beforeEach(updateHistory)
+    this.afterEach(() => {
+      store.commit('common/direction', '')
+    })
   }
 
   forwardTo (name, params = {}, query = {}) {
