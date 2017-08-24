@@ -37,19 +37,18 @@ export default class Navigate extends VueRouter {
     })
   }
 
-  push (location, onComplete, onAbort) {
-    store.commit('common/direction', 'forward')
-    super.push(location, onComplete, onAbort)
+  backTo () {
+    super.back()
+  }
+
+  back () {
+    store.commit('common/direction', 'back')
+    super.back()
   }
 
   forward () {
     store.commit('common/direction', 'forward')
     super.forward()
-  }
-
-  backTo () {
-    store.commit('common/direction', 'back')
-    super.back()
   }
 }
 Navigate.install = install
