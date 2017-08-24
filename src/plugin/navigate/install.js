@@ -6,12 +6,11 @@ export function install (Vue) {
   }
   install.installed = true
   VueRouter.install(Vue)
-  // Vue.mixin({
-  //   beforeMounted (to, from, next) {
-  //     if (this.$store) {
-  //       this.$store.commit('common/direction', '')
-  //     }
-  //     next()
-  //   }
-  // })
+  Vue.mixin({
+    mounted () {
+      if (this.$store) {
+        this.$store.commit('common/direction', '')
+      }
+    }
+  })
 }

@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.9
+ * Setaria v0.0.10
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -652,14 +652,13 @@ function install$1 (Vue$$1) {
   }
   install$1.installed = true;
   VueRouter.install(Vue$$1);
-  // Vue.mixin({
-  //   beforeMounted (to, from, next) {
-  //     if (this.$store) {
-  //       this.$store.commit('common/direction', '')
-  //     }
-  //     next()
-  //   }
-  // })
+  Vue$$1.mixin({
+    mounted: function mounted () {
+      if (this.$store) {
+        this.$store.commit('common/direction', '');
+      }
+    }
+  });
 }
 
 // initial state
@@ -853,9 +852,9 @@ var Navigate = (function (VueRouter$$1) {
     // 注册全局路由钩子
     this.beforeEach(updateDirection);
     this.beforeEach(updateHistory);
-    this.afterEach(function () {
-      store.commit('common/direction', '');
-    });
+    // this.afterEach(() => {
+    //   store.commit('common/direction', '')
+    // })
   }
 
   if ( VueRouter$$1 ) Navigate.__proto__ = VueRouter$$1;
@@ -924,7 +923,7 @@ var index = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.9',
+  version: '0.0.10',
   ApplicationError: ApplicationError,
   Http: Http,
   Message: Message,
