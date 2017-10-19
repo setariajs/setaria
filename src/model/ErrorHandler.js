@@ -21,7 +21,13 @@ function parseSetariaError (error: string | Object): ApplicationError {
   let message: ?string = ''
   if (typeof error === 'string') {
     // 删除浏览器添加的错误信息前缀
-    error = error.replace('Uncaught Error: ', '')
+    // firefox
+    if (error.indexOf('Error: ') === 0) {
+      error = error.replace('Error: ', '')
+    // chrome, safari
+    } else if (error.indexOf('Uncaught Error: ') === 0) {
+      error = error.replace('Uncaught Error: ', '')
+    }
     // 解析错误信息，取得错误代码和错误内容
     const msgArr: Array<string> = error.split(ERROR_MSG_SPLICER)
     id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
@@ -46,9 +52,10 @@ export default class ErrorHandler {
       ErrorHandler.handleError(err)
     }
     // promise异常
-    window.onunhandledrejection = (err: PromiseRejectionEvent) => {
+    // 目前最新版的Firefox浏览器不支持PromiseRejectionEvent
+    window.addEventListener('unhandledrejection', (err: Object) => {
       ErrorHandler.handleError(err)
-    }
+    })
   }
 
   /**
@@ -73,7 +80,7 @@ export default class ErrorHandler {
       ret = parseSetariaError(error)
     // 没有捕获Promise中抛出的异常
     // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
-    } else if (error instanceof PromiseRejectionEvent) {
+    } else if (error.type === 'unhandledrejection' && typeof error === 'object') {
       const { id, message, noIdMessage }: Object = error.reason
       // ApplicationError
       if (noIdMessage !== null && noIdMessage !== undefined) {

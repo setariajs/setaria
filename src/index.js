@@ -3,6 +3,7 @@ import config from './config/index'
 import { install } from './main'
 import ApplicationError from './model/ApplicationError'
 import ErrorHandler from './model/ErrorHandler'
+import ServiceError from './model/ServiceError'
 import Http from './model/Http'
 import Message from './model/Message'
 import Storage from './model/Storage'
@@ -31,6 +32,7 @@ export default {
   },
   version: '__VERSION__',
   ApplicationError,
+  ServiceError,
   Http,
   Message,
   Storage,

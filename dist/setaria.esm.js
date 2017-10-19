@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.10
+ * Setaria v0.0.11
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -346,7 +346,13 @@ function parseSetariaError (error) {
   var message = '';
   if (typeof error === 'string') {
     // 删除浏览器添加的错误信息前缀
-    error = error.replace('Uncaught Error: ', '');
+    // firefox
+    if (error.indexOf('Error: ') === 0) {
+      error = error.replace('Error: ', '');
+    // chrome, safari
+    } else if (error.indexOf('Uncaught Error: ') === 0) {
+      error = error.replace('Uncaught Error: ', '');
+    }
     // 解析错误信息，取得错误代码和错误内容
     var msgArr = error.split(ERROR_MSG_SPLICER);
     id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
@@ -369,9 +375,10 @@ ErrorHandler.catchError = function catchError () {
     ErrorHandler.handleError(err);
   };
   // promise异常
-  window.onunhandledrejection = function (err) {
+  // 目前最新版的Firefox浏览器不支持PromiseRejectionEvent
+  window.addEventListener('unhandledrejection', function (err) {
     ErrorHandler.handleError(err);
-  };
+  });
 };
 
 /**
@@ -396,7 +403,7 @@ ErrorHandler.parseError = function parseError (error, source) {
     ret = parseSetariaError(error);
   // 没有捕获Promise中抛出的异常
   // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
-  } else if (error instanceof PromiseRejectionEvent) {
+  } else if (error.type === 'unhandledrejection' && typeof error === 'object') {
     var ref = error.reason;
       var id = ref.id;
       var message = ref.message;
@@ -444,6 +451,44 @@ ErrorHandler.parseError = function parseError (error, source) {
 };
 
 /*  */
+function dispatchUnHandlerRejectEvent (reason) {
+  var event = document.createEvent('Event');
+  event.initEvent(
+    'unhandledrejection', // Define that the event name is 'unhandledrejection'
+    false, // PromiseRejectionEvent is not bubbleable
+    true // PromiseRejectionEvent is cancelable
+  );
+  /**
+   * Note: these properties should not be enumerable, which is the default setting
+   */
+  var properties = {
+    reason: {
+      value: reason,
+      writable: false
+    }
+  };
+  Object.defineProperties(event, properties);
+  window.dispatchEvent(event);
+}
+
+var ServiceError = (function (ApplicationError$$1) {
+  function ServiceError (id, reason, params, message) {
+    if ( id === void 0 ) id = '';
+    if ( params === void 0 ) params = [];
+    if ( message === void 0 ) message = '';
+
+    ApplicationError$$1.call(this, id, params, message);
+    dispatchUnHandlerRejectEvent(this);
+  }
+
+  if ( ApplicationError$$1 ) ServiceError.__proto__ = ApplicationError$$1;
+  ServiceError.prototype = Object.create( ApplicationError$$1 && ApplicationError$$1.prototype );
+  ServiceError.prototype.constructor = ServiceError;
+
+  return ServiceError;
+}(ApplicationError));
+
+/*  */
 /**
  * 远程服务调用模块
  * @version 1.0
@@ -458,8 +503,8 @@ var REQUEST_TYPE = {
   PATCH: 'patch'
 };
 
-function getHttpStatusMessage (status) {
-  var ret = new ApplicationError('MAM001E');
+function getHttpStatusMessage (status, error) {
+  var ret = new ServiceError('MAM001E', error);
   if (status !== null && status !== undefined) {
     var id = null;
     switch (status) {
@@ -469,7 +514,7 @@ function getHttpStatusMessage (status) {
       default:
         id = '001';
     }
-    ret = new ApplicationError(("MAM" + id + "E"));
+    ret = new ServiceError(("MAM" + id + "E"), error);
   }
   return ret
 }
@@ -490,17 +535,17 @@ function execute (type, url, data, config) {
     p.then(function (res) {
       resolve(res);
     }).catch(function (error) {
-      var rejectError = new ApplicationError('MAM001E');
+      var rejectError = new ServiceError('MAM001E', error);
       if (error.response !== null && error.response !== undefined &&
         typeof error.response.status === 'number') {
-        rejectError = getHttpStatusMessage(error.response.status);
+        rejectError = getHttpStatusMessage(error.response.status, error);
       }
       if (error.message.indexOf('timeout of') === 0) {
         var timeout = error.config.timeout;
         if (timeout === undefined || timeout === null) {
-          rejectError = new ApplicationError('MAM007E');
+          rejectError = new ServiceError('MAM007E', error);
         } else {
-          rejectError = new ApplicationError('MAM003E', [timeout]);
+          rejectError = new ServiceError('MAM003E', error, [timeout]);
         }
       }
       reject(rejectError);
@@ -919,7 +964,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.10'
+  version: '0.0.11'
 };
 
-export { ApplicationError, Http, Message, Storage, Util as util };export default index_esm;
+export { ApplicationError, ServiceError, Http, Message, Storage, Util as util };export default index_esm;

@@ -56,7 +56,7 @@
   </div>
 </template>
 <script>
-  import Setaria, { ApplicationError, Http, Message, Storage, util } from 'setaria'
+  import Setaria, { ApplicationError, Http, Message, ServiceError, Storage, util } from 'setaria'
 
   const STORAGE_KEY = 'storageKey'
 
@@ -110,7 +110,7 @@
       },
       doThrowPromiseException () {
         Http.get('/api/weather').then((res) => {
-          throw new ApplicationError('111', null, '222')
+          throw new ServiceError('MCM007E')
         })
       },
       doSaveToLocalStorage (val) {

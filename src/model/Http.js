@@ -5,7 +5,7 @@
  * @author HanL
  */
 import axios from 'axios'
-import ApplicationError from './ApplicationError'
+import ServiceError from './ServiceError'
 
 const REQUEST_TYPE: Object = {
   GET: 'get',
@@ -16,8 +16,8 @@ const REQUEST_TYPE: Object = {
   PATCH: 'patch'
 }
 
-function getHttpStatusMessage (status: number): ApplicationError {
-  let ret = new ApplicationError('MAM001E')
+function getHttpStatusMessage (status: number, error: AxiosError): ServiceError {
+  let ret = new ServiceError('MAM001E', error)
   if (status !== null && status !== undefined) {
     let id: ?string = null
     switch (status) {
@@ -27,7 +27,7 @@ function getHttpStatusMessage (status: number): ApplicationError {
       default:
         id = '001'
     }
-    ret = new ApplicationError(`MAM${id}E`)
+    ret = new ServiceError(`MAM${id}E`, error)
   }
   return ret
 }
@@ -46,17 +46,17 @@ function execute (type: HttpMethod, url: string, data: any, config: AxiosConfig 
     p.then((res: AxiosResponse) => {
       resolve(res)
     }).catch((error: AxiosError) => {
-      let rejectError: ApplicationError = new ApplicationError('MAM001E')
+      let rejectError: ServiceError = new ServiceError('MAM001E', error)
       if (error.response !== null && error.response !== undefined &&
         typeof error.response.status === 'number') {
-        rejectError = getHttpStatusMessage(error.response.status)
+        rejectError = getHttpStatusMessage(error.response.status, error)
       }
       if (error.message.indexOf('timeout of') === 0) {
         const timeout: ?string | ?number = error.config.timeout
         if (timeout === undefined || timeout === null) {
-          rejectError = new ApplicationError('MAM007E')
+          rejectError = new ServiceError('MAM007E', error)
         } else {
-          rejectError = new ApplicationError('MAM003E', [timeout])
+          rejectError = new ServiceError('MAM003E', error, [timeout])
         }
       }
       reject(rejectError)
