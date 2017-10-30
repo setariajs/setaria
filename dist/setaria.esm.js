@@ -1,5 +1,5 @@
 /**
- * Setaria v0.0.11
+ * Setaria v0.0.12
  * (c) 2017 Ray Han
  * @license MIT
  */
@@ -488,12 +488,167 @@ var ServiceError = (function (ApplicationError$$1) {
   return ServiceError;
 }(ApplicationError));
 
+// initial state
+var state = {
+  direction: '',
+  loading: 0,
+  routeHistory: {
+    currentIndex: null,
+    history: []
+  },
+  token: '',
+  user: null
+};
+
+// getters
+var getters = {
+  routeHistory: function (state) { return state.routeHistory; },
+  routeCurrentIndex: function (state) { return state.routeHistory.currentIndex; },
+  isLoading: function (state) { return state.loading !== 0; }
+};
+
+// actions
+var actions = {
+};
+
+// mutations
+var mutations = {
+  direction: function direction (stateObj, val) {
+    var s = stateObj;
+    s.direction = val;
+  },
+  addLoadingCount: function addLoadingCount (stateObj) {
+    var s = stateObj;
+    s.loading++;
+  },
+  subLoadingCount: function subLoadingCount (stateObj) {
+    var s = stateObj;
+    if (s.loading > 0) {
+      s.loading--;
+    }
+  },
+  token: function token (stateObj, val) {
+    var s = stateObj;
+    s.token = val;
+  },
+  user: function user (stateObj, val) {
+    var s = stateObj;
+    s.user = val;
+  },
+  updateDirection: function updateDirection (stateObj, ref) {
+    var current = ref.current;
+    var next = ref.next;
+
+    var direction = stateObj.direction;
+    var routeHistory = stateObj.routeHistory;
+    if (direction !== 'forward' && direction !== 'back') {
+      if (routeHistory.history.length > 0) {
+        // 当前游标处于最末尾
+        if (routeHistory.currentIndex === routeHistory.history.length - 1) {
+          direction = 'back';
+        } else {
+          var path = null;
+          // 判断目标画面是否为前画面
+          if (routeHistory.currentIndex !== 0) {
+            path = routeHistory.history[routeHistory.currentIndex - 1];
+            if (path === next) {
+              direction = 'back';
+            }
+          }
+          // 判断目标画面是否为次画面
+          if (direction === '') {
+            path = routeHistory.history[routeHistory.currentIndex + 1];
+            if (path === next) {
+              direction = 'forward';
+            }
+          }
+        }
+      } else {
+        direction = 'forward';
+      }
+      if (direction !== 'forward' && direction !== 'back') {
+        direction = 'forward';
+      }
+      // 保存跳转方向
+      stateObj.direction = direction;
+    }
+  },
+  updateHistory: function updateHistory (stateObj, ref) {
+    var current = ref.current;
+    var next = ref.next;
+
+    var direction = stateObj.direction;
+    var routeHistory = stateObj.routeHistory;
+    // 更新浏览历史
+    if (direction === 'back') {
+      if (routeHistory.currentIndex === 0) {
+        routeHistory.currentIndex = null;
+      } else {
+        routeHistory.history[routeHistory.currentIndex] = current;
+        routeHistory.currentIndex -= 1;
+      }
+    } else if (direction === 'forward') {
+      // if (!isExistForwardPage) {
+      //   if (routeHistory.currentIndex < history.length - 1) {
+      //     let index = history.length - 1
+      //     for (index; index > routeHistory.currentIndex; index -= 1) {
+      //       history.splice(index, 1)
+      //     }
+      //   }
+      //   history.push(currentPageFullPath)
+      // } else {
+      // }
+      if (routeHistory.currentIndex === null) {
+        routeHistory.currentIndex = 0;
+      } else {
+        // 如果未处于队列末尾,则删除当前游标后的数据
+        if (routeHistory.currentIndex < routeHistory.history.length - 1) {
+          var history = routeHistory.history.splice(0, routeHistory.currentIndex + 1);
+          routeHistory.history = history;
+        }
+        routeHistory.currentIndex += 1;
+      }
+      routeHistory.history.push(next);
+    }
+  }
+};
+
+var common = {
+  namespaced: true,
+  state: state,
+  getters: getters,
+  actions: actions,
+  mutations: mutations
+};
+
+/*  */
+var debug = process.env.NODE_ENV !== 'production';
+var structure = {
+  modules: {
+    common: common
+  },
+  strict: debug
+};
+
+var storeInstance;
+
+function createStore (Store) {
+  storeInstance = new Store(structure);
+  return storeInstance
+}
+
+function getStore () {
+  return storeInstance
+}
+
 /*  */
 /**
  * 远程服务调用模块
  * @version 1.0
  * @author HanL
  */
+// import type { SetariaStore } from './store'
+
 var REQUEST_TYPE = {
   GET: 'get',
   POST: 'post',
@@ -532,9 +687,19 @@ function execute (type, url, data, config) {
     } else {
       p = axios[type](url, data, axiosConfig);
     }
+    var storeInstance = getStore();
+    if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
+      storeInstance.commit('common/addLoadingCount');
+    }
     p.then(function (res) {
+      if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
+        storeInstance.commit('common/subLoadingCount');
+      }
       resolve(res);
     }).catch(function (error) {
+      if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
+        storeInstance.commit('common/subLoadingCount');
+      }
       var rejectError = new ServiceError('MAM001E', error);
       if (error.response !== null && error.response !== undefined &&
         typeof error.response.status === 'number') {
@@ -550,6 +715,15 @@ function execute (type, url, data, config) {
       }
       reject(rejectError);
     });
+  })
+}
+
+function executeAll (promiseArr) {
+  return new Promise(function (resolve, reject) {
+    axios.all(promiseArr)
+      .then(function (res) {
+        resolve(res);
+      });
   })
 }
 
@@ -577,6 +751,14 @@ Http.options = function options (url, data, config) {
 
 Http.patch = function patch (url, data, config) {
   return execute(REQUEST_TYPE.PATCH, url, data, config)
+};
+
+Http.all = function all (promiseArr) {
+  return executeAll(promiseArr)
+};
+
+Http.spread = function spread (callback) {
+  return axios.spread(callback)
 };
 
 /*  */
@@ -702,151 +884,9 @@ function install$1 (Vue$$1) {
   });
 }
 
-// initial state
-var state = {
-  direction: '',
-  loading: false,
-  routeHistory: {
-    currentIndex: null,
-    history: []
-  },
-  token: '',
-  user: null
-};
-
-// getters
-var getters = {
-  routeHistory: function (state) { return state.routeHistory; },
-  routeCurrentIndex: function (state) { return state.routeHistory.currentIndex; }
-};
-
-// actions
-var actions = {
-};
-
-// mutations
-var mutations = {
-  direction: function direction (stateObj, val) {
-    var s = stateObj;
-    s.direction = val;
-  },
-  loading: function loading (stateObj, val) {
-    var s = stateObj;
-    s.loading = val;
-  },
-  token: function token (stateObj, val) {
-    var s = stateObj;
-    s.token = val;
-  },
-  user: function user (stateObj, val) {
-    var s = stateObj;
-    s.user = val;
-  },
-  updateDirection: function updateDirection (stateObj, ref) {
-    var current = ref.current;
-    var next = ref.next;
-
-    var direction = stateObj.direction;
-    var routeHistory = stateObj.routeHistory;
-    if (direction !== 'forward' && direction !== 'back') {
-      if (routeHistory.history.length > 0) {
-        // 当前游标处于最末尾
-        if (routeHistory.currentIndex === routeHistory.history.length - 1) {
-          direction = 'back';
-        } else {
-          var path = null;
-          // 判断目标画面是否为前画面
-          if (routeHistory.currentIndex !== 0) {
-            path = routeHistory.history[routeHistory.currentIndex - 1];
-            if (path === next) {
-              direction = 'back';
-            }
-          }
-          // 判断目标画面是否为次画面
-          if (direction === '') {
-            path = routeHistory.history[routeHistory.currentIndex + 1];
-            if (path === next) {
-              direction = 'forward';
-            }
-          }
-        }
-      } else {
-        direction = 'forward';
-      }
-      if (direction !== 'forward' && direction !== 'back') {
-        direction = 'forward';
-      }
-      // 保存跳转方向
-      stateObj.direction = direction;
-    }
-  },
-  updateHistory: function updateHistory (stateObj, ref) {
-    var current = ref.current;
-    var next = ref.next;
-
-    var direction = stateObj.direction;
-    var routeHistory = stateObj.routeHistory;
-    // 更新浏览历史
-    if (direction === 'back') {
-      if (routeHistory.currentIndex === 0) {
-        routeHistory.currentIndex = null;
-      } else {
-        routeHistory.history[routeHistory.currentIndex] = current;
-        routeHistory.currentIndex -= 1;
-      }
-    } else if (direction === 'forward') {
-      // if (!isExistForwardPage) {
-      //   if (routeHistory.currentIndex < history.length - 1) {
-      //     let index = history.length - 1
-      //     for (index; index > routeHistory.currentIndex; index -= 1) {
-      //       history.splice(index, 1)
-      //     }
-      //   }
-      //   history.push(currentPageFullPath)
-      // } else {
-      // }
-      if (routeHistory.currentIndex === null) {
-        routeHistory.currentIndex = 0;
-      } else {
-        // 如果未处于队列末尾,则删除当前游标后的数据
-        if (routeHistory.currentIndex < routeHistory.history.length - 1) {
-          var history = routeHistory.history.splice(0, routeHistory.currentIndex + 1);
-          routeHistory.history = history;
-        }
-        routeHistory.currentIndex += 1;
-      }
-      routeHistory.history.push(next);
-    }
-  }
-};
-
-var common = {
-  namespaced: true,
-  state: state,
-  getters: getters,
-  actions: actions,
-  mutations: mutations
-};
-
-/*  */
-var debug = process.env.NODE_ENV !== 'production';
-var structure = {
-  modules: {
-    common: common
-  },
-  strict: debug
-};
-
-var store$2;
-
-function create (Store) {
-  store$2 = new Store(structure);
-  return store$2
-}
-
 /*  */
 Vue.use(Vuex);
-var store = create(Vuex.Store);
+var store = createStore(Vuex.Store);
 
 var updateDirection = function (to, from, next) {
   var params = to.params;
@@ -964,7 +1004,7 @@ var index_esm = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.11'
+  version: '0.0.12'
 };
 
 export { ApplicationError, ServiceError, Http, Message, Storage, Util as util };export default index_esm;

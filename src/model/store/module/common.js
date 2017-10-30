@@ -1,7 +1,7 @@
 // initial state
 const state = {
   direction: '',
-  loading: false,
+  loading: 0,
   routeHistory: {
     currentIndex: null,
     history: []
@@ -13,7 +13,8 @@ const state = {
 // getters
 const getters = {
   routeHistory: state => state.routeHistory,
-  routeCurrentIndex: state => state.routeHistory.currentIndex
+  routeCurrentIndex: state => state.routeHistory.currentIndex,
+  isLoading: state => state.loading !== 0
 }
 
 // actions
@@ -26,9 +27,15 @@ const mutations = {
     const s = stateObj
     s.direction = val
   },
-  loading (stateObj, val) {
+  addLoadingCount (stateObj) {
     const s = stateObj
-    s.loading = val
+    s.loading++
+  },
+  subLoadingCount (stateObj) {
+    const s = stateObj
+    if (s.loading > 0) {
+      s.loading--
+    }
   },
   token (stateObj, val) {
     const s = stateObj

@@ -55,7 +55,6 @@
           ret.params = {};
           ret.params[DIRECTION_FLAG] = 'forward';
         }
-        console.log(ret);
         return ret;
       },
     },

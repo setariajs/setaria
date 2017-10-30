@@ -9,15 +9,15 @@ const structure: Object = {
   strict: debug
 }
 
-let store: Object
+let storeInstance: Object
 
-export function create (Store: Function) {
-  store = new Store(structure)
-  return store
+export function createStore (Store: Function): Object {
+  storeInstance = new Store(structure)
+  return storeInstance
 }
 
-function get (): ?Object {
-  return store
+export function getStore (): ?Object {
+  return storeInstance
 }
 
-export default get
+export type SetariaStore = Function

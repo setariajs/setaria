@@ -6,5 +6,6 @@ Setaria.config.message = require('./message.json')
 
 new Vue({
   el: '#app',
+  store: Setaria.plugin.store,
   render: h => h(Base)
 })

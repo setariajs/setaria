@@ -6,6 +6,8 @@
  */
 import axios from 'axios'
 import ServiceError from './ServiceError'
+import { getStore } from './store/index'
+// import type { SetariaStore } from './store'
 
 const REQUEST_TYPE: Object = {
   GET: 'get',
@@ -43,9 +45,19 @@ function execute (type: HttpMethod, url: string, data: any, config: AxiosConfig 
     } else {
       p = axios[type](url, data, axiosConfig)
     }
+    const storeInstance = getStore()
+    if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
+      storeInstance.commit('common/addLoadingCount')
+    }
     p.then((res: AxiosResponse) => {
+      if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
+        storeInstance.commit('common/subLoadingCount')
+      }
       resolve(res)
     }).catch((error: AxiosError) => {
+      if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
+        storeInstance.commit('common/subLoadingCount')
+      }
       let rejectError: ServiceError = new ServiceError('MAM001E', error)
       if (error.response !== null && error.response !== undefined &&
         typeof error.response.status === 'number') {
@@ -61,6 +73,15 @@ function execute (type: HttpMethod, url: string, data: any, config: AxiosConfig 
       }
       reject(rejectError)
     })
+  })
+}
+
+function executeAll (promiseArr: Array<Promise<any>>): Promise<any> {
+  return new Promise((resolve, reject) => {
+    axios.all(promiseArr)
+      .then((res) => {
+        resolve(res)
+      })
   })
 }
 
@@ -87,5 +108,13 @@ export default class Http {
 
   static patch (url: string, data: any, config: AxiosConfig): Promise<any> {
     return execute(REQUEST_TYPE.PATCH, url, data, config)
+  }
+
+  static all (promiseArr: Array<Promise<any>>): Promise<any> {
+    return executeAll(promiseArr)
+  }
+
+  static spread (callback: Function): void {
+    return axios.spread(callback)
   }
 }

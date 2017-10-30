@@ -40,3 +40,7 @@ declare type AxiosError = {
   config: AxiosConfig
 }
 declare type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'options' | 'patch'
+declare type VueStore = {
+  state: Object,
+  getters: Object
+}
