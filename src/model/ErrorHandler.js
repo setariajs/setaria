@@ -3,6 +3,7 @@ import Vue from 'vue'
 import config from '../config/index'
 import util from '../util'
 import ApplicationError, { ERROR_PREFIX, ERROR_MSG_SPLICER } from './ApplicationError'
+import ServiceError from './ServiceError'
 
 function isSetariaError (error: string | Object | Error | PromiseRejectionEvent): boolean {
   let ret: boolean = false
@@ -81,15 +82,19 @@ export default class ErrorHandler {
     // 没有捕获Promise中抛出的异常
     // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
     } else if (error.type === 'unhandledrejection' && typeof error === 'object') {
-      const { id, message, noIdMessage }: Object = error.reason
-      // ApplicationError
-      if (noIdMessage !== null && noIdMessage !== undefined) {
-        ret = new ApplicationError(id, [], noIdMessage)
-      // Error
-      } else if (message !== null && message !== undefined) {
-        ret = new ApplicationError('', [], message)
+      const { id, message, noIdMessage, detail }: Object = error.reason
+      if (error.reason.type === 'ServiceError') {
+        ret = error.reason
       } else {
-        ret = new ApplicationError('MAM004E')
+        // ApplicationError
+        if (noIdMessage !== null && noIdMessage !== undefined) {
+          ret = new ServiceError(id, detail, [], noIdMessage)
+        // Error
+        } else if (message !== null && message !== undefined) {
+          ret = new ServiceError('', detail, [], message)
+        } else {
+          ret = new ServiceError('MAM004E', detail)
+        }
       }
     // 组件渲染或组件事件函数执行时抛出异常的场合
     // 执行期异常的场合

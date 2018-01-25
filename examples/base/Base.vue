@@ -82,6 +82,15 @@
         <input type="button" @click="doSaveToLocalStorage(storageValue)" :value="storageButtonLabel">
       </li>
     </ul>
+    <ul>
+      Browser: Firefox
+      <li>
+        <input type="button" @click="doDetectIsFirefox" value="是否正在使用Firefox浏览器">
+      </li>
+      <li>
+        {{ isFirefox }}
+      </li>
+    </ul>
   </div>
 </template>
 <style scoped>
@@ -122,7 +131,8 @@
         exception: {},
         storageValue: '',
         dispStorageValue: '',
-        storageType: 'local'
+        storageType: 'local',
+        isFirefox: false
       }
     },
     watch: {
@@ -139,10 +149,12 @@
       }
     },
     created () {
-      Setaria.config.errorHanlder = ({ id, noIdMessage }) => {
-        this.exception = {
-          id,
-          message: noIdMessage
+      Setaria.config.errorHanlder = ({ id, noIdMessage, detail }) => {
+        if (util.get(detail, 'config.isShowError', true) !== false) {
+          this.exception = {
+            id,
+            message: noIdMessage
+          }
         }
       }
       this.storageValue = this.getStorageValue()
@@ -192,9 +204,14 @@
         throw new ApplicationError('MCM006E')
       },
       doThrowPromiseException () {
-        Http.get('/api/weather').then((res) => {
+        Http.get('/api/weather', null, {
+          isShowError: false
+        }).then((res) => {
           throw new ServiceError('MCM007E')
         })
+        // .catch(() => {
+        //   // throw new ServiceError('MCM008E')
+        // })
       },
       doSaveToLocalStorage (val) {
         if (this.storageType === 'local') {
@@ -203,6 +220,9 @@
           Storage.setSessionItem(STORAGE_KEY, val)
         }
         this.getStorageValue()
+      },
+      doDetectIsFirefox () {
+        this.isFirefox = util.isFirefox()
       },
       getStorageValue () {
         let ret = ''

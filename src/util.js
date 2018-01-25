@@ -12,6 +12,12 @@ export default class Util {
     return process.env.NODE_ENV === 'production'
   }
 
+  static isFirefox (): boolean {
+    const agent = window.navigator.userAgent.toLowerCase()
+    return (typeof window !== 'undefined' && agent) &&
+      /firefox\/\d+/.test(agent)
+  }
+
   /**
    * 使用指定格式取得当前时间
    * @param  {String} format 指定格式（moment格式）

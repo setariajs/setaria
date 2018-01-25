@@ -1,6 +1,6 @@
 /**
- * Setaria v0.0.12
- * (c) 2017 Ray Han
+ * Setaria v0.1.0
+ * (c) 2018 Ray Han
  * @license MIT
  */
 (function (global, factory) {
@@ -43,6 +43,12 @@ var Util = function Util () {};
 
 Util.isProdunctionEnv = function isProdunctionEnv () {
   return "development" === 'production'
+};
+
+Util.isFirefox = function isFirefox () {
+  var agent = window.navigator.userAgent.toLowerCase();
+  return (typeof window !== 'undefined' && agent) &&
+    /firefox\/\d+/.test(agent)
 };
 
 /**
@@ -334,6 +340,51 @@ var ApplicationError = (function (Error) {
 }(Error));
 
 /*  */
+function dispatchUnHandlerRejectEvent (reason) {
+  var event = document.createEvent('Event');
+  event.initEvent(
+    'unhandledrejection', // Define that the event name is 'unhandledrejection'
+    false, // PromiseRejectionEvent is not bubbleable
+    true // PromiseRejectionEvent is cancelable
+  );
+  /**
+   * Note: these properties should not be enumerable, which is the default setting
+   */
+  var properties = {
+    reason: {
+      value: reason,
+      writable: false
+    }
+  };
+  Object.defineProperties(event, properties);
+  window.dispatchEvent(event);
+}
+
+var ServiceError = (function (ApplicationError$$1) {
+  function ServiceError (id, reason,
+    params, message) {
+    if ( id === void 0 ) id = '';
+    if ( reason === void 0 ) reason = {};
+    if ( params === void 0 ) params = [];
+    if ( message === void 0 ) message = '';
+
+    ApplicationError$$1.call(this, id, params, message);
+    this.type = 'ServiceError';
+    this.detail = reason;
+    // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
+    if (Util.isFirefox() && Util.get(reason, 'config.isShowError', true) !== false) {
+      dispatchUnHandlerRejectEvent(this);
+    }
+  }
+
+  if ( ApplicationError$$1 ) ServiceError.__proto__ = ApplicationError$$1;
+  ServiceError.prototype = Object.create( ApplicationError$$1 && ApplicationError$$1.prototype );
+  ServiceError.prototype.constructor = ServiceError;
+
+  return ServiceError;
+}(ApplicationError));
+
+/*  */
 function isSetariaError (error) {
   var ret = false;
   if (error instanceof Object && error !== null &&
@@ -413,14 +464,19 @@ ErrorHandler.parseError = function parseError (error, source) {
       var id = ref.id;
       var message = ref.message;
       var noIdMessage = ref.noIdMessage;
-    // ApplicationError
-    if (noIdMessage !== null && noIdMessage !== undefined) {
-      ret = new ApplicationError(id, [], noIdMessage);
-    // Error
-    } else if (message !== null && message !== undefined) {
-      ret = new ApplicationError('', [], message);
+      var detail = ref.detail;
+    if (error.reason.type === 'ServiceError') {
+      ret = error.reason;
     } else {
-      ret = new ApplicationError('MAM004E');
+      // ApplicationError
+      if (noIdMessage !== null && noIdMessage !== undefined) {
+        ret = new ServiceError(id, detail, [], noIdMessage);
+      // Error
+      } else if (message !== null && message !== undefined) {
+        ret = new ServiceError('', detail, [], message);
+      } else {
+        ret = new ServiceError('MAM004E', detail);
+      }
     }
   // 组件渲染或组件事件函数执行时抛出异常的场合
   // 执行期异常的场合
@@ -454,44 +510,6 @@ ErrorHandler.parseError = function parseError (error, source) {
   }
   return ret
 };
-
-/*  */
-function dispatchUnHandlerRejectEvent (reason) {
-  var event = document.createEvent('Event');
-  event.initEvent(
-    'unhandledrejection', // Define that the event name is 'unhandledrejection'
-    false, // PromiseRejectionEvent is not bubbleable
-    true // PromiseRejectionEvent is cancelable
-  );
-  /**
-   * Note: these properties should not be enumerable, which is the default setting
-   */
-  var properties = {
-    reason: {
-      value: reason,
-      writable: false
-    }
-  };
-  Object.defineProperties(event, properties);
-  window.dispatchEvent(event);
-}
-
-var ServiceError = (function (ApplicationError$$1) {
-  function ServiceError (id, reason, params, message) {
-    if ( id === void 0 ) id = '';
-    if ( params === void 0 ) params = [];
-    if ( message === void 0 ) message = '';
-
-    ApplicationError$$1.call(this, id, params, message);
-    dispatchUnHandlerRejectEvent(this);
-  }
-
-  if ( ApplicationError$$1 ) ServiceError.__proto__ = ApplicationError$$1;
-  ServiceError.prototype = Object.create( ApplicationError$$1 && ApplicationError$$1.prototype );
-  ServiceError.prototype.constructor = ServiceError;
-
-  return ServiceError;
-}(ApplicationError));
 
 // initial state
 var state = {
@@ -1009,7 +1027,7 @@ var index = {
     Navigate: Navigate,
     store: store
   },
-  version: '0.0.12',
+  version: '0.1.0',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,
