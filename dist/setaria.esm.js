@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.0
+ * Setaria v0.2.1
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -189,6 +189,7 @@ var config = {
     dev: {},
     prod: {}
   },
+  errorHanlder: null,
   message: {},
   router: {
     routes: []
@@ -1271,7 +1272,7 @@ var index_esm = {
   store: store,
   storeTypes: types,
   util: Util,
-  version: '0.2.0'
+  version: '0.2.1'
 };
 
-export default index_esm;
+export { ApplicationError, Http, Message, ServiceError, Storage, config$1 as config, router, store, types as storeTypes, Util as util };export default index_esm;

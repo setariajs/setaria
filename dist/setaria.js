@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.0
+ * Setaria v0.2.1
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -194,6 +194,7 @@ var config = {
     dev: {},
     prod: {}
   },
+  errorHanlder: null,
   message: {},
   router: {
     routes: []
@@ -1268,7 +1269,7 @@ var index = {
     router: router,
     store: store
   },
-  version: '0.2.0',
+  version: '0.2.1',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,
