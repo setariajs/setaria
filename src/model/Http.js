@@ -6,7 +6,7 @@
  */
 import axios from 'axios'
 import ServiceError from './ServiceError'
-import { getStore } from './store/index'
+import { getStore, types } from './store/index'
 // import type { SetariaStore } from './store'
 
 const REQUEST_TYPE: Object = {
@@ -47,16 +47,16 @@ function execute (type: HttpMethod, url: string, data: any, config: AxiosConfig 
     }
     const storeInstance = getStore()
     if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-      storeInstance.commit('common/addLoadingCount')
+      storeInstance.commit(types.ADD_LOADING_COUNT)
     }
     p.then((res: AxiosResponse) => {
       if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-        storeInstance.commit('common/subLoadingCount')
+        storeInstance.commit(types.SUB_LOADING_COUNT)
       }
       resolve(res)
     }).catch((error: AxiosError) => {
       if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-        storeInstance.commit('common/subLoadingCount')
+        storeInstance.commit(types.SUB_LOADING_COUNT)
       }
       let rejectError: ServiceError = new ServiceError('MAM001E', error)
       if (error.response !== null && error.response !== undefined &&

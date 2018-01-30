@@ -1,4 +1,5 @@
 import VueRouter from 'vue-router'
+import { types } from '../store'
 
 export function install (Vue) {
   if (install.installed) {
@@ -9,7 +10,7 @@ export function install (Vue) {
   Vue.mixin({
     mounted () {
       if (this.$store) {
-        this.$store.commit('common/direction', '')
+        this.$store.commit(types.SET_DIRECTION, '')
       }
     }
   })

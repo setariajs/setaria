@@ -25,7 +25,7 @@ export default {
       component: PageB
     },
     {
-      path: '/c',
+      path: '/c/:id',
       name: 'PageC',
       beforeEnter (to, from, next) {
         console.log('C beforeEnter')

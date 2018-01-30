@@ -1,20 +1,26 @@
+import * as types from './types'
+
 // initial state
 const state = {
-  direction: '',
-  loading: 0,
-  routeHistory: {
+  _setaria_direction: '',
+  _setaria_loading: 0,
+  _setaria_routeHistory: {
     currentIndex: null,
     history: []
   },
-  token: '',
-  user: null
+  _setaria_token: '',
+  _setaria_user: null
 }
 
 // getters
 const getters = {
-  routeHistory: state => state.routeHistory,
-  routeCurrentIndex: state => state.routeHistory.currentIndex,
-  isLoading: state => state.loading !== 0
+  [types.GET_ROUTE_HISTORY]: state => state._setaria_routeHistory,
+  [types.GET_ROUTE_CURRENT_INDEX]: state => state._setaria_routeHistory.currentIndex,
+  [types.GET_IS_LOADING]: state => state._setaria_loading !== 0,
+  [types.GET_LOADING_COUNT]: state => state._setaria_loading,
+  [types.GET_USER]: state => state._setaria_user,
+  [types.GET_TOKEN]: state => state._setaria_token,
+  [types.GET_DIRECTION]: state => state._setaria_direction
 }
 
 // actions
@@ -23,31 +29,31 @@ const actions = {
 
 // mutations
 const mutations = {
-  direction (stateObj, val) {
+  [types.SET_DIRECTION] (stateObj, val) {
     const s = stateObj
-    s.direction = val
+    s._setaria_direction = val
   },
-  addLoadingCount (stateObj) {
+  [types.ADD_LOADING_COUNT] (stateObj) {
     const s = stateObj
-    s.loading++
+    s._setaria_loading += 1
   },
-  subLoadingCount (stateObj) {
+  [types.SUB_LOADING_COUNT] (stateObj) {
     const s = stateObj
-    if (s.loading > 0) {
-      s.loading--
+    if (s._setaria_loading > 0) {
+      s._setaria_loading -= 1
     }
   },
-  token (stateObj, val) {
+  [types.SET_TOKEN] (stateObj, val) {
     const s = stateObj
-    s.token = val
+    s._setaria_token = val
   },
-  user (stateObj, val) {
+  [types.SET_USER] (stateObj, val) {
     const s = stateObj
-    s.user = val
+    s._setaria_user = val
   },
-  updateDirection (stateObj, { current, next }) {
-    let direction = stateObj.direction
-    const routeHistory = stateObj.routeHistory
+  [types.UPDATE_DIRECTION] (stateObj, { current, next }) {
+    let direction = stateObj._setaria_direction
+    const routeHistory = stateObj._setaria_routeHistory
     if (direction !== 'forward' && direction !== 'back') {
       if (routeHistory.history.length > 0) {
         // 当前游标处于最末尾
@@ -77,12 +83,12 @@ const mutations = {
         direction = 'forward'
       }
       // 保存跳转方向
-      stateObj.direction = direction
+      stateObj._setaria_direction = direction
     }
   },
-  updateHistory (stateObj, { current, next }) {
-    const direction = stateObj.direction
-    const routeHistory = stateObj.routeHistory
+  [types.UPDATE_ROUTE_HISTORY] (stateObj, { current, next }) {
+    const direction = stateObj._setaria_direction
+    const routeHistory = stateObj._setaria_routeHistory
     // 更新浏览历史
     if (direction === 'back') {
       if (routeHistory.currentIndex === 0) {
@@ -118,7 +124,6 @@ const mutations = {
 }
 
 export default {
-  namespaced: true,
   state,
   getters,
   actions,

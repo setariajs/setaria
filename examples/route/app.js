@@ -1,21 +1,15 @@
 import Vue from 'vue'
 import Setaria from 'setaria'
-import router from './router'
 import App from './App.vue'
 
-Vue.use(Setaria.plugin.Navigate)
-const navi = new Setaria.plugin.Navigate(router)
-navi.beforeEach((to, from, next) => {
-  console.log('beforeEach')
-  next()
-})
-navi.afterEach((route) => {
-  console.log('afterEach')
-})
+// 手动加载路由设置
+const routerConfig = require('./router.js')
+const router = Setaria.plugin.router
+router.addRoutes(routerConfig.default.routes)
 
 new Vue({
   el: '#app',
   store: Setaria.plugin.store,
-  router: navi,
+  router: Setaria.plugin.router,
   render: h => h(App)
 })

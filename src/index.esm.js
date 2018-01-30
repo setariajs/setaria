@@ -8,7 +8,7 @@ import Http from './model/Http'
 import Message from './model/Message'
 import Storage from './model/Storage'
 import Navigate from './plugin/navigate/index'
-import store from './plugin/store'
+import store, { types as storeTypes } from './plugin/store'
 import util from './util'
 
 // -- 环境变量设置
@@ -20,6 +20,8 @@ if (util.isProdunctionEnv()) {
   Vue.config.productionTip = false
 }
 
+// -- 加载路由组件
+const router = new Navigate(config.router)
 // -- 异常处理
 ErrorHandler.catchError()
 
@@ -27,7 +29,7 @@ export default {
   install,
   config,
   plugin: {
-    Navigate,
+    router,
     store
   },
   version: '__VERSION__'
@@ -39,5 +41,6 @@ export {
   Http,
   Message,
   Storage,
+  storeTypes,
   util
 }

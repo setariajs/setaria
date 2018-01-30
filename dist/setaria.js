@@ -1,5 +1,5 @@
 /**
- * Setaria v0.1.0
+ * Setaria v0.1.1
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -16,27 +16,24 @@ axios = 'default' in axios ? axios['default'] : axios;
 VueRouter = 'default' in VueRouter ? VueRouter['default'] : VueRouter;
 Vuex = 'default' in Vuex ? Vuex['default'] : Vuex;
 
-/*  */
-
-var config = ({
-  message: null,
-  errorHanlder: null
-});
-
-// import applyMixin from './mixin'
-
-function install (_Vue) {
-  // if (Vue) {
-  //   if ("development" !== 'production') {
-  //     console.error(
-  //       '[setaria] already installed. Vue.use(Setaria) should be called only once.'
-  //     )
-  //   }
-  //   return
-  // }
-  // Vue = _Vue
-  // applyMixin(Vue)
-}
+// M[Message Catagory]XXX[Message Type]
+// Message Catagory:
+//   AM Application Message
+// Message Type:
+//   E Error
+//   I Info
+//   W Warning
+var MESSAGE = {
+  MAM001E: '调用远程服务的过程中出现未知错误，请重试或联系管理员。',
+  MAM002E: '由于您长时间未操作，登录状态已过期，请重新登录。',
+  MAM003E: '服务未在预定时间（{0}秒）内返回结果，请联系管理员或稍后重试。',
+  MAM004E: '客户端出现错误，请重试或联系管理员。',
+  MAM005E: '认证过期或无权访问此服务，请点击注销按钮重新登录。',
+  MAM006E: '无法找到指定的画面。',
+  MAM007E: '请求的服务访问超时，请联系管理员或稍后重试。',
+  MAM008E: '无法找到指定的{0}定义文件。',
+  MAM404E: '请求的服务不存在。'
+};
 
 /*  */
 var Util = function Util () {};
@@ -191,24 +188,62 @@ Util.getUrlParameter = function getUrlParameter (paramKey) {
   return ret
 };
 
-// M[Message Catagory]XXX[Message Type]
-// Message Catagory:
-//   AM Application Message
-// Message Type:
-//   E Error
-//   I Info
-//   W Warning
-var MESSAGE = {
-  MAM001E: '调用远程服务的过程中出现未知错误，请重试或联系管理员。',
-  MAM002E: '由于您长时间未操作，登录状态已过期，请重新登录。',
-  MAM003E: '服务未在预定时间（{0}秒）内返回结果，请联系管理员或稍后重试。',
-  MAM004E: '客户端出现错误，请重试或联系管理员。',
-  MAM005E: '认证过期或无权访问此服务，请点击注销按钮重新登录。',
-  MAM006E: '无法找到指定的画面。',
-  MAM007E: '请求的服务访问超时，请联系管理员或稍后重试。',
-  MAM008E: '无法找到指定的{0}定义文件。',
-  MAM404E: '请求的服务不存在。'
+var config = {
+  env: {
+    dev: {},
+    prod: {}
+  },
+  message: {},
+  router: {
+    routes: []
+  }
 };
+// 取得配置文件
+try {
+  // 配置文件需与node_modules目录同级
+  var customConfig = require('../../../setaria.config.js');
+  if (customConfig !== undefined && customConfig !== null) {
+    config = customConfig.default;
+  }
+  // 合并缺省框架内置系统错误
+  config.message = Object.assign({}, MESSAGE, customConfig.message);
+} catch (e) {
+  console.error('setaria.config.js文件不存在');
+}
+// 加载CSS
+// 根据环境设置env
+var devEnv = Util.get(config, 'env.dev', {});
+var prodEnv = Util.get(config, 'env.prod', {});
+// 不区分环境的场合
+if (Util.isEmpty(devEnv) && Util.isEmpty(prodEnv) && !Util.isEmpty(config.env)) {
+  prodEnv = config.env;
+}
+// 生产环境的场合
+if (Util.isProdunctionEnv()) {
+  config.env = Object.assign({}, prodEnv);
+// 开发环境的场合
+} else {
+  config.env = Object.assign({}, prodEnv, devEnv);
+}
+
+/*  */
+
+var config$1 = config;
+
+// import applyMixin from './mixin'
+
+function install (_Vue) {
+  // if (Vue) {
+  //   if ("development" !== 'production') {
+  //     console.error(
+  //       '[setaria] already installed. Vue.use(Setaria) should be called only once.'
+  //     )
+  //   }
+  //   return
+  // }
+  // Vue = _Vue
+  // applyMixin()
+}
 
 /*  */
 var MESSAGE_TYPE = {
@@ -222,7 +257,7 @@ var MESSAGE_TYPE = {
  * 取得自定义消息对象
  */
 function getCustomMessageObject () {
-  return config.message ? config.message : {}
+  return config$1.message ? config$1.message : {}
 }
 
 /**
@@ -443,8 +478,8 @@ ErrorHandler.catchError = function catchError () {
 ErrorHandler.handleError = function handleError (error, source) {
   // 取得错误内容
   var errorObject = this.parseError(error, source);
-  if (typeof config.errorHanlder === 'function') {
-    config.errorHanlder(errorObject, error);
+  if (typeof config$1.errorHanlder === 'function') {
+    config$1.errorHanlder(errorObject, error);
   }
 };
 
@@ -511,59 +546,99 @@ ErrorHandler.parseError = function parseError (error, source) {
   return ret
 };
 
+// getter
+var GET_IS_LOADING = '_setaria_get_is_loading';
+var GET_LOADING_COUNT = '_setaria_get_loading_count';
+var GET_ROUTE_HISTORY = '_setaria_get_route_history';
+var GET_ROUTE_CURRENT_INDEX = '_setaria_get_route_current_index';
+var GET_USER = '_setaria_get_user';
+var GET_TOKEN = '_setaria_get_token';
+var GET_DIRECTION = '_setaria_get_direction';
+
+// mutation
+var SET_DIRECTION = '_setaria_set_direction';
+var ADD_LOADING_COUNT = '_setaria_add_loading_count';
+var SUB_LOADING_COUNT = '_setaria_sub_loading_count';
+var SET_TOKEN = '_setaria_set_token';
+var SET_USER = '_setaria_set_user';
+var UPDATE_DIRECTION = '_setaria_update_direction';
+var UPDATE_ROUTE_HISTORY = '_setaria_update_route_history';
+
+// action
+
+var types = {
+  GET_IS_LOADING: GET_IS_LOADING,
+  GET_LOADING_COUNT: GET_LOADING_COUNT,
+  GET_ROUTE_HISTORY: GET_ROUTE_HISTORY,
+  GET_ROUTE_CURRENT_INDEX: GET_ROUTE_CURRENT_INDEX,
+  GET_USER: GET_USER,
+  GET_TOKEN: GET_TOKEN,
+  GET_DIRECTION: GET_DIRECTION,
+  SET_DIRECTION: SET_DIRECTION,
+  ADD_LOADING_COUNT: ADD_LOADING_COUNT,
+  SUB_LOADING_COUNT: SUB_LOADING_COUNT,
+  SET_TOKEN: SET_TOKEN,
+  SET_USER: SET_USER,
+  UPDATE_DIRECTION: UPDATE_DIRECTION,
+  UPDATE_ROUTE_HISTORY: UPDATE_ROUTE_HISTORY
+};
+
 // initial state
 var state = {
-  direction: '',
-  loading: 0,
-  routeHistory: {
+  _setaria_direction: '',
+  _setaria_loading: 0,
+  _setaria_routeHistory: {
     currentIndex: null,
     history: []
   },
-  token: '',
-  user: null
+  _setaria_token: '',
+  _setaria_user: null
 };
 
 // getters
-var getters = {
-  routeHistory: function (state) { return state.routeHistory; },
-  routeCurrentIndex: function (state) { return state.routeHistory.currentIndex; },
-  isLoading: function (state) { return state.loading !== 0; }
-};
+var getters = {};
+getters[GET_ROUTE_HISTORY] = function (state) { return state._setaria_routeHistory; };
+getters[GET_ROUTE_CURRENT_INDEX] = function (state) { return state._setaria_routeHistory.currentIndex; };
+getters[GET_IS_LOADING] = function (state) { return state._setaria_loading !== 0; };
+getters[GET_LOADING_COUNT] = function (state) { return state._setaria_loading; };
+getters[GET_USER] = function (state) { return state._setaria_user; };
+getters[GET_TOKEN] = function (state) { return state._setaria_token; };
+getters[GET_DIRECTION] = function (state) { return state._setaria_direction; };
 
 // actions
 var actions = {
 };
 
 // mutations
-var mutations = {
-  direction: function direction (stateObj, val) {
+var mutations = {};
+mutations[SET_DIRECTION] = function (stateObj, val) {
     var s = stateObj;
-    s.direction = val;
-  },
-  addLoadingCount: function addLoadingCount (stateObj) {
+    s._setaria_direction = val;
+  };
+mutations[ADD_LOADING_COUNT] = function (stateObj) {
     var s = stateObj;
-    s.loading++;
-  },
-  subLoadingCount: function subLoadingCount (stateObj) {
+    s._setaria_loading += 1;
+  };
+mutations[SUB_LOADING_COUNT] = function (stateObj) {
     var s = stateObj;
-    if (s.loading > 0) {
-      s.loading--;
+    if (s._setaria_loading > 0) {
+      s._setaria_loading -= 1;
     }
-  },
-  token: function token (stateObj, val) {
+  };
+mutations[SET_TOKEN] = function (stateObj, val) {
     var s = stateObj;
-    s.token = val;
-  },
-  user: function user (stateObj, val) {
+    s._setaria_token = val;
+  };
+mutations[SET_USER] = function (stateObj, val) {
     var s = stateObj;
-    s.user = val;
-  },
-  updateDirection: function updateDirection (stateObj, ref) {
+    s._setaria_user = val;
+  };
+mutations[UPDATE_DIRECTION] = function (stateObj, ref) {
     var current = ref.current;
     var next = ref.next;
 
-    var direction = stateObj.direction;
-    var routeHistory = stateObj.routeHistory;
+    var direction = stateObj._setaria_direction;
+    var routeHistory = stateObj._setaria_routeHistory;
     if (direction !== 'forward' && direction !== 'back') {
       if (routeHistory.history.length > 0) {
         // 当前游标处于最末尾
@@ -593,15 +668,15 @@ var mutations = {
         direction = 'forward';
       }
       // 保存跳转方向
-      stateObj.direction = direction;
+      stateObj._setaria_direction = direction;
     }
-  },
-  updateHistory: function updateHistory (stateObj, ref) {
+  };
+mutations[UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
     var current = ref.current;
     var next = ref.next;
 
-    var direction = stateObj.direction;
-    var routeHistory = stateObj.routeHistory;
+    var direction = stateObj._setaria_direction;
+    var routeHistory = stateObj._setaria_routeHistory;
     // 更新浏览历史
     if (direction === 'back') {
       if (routeHistory.currentIndex === 0) {
@@ -633,11 +708,9 @@ var mutations = {
       }
       routeHistory.history.push(next);
     }
-  }
-};
+  };
 
 var common = {
-  namespaced: true,
   state: state,
   getters: getters,
   actions: actions,
@@ -645,18 +718,22 @@ var common = {
 };
 
 /*  */
+var SETARIA_STORE = '_setaria_.common';
+
 var debug = "development" !== 'production';
 var structure = {
-  modules: {
-    common: common
-  },
+  modules: ( obj = {}, obj[SETARIA_STORE] = common, obj ),
   strict: debug
 };
+var obj;
 
 var storeInstance;
 
 function createStore (Store) {
-  storeInstance = new Store(structure);
+  // singleton
+  if (storeInstance === null || storeInstance === undefined) {
+    storeInstance = new Store(structure);
+  }
   return storeInstance
 }
 
@@ -712,16 +789,16 @@ function execute (type, url, data, config) {
     }
     var storeInstance = getStore();
     if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-      storeInstance.commit('common/addLoadingCount');
+      storeInstance.commit(types.ADD_LOADING_COUNT);
     }
     p.then(function (res) {
       if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-        storeInstance.commit('common/subLoadingCount');
+        storeInstance.commit(types.SUB_LOADING_COUNT);
       }
       resolve(res);
     }).catch(function (error) {
       if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-        storeInstance.commit('common/subLoadingCount');
+        storeInstance.commit(types.SUB_LOADING_COUNT);
       }
       var rejectError = new ServiceError('MAM001E', error);
       if (error.response !== null && error.response !== undefined &&
@@ -892,6 +969,10 @@ Storage.clearSession = function clearSession () {
   removeAllItem(STORAGE_TYPE.SESSION);
 };
 
+/*  */
+Vue.use(Vuex);
+var store = createStore(Vuex.Store);
+
 function install$1 (Vue$$1) {
   if (install$1.installed) {
     return
@@ -901,28 +982,24 @@ function install$1 (Vue$$1) {
   Vue$$1.mixin({
     mounted: function mounted () {
       if (this.$store) {
-        this.$store.commit('common/direction', '');
+        this.$store.commit(types.SET_DIRECTION, '');
       }
     }
   });
 }
 
-/*  */
-Vue.use(Vuex);
-var store = createStore(Vuex.Store);
-
 var updateDirection = function (to, from, next) {
   var params = to.params;
   var currentPageFullPath = from.fullPath;
-  var direction = store.state.common.direction;
+  var direction = store.state[types.GET_DIRECTION];
   var nextPageFullPath = to.fullPath;
   if (params && params.$$direction === 'forward') {
     direction = 'forward';
     // 保存跳转方向
-    store.commit('common/direction', direction);
+    store.commit(types.SET_DIRECTION, direction);
   }
   // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
-  store.commit('common/updateDirection', {
+  store.commit(types.UPDATE_DIRECTION, {
     current: currentPageFullPath,
     next: nextPageFullPath
   });
@@ -937,7 +1014,7 @@ var updateDirection = function (to, from, next) {
 var updateHistory = function (to, from, next) {
   var currentPageFullPath = from.fullPath;
   var nextPageFullPath = to.fullPath;
-  store.commit('common/updateHistory', {
+  store.commit(types.UPDATE_ROUTE_HISTORY, {
     current: currentPageFullPath,
     next: nextPageFullPath
   });
@@ -948,17 +1025,180 @@ var updateHistory = function (to, from, next) {
 // 限制1: 不支持同一路由不同参数间画面的跳转 /user/1 -> /user/2
 // 限制2: 不支持<router-link>的方式跳转，且此链接内如果定义path，则params不生效（vue-router的限制）
 // 限制3: 新增<navi-link>用于定义静态路由链接。
+/**
+ * 取得路由中定义的中间件
+ * 注意：中间件的文件必须位于src/middleware目录下，其中src目录与node_modules位于同级目录
+ * @param {String} name
+ */
+function getMiddleware (name) {
+  var middleware = null;
+  try {
+    middleware = require('../../../src/middleware/' + name + '.js');
+    if (middleware) {
+      middleware = middleware.default;
+    }
+  } catch (e) {
+    console.debug(("找不到指定的中间件" + name), e);
+  }
+  return middleware
+}
+
+/**
+ * 根据指定值调用Vue-Route的路由钩子函数
+ * @param {Function} nextFunc
+ * @param {*} val
+ */
+function routeNext (nextFunc, val) {
+  if (val !== null && val !== undefined) {
+    nextFunc(val);
+  } else {
+    nextFunc();
+  }
+}
+
+/**
+ * 取得定义了中间件的路由一览
+ * @param {Array} routes
+ */
+function findComponentMiddleware (routes) {
+  var ret = [];
+  routes.forEach(function (r) {
+    // 定义了中间件的场合
+    if (!Util.isEmpty(r.middleware)) {
+      ret.push(r);
+    // 存在子路有的场合
+    } else if (!Util.isEmpty(r.children)) {
+      ret = ret.concat(findComponentMiddleware(r.children));
+    }
+  });
+  return ret
+}
+
+/**
+ * 判断是否为同一路由
+ * @param {Object} param0 当前目标路由
+ * @param {Object} param1 定义了中间件的路由
+ */
+function compareRoute (ref, ref$1) {
+  var name = ref.name;
+  var matched = ref.matched;
+  var originName = ref$1.name;
+  var originPath = ref$1.path;
+
+  // 优先使用Name属性进行判断
+  if (!Util.isEmpty(originName)) {
+    return name === originName
+  // 没有定义Name属性的场合，使用path属性进行判断
+  } else if (!Util.isEmpty(matched) && !Util.isEmpty(originPath)) {
+    var routeDefinedPath = matched[matched.length - 1].path;
+    if (originPath.indexOf('/') !== 0) {
+      matched.forEach(function (m) {
+        if (routeDefinedPath.indexOf(m.path) === 0) {
+          routeDefinedPath = routeDefinedPath.substring(m.path.length);
+        }
+      });
+      // 存在父路由的场合
+      if (matched.length > 1) {
+        if (routeDefinedPath.indexOf('/') === 0) {
+          routeDefinedPath = routeDefinedPath.substring(1);
+        }
+      }
+    }
+    if (routeDefinedPath === originPath) {
+      return true
+    }
+  }
+  return false
+}
+
 var Navigate = (function (VueRouter$$1) {
   function Navigate (options) {
+    var this$1 = this;
     if ( options === void 0 ) options = {};
 
     VueRouter$$1.call(this, options);
-    // 注册全局路由钩子
+    var self = this;
+    // 注册默认全局守卫
     this.beforeEach(updateDirection);
     this.beforeEach(updateHistory);
-    // this.afterEach(() => {
-    //   store.commit('common/direction', '')
-    // })
+    // 注册中间件
+    var globalMiddleware = [];
+    // 取得全局中间件
+    if (typeof options.middleware === 'string') {
+      var m = getMiddleware(options.middleware);
+      if (typeof m === 'function') {
+        globalMiddleware.push(m);
+      }
+    } else if (Util.isArray(options.middleware)) {
+      options.middleware.forEach(function (middleware) {
+        var m = getMiddleware(middleware);
+        if (typeof m === 'function') {
+          globalMiddleware.push(m);
+        }
+      });
+    }
+    // 注册全局守卫
+    globalMiddleware.forEach(function (m) {
+      this$1.beforeEach(function (to, from, next) {
+        var result = m({
+          path: to.path,
+          query: to.query,
+          params: to.params,
+          name: to.name,
+          from: from,
+          to: to,
+          route: self
+        });
+        if (result instanceof Promise) {
+          result.then(function (res) {
+            routeNext(next, res);
+          })
+          .catch(function (err) {
+            routeNext(next, err);
+          });
+        } else {
+          routeNext(next, result);
+        }
+      });
+    });
+    // 取得定义了中间件的路由一览
+    var middlewareRouteArray = findComponentMiddleware(options.routes);
+    if (!Util.isEmpty(middlewareRouteArray)) {
+      middlewareRouteArray.forEach(function (route) {
+        var m = getMiddleware(route.middleware);
+        if (Util.isFunction(m)) {
+          this$1.beforeEach(function (to, from, next) {
+            // 判断是否为定义中间件的路由
+            if (compareRoute(to, route)) {
+              var result = m({
+                path: to.path,
+                query: to.query,
+                params: to.params,
+                name: to.name,
+                from: from,
+                to: to,
+                route: self
+              });
+              if (result instanceof Promise) {
+                result.then(function (res) {
+                  routeNext(next, res);
+                })
+                .catch(function (err) {
+                  routeNext(next, err);
+                });
+              } else {
+                routeNext(next, result);
+              }
+            } else {
+              next();
+            }
+          });
+        }
+      });
+    }
+    this.afterEach(function () {
+      store.commit(types.SET_DIRECTION, '');
+    });
   }
 
   if ( VueRouter$$1 ) Navigate.__proto__ = VueRouter$$1;
@@ -969,21 +1209,16 @@ var Navigate = (function (VueRouter$$1) {
     if ( params === void 0 ) params = {};
     if ( query === void 0 ) query = {};
 
-    // 删除
-    // if (this.routeHistroy.currentIndex !== this.routeHistroy.history.length - 1) {
-    //   let index = this.routeHistroy.history.length - 1
-    //   for (index; index > this.routeHistroy.currentIndex; index -= 1) {
-    //     this.routeHistroy.history.splice(index - 1, 1)
-    //   }
-    // }
-    // this.routeHistroy.history.push(this.currentRoute.fullPath)
-    // this.routeHistroy.currentIndex = this.routeHistroy.history.length - 1
-    store.commit('common/direction', 'forward');
-    this.push({
-      name: name,
-      params: params,
-      query: query
-    });
+    store.commit(types.SET_DIRECTION, 'forward');
+    if (Util.isObject(name)) {
+      this.push(name);
+    } else {
+      this.push({
+        name: name,
+        params: params,
+        query: query
+      });
+    }
   };
 
   Navigate.prototype.backTo = function backTo () {
@@ -991,12 +1226,12 @@ var Navigate = (function (VueRouter$$1) {
   };
 
   Navigate.prototype.back = function back () {
-    store.commit('common/direction', 'back');
+    store.commit(types.SET_DIRECTION, 'back');
     VueRouter$$1.prototype.back.call(this);
   };
 
   Navigate.prototype.forward = function forward () {
-    store.commit('common/direction', 'forward');
+    store.commit(types.SET_DIRECTION, 'forward');
     VueRouter$$1.prototype.forward.call(this);
   };
 
@@ -1004,8 +1239,8 @@ var Navigate = (function (VueRouter$$1) {
 }(VueRouter));
 
 Navigate.install = install$1;
-if (typeof window !== 'undefined' && window.Vue) {
-  window.Vue.use(Navigate);
+if (typeof window !== 'undefined') {
+  Vue.use(Navigate);
 }
 
 // -- 环境变量设置
@@ -1017,22 +1252,26 @@ if (Util.isProdunctionEnv()) {
   Vue.config.productionTip = false;
 }
 
+// -- 加载路由组件
+var router = new Navigate(config$1.router);
+
 // -- 异常处理
 ErrorHandler.catchError();
 
 var index = {
   install: install,
-  config: config,
+  config: config$1,
   plugin: {
-    Navigate: Navigate,
+    router: router,
     store: store
   },
-  version: '0.1.0',
+  version: '0.1.1',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,
   Message: Message,
   Storage: Storage,
+  storeTypes: types,
   util: Util
 };
 

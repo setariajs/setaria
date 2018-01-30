@@ -2,7 +2,7 @@
   <div>
     PageA
     <input type="button" @click="$router.forwardTo('PageB')" value="Go to PageB">
-    <input type="button" @click="$router.forwardTo('PageC')" value="Go to PageC">
+    <input type="button" @click="$router.forwardTo('PageC', { 'id':2 })" value="Go to PageC">
   </div>
 </template>
 <script>

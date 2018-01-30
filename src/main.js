@@ -10,10 +10,10 @@ export function install (_Vue) {
   //   return
   // }
   // Vue = _Vue
-  // applyMixin(Vue)
+  // applyMixin()
 }
 
 // auto install in dist mode
-if (typeof window !== 'undefined' && window.Vue) {
+if (typeof window !== 'undefined') {
   install(window.Vue)
 }

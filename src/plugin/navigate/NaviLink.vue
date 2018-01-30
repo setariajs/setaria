@@ -5,58 +5,58 @@
   </router-link>
 </template>
 <script>
-  const DIRECTION_FLAG = '$$direction';
+  const DIRECTION_FLAG = '$$direction'
 
   export default {
     name: 'NaviLink',
     props: {
       to: {
         type: [String, Object],
-        required: true,
+        required: true
       },
       replace: {
         type: Boolean,
-        default: false,
+        default: false
       },
       append: {
         type: Boolean,
-        default: false,
+        default: false
       },
       tag: {
         type: String,
-        default: 'a',
+        default: 'a'
       },
       activeClass: {
         type: String,
-        default: 'router-link-active',
+        default: 'router-link-active'
       },
       exact: {
         type: Boolean,
-        default: false,
+        default: false
       },
       events: {
-        default: 'click',
-      },
+        default: 'click'
+      }
     },
     computed: {
-      naviTo() {
-        let ret = this.to;
+      naviTo () {
+        let ret = this.to
         if (ret instanceof Object) {
           if (ret.params) {
-            ret.params[DIRECTION_FLAG] = 'forward';
+            ret.params[DIRECTION_FLAG] = 'forward'
           } else {
-            ret.params = {};
-            ret.params[DIRECTION_FLAG] = 'forward';
+            ret.params = {}
+            ret.params[DIRECTION_FLAG] = 'forward'
           }
         } else {
           ret = {
-            path: ret,
-          };
-          ret.params = {};
-          ret.params[DIRECTION_FLAG] = 'forward';
+            path: ret
+          }
+          ret.params = {}
+          ret.params[DIRECTION_FLAG] = 'forward'
         }
-        return ret;
-      },
-    },
-  };
+        return ret
+      }
+    }
+  }
 </script>
