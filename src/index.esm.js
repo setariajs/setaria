@@ -26,21 +26,33 @@ const router = new Navigate(config.router)
 ErrorHandler.catchError()
 
 export default {
-  install,
+  ApplicationError,
+  Http,
+  Message,
+  ServiceError,
+  Storage,
   config,
+  install,
   plugin: {
     router,
     store
   },
+  router,
+  store,
+  storeTypes,
+  util,
   version: '__VERSION__'
 }
 
 export {
   ApplicationError,
-  ServiceError,
   Http,
   Message,
+  ServiceError,
   Storage,
+  config,
+  router,
+  store,
   storeTypes,
   util
 }

@@ -99,8 +99,8 @@
   }
 </style>
 <script>
-  import Setaria, { ApplicationError, Http, Message, ServiceError, Storage, util } from 'setaria'
-
+  import { ApplicationError, config, Http, Message, ServiceError, Storage, util } from 'setaria'
+  
   const STORAGE_KEY = 'storageKey'
 
   export default {
@@ -149,7 +149,7 @@
       }
     },
     created () {
-      Setaria.config.errorHanlder = ({ id, noIdMessage, detail }) => {
+      config.errorHanlder = ({ id, noIdMessage, detail }) => {
         if (util.get(detail, 'config.isShowError', true) !== false) {
           this.exception = {
             id,

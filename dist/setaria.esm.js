@@ -1,5 +1,5 @@
 /**
- * Setaria v0.1.1
+ * Setaria v0.2.0
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -184,6 +184,7 @@ Util.getUrlParameter = function getUrlParameter (paramKey) {
 };
 
 var config = {
+  $env: {},
   env: {
     dev: {},
     prod: {}
@@ -213,6 +214,8 @@ var prodEnv = Util.get(config, 'env.prod', {});
 if (Util.isEmpty(devEnv) && Util.isEmpty(prodEnv) && !Util.isEmpty(config.env)) {
   prodEnv = config.env;
 }
+// 保存原配置
+config.$env = config.env;
 // 生产环境的场合
 if (Util.isProdunctionEnv()) {
   config.env = Object.assign({}, prodEnv);
@@ -1253,13 +1256,22 @@ var router = new Navigate(config$1.router);
 ErrorHandler.catchError();
 
 var index_esm = {
-  install: install,
+  ApplicationError: ApplicationError,
+  Http: Http,
+  Message: Message,
+  ServiceError: ServiceError,
+  Storage: Storage,
   config: config$1,
+  install: install,
   plugin: {
     router: router,
     store: store
   },
-  version: '0.1.1'
+  router: router,
+  store: store,
+  storeTypes: types,
+  util: Util,
+  version: '0.2.0'
 };
 
-export { ApplicationError, ServiceError, Http, Message, Storage, types as storeTypes, Util as util };export default index_esm;
+export default index_esm;

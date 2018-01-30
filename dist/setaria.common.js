@@ -1,5 +1,5 @@
 /**
- * Setaria v0.1.1
+ * Setaria v0.2.0
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -188,6 +188,7 @@ Util.getUrlParameter = function getUrlParameter (paramKey) {
 };
 
 var config = {
+  $env: {},
   env: {
     dev: {},
     prod: {}
@@ -217,6 +218,8 @@ var prodEnv = Util.get(config, 'env.prod', {});
 if (Util.isEmpty(devEnv) && Util.isEmpty(prodEnv) && !Util.isEmpty(config.env)) {
   prodEnv = config.env;
 }
+// 保存原配置
+config.$env = config.env;
 // 生产环境的场合
 if (Util.isProdunctionEnv()) {
   config.env = Object.assign({}, prodEnv);
@@ -1264,7 +1267,7 @@ var index = {
     router: router,
     store: store
   },
-  version: '0.1.1',
+  version: '0.2.0',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,

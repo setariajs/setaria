@@ -7,6 +7,7 @@ let config = {
     dev: {},
     prod: {}
   },
+  errorHanlder: null,
   message: {},
   router: {
     routes: []
