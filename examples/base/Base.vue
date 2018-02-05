@@ -179,7 +179,7 @@
         })
       },
       doGetWeatherFull () {
-        const weatherPromise = Http.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33');
+        const weatherPromise = Http.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
         const airPromise = Http.get('https://free-api.heweather.com/s6/air/now?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
         Http.all([weatherPromise, airPromise])
           .then(Http.spread((weather, air) => {

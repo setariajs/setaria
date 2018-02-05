@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.1
+ * Setaria v0.2.2
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -203,7 +203,7 @@ try {
     config = customConfig.default;
   }
   // 合并缺省框架内置系统错误
-  config.message = Object.assign({}, MESSAGE, customConfig.message);
+  config.message = Object.assign({}, MESSAGE, config.message);
 } catch (e) {
   console.error('setaria.config.js文件不存在');
 }
@@ -1272,7 +1272,7 @@ var index_esm = {
   store: store,
   storeTypes: types,
   util: Util,
-  version: '0.2.1'
+  version: '0.2.2'
 };
 
 export { ApplicationError, Http, Message, ServiceError, Storage, config$1 as config, router, store, types as storeTypes, Util as util };export default index_esm;

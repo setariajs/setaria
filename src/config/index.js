@@ -21,7 +21,7 @@ try {
     config = customConfig.default
   }
   // 合并缺省框架内置系统错误
-  config.message = Object.assign({}, message, customConfig.message)
+  config.message = Object.assign({}, message, config.message)
 } catch (e) {
   console.error('setaria.config.js文件不存在')
 }
