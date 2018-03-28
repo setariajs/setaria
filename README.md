@@ -2,6 +2,16 @@
 
 > FrontEnd SPA Enterprise Framework
 
+## 功能
+
+> Setaria框架主要用于解决开发时所需的公共场景。
+
+* 提供了错误处理的统一接口用于解决由浏览器，第三方依赖和Promise异常
+* 提供了统一的Restful服务异步接口
+* 可通过Setaria.config.js配置文件对应用开发中的消息，路由，状态进行配置和管理
+* 提供了History接口用于判断路由的跳转方向（前进/后退）
+* 提供了中间件(middleware)配置
+
 ## 开发所需软件
 
 1. NodeJS
@@ -45,14 +55,15 @@ npm install
 ## 开发前需要掌握的知识
 * [ES6](http://es6.ruanyifeng.com/)
 
-## ToDo
+## 生态圈
+* [Setaria-UI](https://github.com/bluejfox/setaria-ui) 桌面端组件库
 
 ### 公共模块
 - [ ] 鉴权
-- [ ] 消息处理
-- [ ] 服务调用
-- [ ] 异常处理
-- [ ] 路由处理
+- [ X ] 消息处理
+- [ X ] 服务调用
+- [ X ] 异常处理
+- [ X ] 路由处理
 - [ ] 数据存储管理
 - [ ] 用户状态管理
 
