@@ -1,5 +1,5 @@
 /* @flow */
-import ApplicationError from './ApplicationError';
+import ApplicationError from './ApplicationError'
 
 const STORAGE_KEY = '__Setaria_Storage_'
 /**
