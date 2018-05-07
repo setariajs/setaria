@@ -20,15 +20,15 @@ export type SCOPE = 'local' | 'session'
  *   session: 浏览器使用期间存在，重新载入页面或恢复时也不会删除
  */
 function getStorageInstance (scope: SCOPE): Object {
-  const ret = null
+  let ret = null
   try {
-    scope === STORAGE_TYPE.LOCAL ? window.localStorage : window.sessionStorage
+    ret = (scope === STORAGE_TYPE.LOCAL) ? window.localStorage : window.sessionStorage
   } catch (error) {
     // 浏览器禁止Storage功能的场合
     throw new ApplicationError('MAM009E')
   }
   // 不支持localStorage和sessionStorage的场合
-  if (scope === undefined) {
+  if (ret === undefined) {
     throw new ApplicationError('MAM009E')
   }
   return ret
