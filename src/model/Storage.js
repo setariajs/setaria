@@ -1,4 +1,6 @@
 /* @flow */
+import ApplicationError from './ApplicationError';
+
 const STORAGE_KEY = '__Setaria_Storage_'
 /**
  * Storage生命期类型
@@ -18,7 +20,18 @@ export type SCOPE = 'local' | 'session'
  *   session: 浏览器使用期间存在，重新载入页面或恢复时也不会删除
  */
 function getStorageInstance (scope: SCOPE): Object {
-  return scope === STORAGE_TYPE.LOCAL ? window.localStorage : window.sessionStorage
+  const ret = null
+  try {
+    scope === STORAGE_TYPE.LOCAL ? window.localStorage : window.sessionStorage
+  } catch (error) {
+    // 浏览器禁止Storage功能的场合
+    throw new ApplicationError('MAM009E')
+  }
+  // 不支持localStorage和sessionStorage的场合
+  if (scope === undefined) {
+    throw new ApplicationError('MAM009E')
+  }
+  return ret
 }
 
 /**
@@ -80,6 +93,12 @@ function removeAllItem (scope: SCOPE): void {
 }
 
 export default class Storage {
+  static setItem (scope: SCOPE, key: string, value?: any): void {
+    setItem(scope, key, value)
+  }
+  static getItem (scope: SCOPE, key: string): ?any {
+    getItem(scope, key)
+  }
   static setLocalItem (key: string, value: any): void {
     setItem(STORAGE_TYPE.LOCAL, key, value)
   }
