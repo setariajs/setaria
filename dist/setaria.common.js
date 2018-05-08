@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.3
+ * Setaria v0.2.5
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -208,7 +208,7 @@ var config = {
 // 取得配置文件
 try {
   // 配置文件需与node_modules目录同级
-  var customConfig = require(((process.env.SETARIA_CONFIG_CONTEXT + '/' || process.cwd()) + "setaria.config.js"));
+  var customConfig = require(((process.env.SETARIA_CONFIG_CONTEXT || process.cwd()) + "/setaria.config.js"));
   if (customConfig !== undefined && customConfig !== null) {
     config = Object.assign({}, config, customConfig.default);
   }
@@ -1409,7 +1409,7 @@ var index = {
     router: router,
     store: store
   },
-  version: '0.2.3',
+  version: '0.2.5',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,
