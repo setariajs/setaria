@@ -57,10 +57,17 @@ function getStorageObjectByScope (scope: SCOPE): Object {
   return JSON.parse(storage.getItem(STORAGE_KEY))
 }
 
+function checkScope (scope: SCOPE): Boolean {
+  return Object.keys(STORAGE_TYPE).some(key => STORAGE_TYPE[key] === scope)
+}
+
 /**
  * 在指定生命周期的Storage实例内进行设值
  */
 function setItem (scope: SCOPE, key: string, value?: any) {
+  if (!checkScope(scope)) {
+    return
+  }
   const storageObject: Object = getStorageObjectByScope(scope)
   storageObject[key] = value
   setStorageObjectByScope(scope, storageObject)
@@ -70,6 +77,9 @@ function setItem (scope: SCOPE, key: string, value?: any) {
  * 在指定生命周期的Storage实例内进行取值
  */
 function getItem (scope: SCOPE, key: string): ?any {
+  if (!checkScope(scope)) {
+    return
+  }
   return getStorageObjectByScope(scope)[key]
 }
 
@@ -79,6 +89,9 @@ function getItem (scope: SCOPE, key: string): ?any {
  * @param  {String} key   键
  */
 function removeItem (scope: SCOPE, key: string): void {
+  if (!checkScope(scope)) {
+    return
+  }
   const storageObject: Object = getStorageObjectByScope(scope)
   delete storageObject[key]
   setStorageObjectByScope(scope, storageObject)

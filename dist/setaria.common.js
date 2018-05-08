@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.5
+ * Setaria v0.2.6
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -659,10 +659,17 @@ function getStorageObjectByScope (scope) {
   return JSON.parse(storage.getItem(STORAGE_KEY))
 }
 
+function checkScope (scope) {
+  return Object.keys(STORAGE_TYPE).some(function (key) { return STORAGE_TYPE[key] === scope; })
+}
+
 /**
  * 在指定生命周期的Storage实例内进行设值
  */
 function setItem (scope, key, value) {
+  if (!checkScope(scope)) {
+    return
+  }
   var storageObject = getStorageObjectByScope(scope);
   storageObject[key] = value;
   setStorageObjectByScope(scope, storageObject);
@@ -672,6 +679,9 @@ function setItem (scope, key, value) {
  * 在指定生命周期的Storage实例内进行取值
  */
 function getItem (scope, key) {
+  if (!checkScope(scope)) {
+    return
+  }
   return getStorageObjectByScope(scope)[key]
 }
 
@@ -681,6 +691,9 @@ function getItem (scope, key) {
  * @param  {String} key   键
  */
 function removeItem (scope, key) {
+  if (!checkScope(scope)) {
+    return
+  }
   var storageObject = getStorageObjectByScope(scope);
   delete storageObject[key];
   setStorageObjectByScope(scope, storageObject);
@@ -1409,7 +1422,7 @@ var index = {
     router: router,
     store: store
   },
-  version: '0.2.5',
+  version: '0.2.6',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,
