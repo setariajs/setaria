@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.6
+ * Setaria v0.2.7
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -761,14 +761,14 @@ var initStateValue = function (key, initialValue, syncObjectPath, scope) {
   return storageValue
 };
 
-var initState = function (states, scope) {
+var initState = function (states, objectPath, scope) {
   var ret = {};
   normalizeMap(states).forEach(function (ref) {
     var key = ref.key;
     var val = ref.val;
 
     var initialValue = val;
-    initialValue = initStateValue(key, val, scope);
+    initialValue = initStateValue(key, val, objectPath, scope);
     ret[key] = initialValue;
   });
   return ret
@@ -778,22 +778,28 @@ var STORE_KEY_IN_STORAGE = '__setaria_store_sync';
 
 var toObjectPath = function (path) { return path.replace(/\//g, '.'); };
 
-var setSyncItem = function (scope, key, value) {
-  var storeStorageObj = getSyncItem(scope, key);
-  if (storeStorageObj === undefined || storeStorageObj === null) {
-    storeStorageObj = {};
-  }
-  storeStorageObj[key] = value;
-  Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj);
-};
-
-var getSyncItem = function (scope, key) {
+var getStoreObjectFromStorage = function (scope) {
   var storeStorageObj = Storage.getItem(scope, STORE_KEY_IN_STORAGE);
   if (storeStorageObj === undefined || storeStorageObj === null) {
     storeStorageObj = {};
     Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj);
   }
-  return storeStorageObj[key]
+  return storeStorageObj
+};
+
+var setSyncItem = function (scope, key, value) {
+  var storeStorageObj = getStoreObjectFromStorage(scope);
+  var item = Util.get(storeStorageObj, key);
+  if (Util.isEmpty(item)) {
+    item = {};
+  }
+  Object.assign(item, value);
+  storeStorageObj[key] = item;
+  Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj);
+};
+
+var getSyncItem = function (scope, key) {
+  return getStoreObjectFromStorage(scope)[key]
 };
 
 var name$1 = MODULE_AUTH;
@@ -1422,7 +1428,7 @@ var index = {
     router: router,
     store: store
   },
-  version: '0.2.6',
+  version: '0.2.7',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,

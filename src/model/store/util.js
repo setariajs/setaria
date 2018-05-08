@@ -22,11 +22,11 @@ const initStateValue = (key, initialValue, syncObjectPath, scope) => {
   return storageValue
 }
 
-export const initState = (states, scope) => {
+export const initState = (states, objectPath, scope) => {
   const ret = {}
   normalizeMap(states).forEach(({ key, val }) => {
     let initialValue = val
-    initialValue = initStateValue(key, val, scope)
+    initialValue = initStateValue(key, val, objectPath, scope)
     ret[key] = initialValue
   })
   return ret
@@ -36,20 +36,26 @@ const STORE_KEY_IN_STORAGE = '__setaria_store_sync'
 
 export const toObjectPath = (path) => path.replace(/\//g, '.')
 
-export const setSyncItem = (scope, key, value) => {
-  let storeStorageObj = getSyncItem(scope, key)
-  if (storeStorageObj === undefined || storeStorageObj === null) {
-    storeStorageObj = {}
-  }
-  storeStorageObj[key] = value
-  Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj)
-}
-
-export const getSyncItem = (scope, key) => {
+const getStoreObjectFromStorage = (scope) => {
   let storeStorageObj = Storage.getItem(scope, STORE_KEY_IN_STORAGE)
   if (storeStorageObj === undefined || storeStorageObj === null) {
     storeStorageObj = {}
     Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj)
   }
-  return storeStorageObj[key]
+  return storeStorageObj
+}
+
+export const setSyncItem = (scope, key, value) => {
+  const storeStorageObj = getStoreObjectFromStorage(scope)
+  let item = util.get(storeStorageObj, key)
+  if (util.isEmpty(item)) {
+    item = {}
+  }
+  Object.assign(item, value)
+  storeStorageObj[key] = item
+  Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj)
+}
+
+export const getSyncItem = (scope, key) => {
+  return getStoreObjectFromStorage(scope)[key]
 }
