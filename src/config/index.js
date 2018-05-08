@@ -20,7 +20,7 @@ let config = {
 // 取得配置文件
 try {
   // 配置文件需与node_modules目录同级
-  const customConfig = require(`${process.env.SETARIA_CONFIG_CONTEXT + '/' || process.cwd()}setaria.config.js`)
+  const customConfig = require(`${process.env.SETARIA_CONFIG_CONTEXT || process.cwd()}/setaria.config.js`)
   if (customConfig !== undefined && customConfig !== null) {
     config = Object.assign({}, config, customConfig.default)
   }
