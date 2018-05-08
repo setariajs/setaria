@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.2
+ * Setaria v0.2.3
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -27,6 +27,7 @@ var MESSAGE = {
   MAM006E: '无法找到指定的画面。',
   MAM007E: '请求的服务访问超时，请联系管理员或稍后重试。',
   MAM008E: '无法找到指定的{0}定义文件。',
+  MAM009E: '当前浏览器设置不允许访问本地存储空间。',
   MAM404E: '请求的服务不存在。'
 };
 
@@ -193,19 +194,23 @@ var config = {
   message: {},
   router: {
     routes: []
-  }
+  },
+  auth: {
+    storageMode: 'none'
+  },
+  storeSync: {}
 };
+
 // 取得配置文件
 try {
   // 配置文件需与node_modules目录同级
-  var customConfig = require('../../../setaria.config.js');
+  var customConfig = require(((process.env.SETARIA_CONFIG_CONTEXT + '/' || process.cwd()) + "setaria.config.js"));
   if (customConfig !== undefined && customConfig !== null) {
-    config = customConfig.default;
+    config = Object.assign({}, config, customConfig.default);
   }
-  // 合并缺省框架内置系统错误
+  // 合并Setaria的系统错误
   config.message = Object.assign({}, MESSAGE, config.message);
 } catch (e) {
-  console.error('setaria.config.js文件不存在');
 }
 // 加载CSS
 // 根据环境设置env
@@ -226,6 +231,7 @@ if (Util.isProdunctionEnv()) {
 }
 
 /*  */
+
 
 var config$1 = config;
 
@@ -545,42 +551,275 @@ ErrorHandler.parseError = function parseError (error, source) {
   return ret
 };
 
-// getter
-var GET_IS_LOADING = '_setaria_get_is_loading';
-var GET_LOADING_COUNT = '_setaria_get_loading_count';
-var GET_ROUTE_HISTORY = '_setaria_get_route_history';
-var GET_ROUTE_CURRENT_INDEX = '_setaria_get_route_current_index';
-var GET_USER = '_setaria_get_user';
-var GET_TOKEN = '_setaria_get_token';
-var GET_DIRECTION = '_setaria_get_direction';
+// [Module]Common
+var MODULE_SETARIA_STORE = '_setaria_common_';
+// Getter
+var _GET_IS_LOADING = '_setaria_get_is_loading';
+var _GET_LOADING_COUNT = '_setaria_get_loading_count';
+var _GET_ROUTE_HISTORY = '_setaria_get_route_history';
+var _GET_ROUTE_CURRENT_INDEX = '_setaria_get_route_current_index';
+var _GET_DIRECTION = '_setaria_get_direction';
+// Mutation
+var _SET_DIRECTION = '_setaria_set_direction';
+var _ADD_LOADING_COUNT = '_setaria_add_loading_count';
+var _SUB_LOADING_COUNT = '_setaria_sub_loading_count';
+var _UPDATE_DIRECTION = '_setaria_update_direction';
+var _UPDATE_ROUTE_HISTORY = '_setaria_update_route_history';
+// Action
 
-// mutation
-var SET_DIRECTION = '_setaria_set_direction';
-var ADD_LOADING_COUNT = '_setaria_add_loading_count';
-var SUB_LOADING_COUNT = '_setaria_sub_loading_count';
-var SET_TOKEN = '_setaria_set_token';
-var SET_USER = '_setaria_set_user';
-var UPDATE_DIRECTION = '_setaria_update_direction';
-var UPDATE_ROUTE_HISTORY = '_setaria_update_route_history';
-
-// action
+// [Module]Auth
+var MODULE_AUTH = '_setaria_auth_';
+// Getter
+var _GET_USER = '_setaria_get_user';
+var _GET_TOKEN = '_setaria_get_token';
+// Mutation
+var _SET_TOKEN = '_setaria_set_token';
+var _SET_USER = '_setaria_set_user';
+// Action
 
 var types = {
-  GET_IS_LOADING: GET_IS_LOADING,
-  GET_LOADING_COUNT: GET_LOADING_COUNT,
-  GET_ROUTE_HISTORY: GET_ROUTE_HISTORY,
-  GET_ROUTE_CURRENT_INDEX: GET_ROUTE_CURRENT_INDEX,
-  GET_USER: GET_USER,
-  GET_TOKEN: GET_TOKEN,
-  GET_DIRECTION: GET_DIRECTION,
-  SET_DIRECTION: SET_DIRECTION,
-  ADD_LOADING_COUNT: ADD_LOADING_COUNT,
-  SUB_LOADING_COUNT: SUB_LOADING_COUNT,
-  SET_TOKEN: SET_TOKEN,
-  SET_USER: SET_USER,
-  UPDATE_DIRECTION: UPDATE_DIRECTION,
-  UPDATE_ROUTE_HISTORY: UPDATE_ROUTE_HISTORY
+  // Common
+  MODULE_SETARIA_STORE: MODULE_SETARIA_STORE,
+  GET_IS_LOADING: (MODULE_SETARIA_STORE + "/" + _GET_IS_LOADING),
+  GET_LOADING_COUNT: (MODULE_SETARIA_STORE + "/" + _GET_LOADING_COUNT),
+  GET_ROUTE_HISTORY: (MODULE_SETARIA_STORE + "/" + _GET_ROUTE_HISTORY),
+  GET_ROUTE_CURRENT_INDEX: (MODULE_SETARIA_STORE + "/" + _GET_ROUTE_CURRENT_INDEX),
+  GET_DIRECTION: (MODULE_SETARIA_STORE + "/" + _GET_DIRECTION),
+  SET_DIRECTION: (MODULE_SETARIA_STORE + "/" + _SET_DIRECTION),
+  ADD_LOADING_COUNT: (MODULE_SETARIA_STORE + "/" + _ADD_LOADING_COUNT),
+  SUB_LOADING_COUNT: (MODULE_SETARIA_STORE + "/" + _SUB_LOADING_COUNT),
+  UPDATE_DIRECTION: (MODULE_SETARIA_STORE + "/" + _UPDATE_DIRECTION),
+  UPDATE_ROUTE_HISTORY: (MODULE_SETARIA_STORE + "/" + _UPDATE_ROUTE_HISTORY),
+  MODULE_AUTH: MODULE_AUTH,
+  // Auth
+  GET_USER: (MODULE_SETARIA_STORE + "/" + MODULE_AUTH + "/" + _GET_USER),
+  GET_TOKEN: (MODULE_SETARIA_STORE + "/" + MODULE_AUTH + "/" + _GET_TOKEN),
+  SET_TOKEN: (MODULE_SETARIA_STORE + "/" + MODULE_AUTH + "/" + _SET_TOKEN),
+  SET_USER: (MODULE_SETARIA_STORE + "/" + MODULE_AUTH + "/" + _SET_USER)
 };
+
+/*  */
+var STORAGE_KEY = '__Setaria_Storage_';
+/**
+ * Storage生命期类型
+ * @type {Object}
+ */
+var STORAGE_TYPE = {
+  LOCAL: 'local',
+  SESSION: 'session'
+};
+
+
+
+/**
+ * 取得指定生命周期的Storage实例。
+ * 目前支持的生命周期：
+ *   local: 永久存在，即使浏览器关闭也不会删除
+ *   session: 浏览器使用期间存在，重新载入页面或恢复时也不会删除
+ */
+function getStorageInstance (scope) {
+  var ret = null;
+  try {
+    ret = (scope === STORAGE_TYPE.LOCAL) ? window.localStorage : window.sessionStorage;
+  } catch (error) {
+    // 浏览器禁止Storage功能的场合
+    throw new ApplicationError('MAM009E')
+  }
+  // 不支持localStorage和sessionStorage的场合
+  if (ret === undefined) {
+    throw new ApplicationError('MAM009E')
+  }
+  return ret
+}
+
+/**
+ * 更新指定Storage实例内的Store对象
+ */
+function setStorageObjectByScope (scope, storageObject) {
+  var storage = getStorageInstance(scope);
+  storage.setItem(STORAGE_KEY, JSON.stringify(storageObject));
+}
+
+/**
+ * 取得指定Storage实例内的Store对象
+ * @param  {String} scope 生命期
+ * @return {Object} Store对象
+ */
+function getStorageObjectByScope (scope) {
+  var storage = getStorageInstance(scope);
+  var storageObject = storage.getItem(STORAGE_KEY);
+  // Storage对象没有被创建过的场合
+  if (storageObject === null) {
+    storage.setItem(STORAGE_KEY, JSON.stringify({}));
+  }
+  return JSON.parse(storage.getItem(STORAGE_KEY))
+}
+
+/**
+ * 在指定生命周期的Storage实例内进行设值
+ */
+function setItem (scope, key, value) {
+  var storageObject = getStorageObjectByScope(scope);
+  storageObject[key] = value;
+  setStorageObjectByScope(scope, storageObject);
+}
+
+/**
+ * 在指定生命周期的Storage实例内进行取值
+ */
+function getItem (scope, key) {
+  return getStorageObjectByScope(scope)[key]
+}
+
+/**
+ * 删除指定生命周期的Storage实例内的指定值
+ * @param  {String} scope 生命期
+ * @param  {String} key   键
+ */
+function removeItem (scope, key) {
+  var storageObject = getStorageObjectByScope(scope);
+  delete storageObject[key];
+  setStorageObjectByScope(scope, storageObject);
+}
+
+/**
+ * 删除指定生命周期的Storage实例内的所有值
+ * @param  {String} scope 生命期
+ */
+function removeAllItem (scope) {
+  setStorageObjectByScope(scope, {});
+}
+
+var Storage = function Storage () {};
+
+Storage.setItem = function setItem$1 (scope, key, value) {
+  setItem(scope, key, value);
+};
+Storage.getItem = function getItem$1 (scope, key) {
+  return getItem(scope, key)
+};
+Storage.setLocalItem = function setLocalItem (key, value) {
+  setItem(STORAGE_TYPE.LOCAL, key, value);
+};
+Storage.getLocalItem = function getLocalItem (key) {
+  return getItem(STORAGE_TYPE.LOCAL, key)
+};
+Storage.removeLocalItem = function removeLocalItem (key) {
+  removeItem(STORAGE_TYPE.LOCAL, key);
+};
+Storage.clearLocal = function clearLocal () {
+  removeAllItem(STORAGE_TYPE.LOCAL);
+};
+Storage.setSessionItem = function setSessionItem (key, value) {
+  setItem(STORAGE_TYPE.SESSION, key, value);
+};
+Storage.getSessionItem = function getSessionItem (key) {
+  return getItem(STORAGE_TYPE.SESSION, key)
+};
+Storage.removeSessionItem = function removeSessionItem (key) {
+  removeItem(STORAGE_TYPE.SESSION, key);
+};
+Storage.clearSession = function clearSession () {
+  removeAllItem(STORAGE_TYPE.SESSION);
+};
+
+/**
+ * Normalize the map
+ * normalizeMap([1, 2, 3]) => [ { key: 1, val: 1 }, { key: 2, val: 2 }, { key: 3, val: 3 } ]
+ * normalizeMap({a: 1, b: 2, c: 3}) => [ { key: 'a', val: 1 }, { key: 'b', val: 2 }, { key: 'c', val: 3 } ]
+ * @param {Array|Object} map
+ * @return {Object}
+ */
+function normalizeMap (map) {
+  return Array.isArray(map)
+    ? map.map(function (key) { return ({ key: key, val: key }); })
+    : Object.keys(map).map(function (key) { return ({ key: key, val: map[key] }); })
+}
+
+var initStateValue = function (key, initialValue, syncObjectPath, scope) {
+  var storageValue = Util.get(getSyncItem(scope, syncObjectPath), key);
+  if (storageValue === undefined) {
+    storageValue = initialValue;
+  }
+  return storageValue
+};
+
+var initState = function (states, scope) {
+  var ret = {};
+  normalizeMap(states).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    var initialValue = val;
+    initialValue = initStateValue(key, val, scope);
+    ret[key] = initialValue;
+  });
+  return ret
+};
+
+var STORE_KEY_IN_STORAGE = '__setaria_store_sync';
+
+var toObjectPath = function (path) { return path.replace(/\//g, '.'); };
+
+var setSyncItem = function (scope, key, value) {
+  var storeStorageObj = getSyncItem(scope, key);
+  if (storeStorageObj === undefined || storeStorageObj === null) {
+    storeStorageObj = {};
+  }
+  storeStorageObj[key] = value;
+  Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj);
+};
+
+var getSyncItem = function (scope, key) {
+  var storeStorageObj = Storage.getItem(scope, STORE_KEY_IN_STORAGE);
+  if (storeStorageObj === undefined || storeStorageObj === null) {
+    storeStorageObj = {};
+    Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj);
+  }
+  return storeStorageObj[key]
+};
+
+var name$1 = MODULE_AUTH;
+var syncObjectPath = MODULE_SETARIA_STORE + "/" + name$1;
+if (config$1) {
+  config$1.storeSync[syncObjectPath] = config$1.auth.storageMode;
+}
+// initial state
+var state$1 = initState({
+  _setaria_token: '',
+  _setaria_user: null
+}, syncObjectPath, config$1.auth.storageMode);
+
+// getters
+var getters$1 = {};
+getters$1[_GET_USER] = function (state) { return state._setaria_user; };
+getters$1[_GET_TOKEN] = function (state) { return state._setaria_token; };
+
+// actions
+var actions$1 = {
+};
+
+// mutations
+var mutations$1 = {};
+mutations$1[_SET_TOKEN] = function (stateObj, val) {
+    var s = stateObj;
+    s._setaria_token = val;
+  };
+mutations$1[_SET_USER] = function (stateObj, val) {
+    var s = stateObj;
+    s._setaria_user = val;
+  };
+
+var auth = {
+  namespaced: true,
+  name: name$1,
+  state: state$1,
+  getters: getters$1,
+  actions: actions$1,
+  mutations: mutations$1
+};
+
+var name = MODULE_SETARIA_STORE;
 
 // initial state
 var state = {
@@ -589,20 +828,16 @@ var state = {
   _setaria_routeHistory: {
     currentIndex: null,
     history: []
-  },
-  _setaria_token: '',
-  _setaria_user: null
+  }
 };
 
 // getters
 var getters = {};
-getters[GET_ROUTE_HISTORY] = function (state) { return state._setaria_routeHistory; };
-getters[GET_ROUTE_CURRENT_INDEX] = function (state) { return state._setaria_routeHistory.currentIndex; };
-getters[GET_IS_LOADING] = function (state) { return state._setaria_loading !== 0; };
-getters[GET_LOADING_COUNT] = function (state) { return state._setaria_loading; };
-getters[GET_USER] = function (state) { return state._setaria_user; };
-getters[GET_TOKEN] = function (state) { return state._setaria_token; };
-getters[GET_DIRECTION] = function (state) { return state._setaria_direction; };
+getters[_GET_ROUTE_HISTORY] = function (state) { return state._setaria_routeHistory; };
+getters[_GET_ROUTE_CURRENT_INDEX] = function (state) { return state._setaria_routeHistory.currentIndex; };
+getters[_GET_IS_LOADING] = function (state) { return state._setaria_loading !== 0; };
+getters[_GET_LOADING_COUNT] = function (state) { return state._setaria_loading; };
+getters[_GET_DIRECTION] = function (state) { return state._setaria_direction; };
 
 // actions
 var actions = {
@@ -610,29 +845,21 @@ var actions = {
 
 // mutations
 var mutations = {};
-mutations[SET_DIRECTION] = function (stateObj, val) {
+mutations[_SET_DIRECTION] = function (stateObj, val) {
     var s = stateObj;
     s._setaria_direction = val;
   };
-mutations[ADD_LOADING_COUNT] = function (stateObj) {
+mutations[_ADD_LOADING_COUNT] = function (stateObj) {
     var s = stateObj;
     s._setaria_loading += 1;
   };
-mutations[SUB_LOADING_COUNT] = function (stateObj) {
+mutations[_SUB_LOADING_COUNT] = function (stateObj) {
     var s = stateObj;
     if (s._setaria_loading > 0) {
       s._setaria_loading -= 1;
     }
   };
-mutations[SET_TOKEN] = function (stateObj, val) {
-    var s = stateObj;
-    s._setaria_token = val;
-  };
-mutations[SET_USER] = function (stateObj, val) {
-    var s = stateObj;
-    s._setaria_user = val;
-  };
-mutations[UPDATE_DIRECTION] = function (stateObj, ref) {
+mutations[_UPDATE_DIRECTION] = function (stateObj, ref) {
     var current = ref.current;
     var next = ref.next;
 
@@ -670,7 +897,7 @@ mutations[UPDATE_DIRECTION] = function (stateObj, ref) {
       stateObj._setaria_direction = direction;
     }
   };
-mutations[UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
+mutations[_UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
     var current = ref.current;
     var next = ref.next;
 
@@ -709,19 +936,41 @@ mutations[UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
     }
   };
 
+var modules = {};
+modules[auth.name] = auth;
+
 var common = {
+  namespaced: true,
+  name: name,
   state: state,
   getters: getters,
   actions: actions,
-  mutations: mutations
+  mutations: mutations,
+  modules: modules
 };
 
-/*  */
-var SETARIA_STORE = '_setaria_.common';
+var storageSyncPlugin = function (store) {
+  store.subscribe(function (ref, state) {
+    var type = ref.type;
+    var payload = ref.payload;
 
+    Object.keys(config$1.storeSync).forEach(function (moduleKey) {
+      // 根据定义进行同步
+      if (type.indexOf(moduleKey) === 0) {
+        var scope = config$1.storeSync[moduleKey];
+        setSyncItem(scope, moduleKey, Util.get(state, toObjectPath(moduleKey)));
+      }
+    });
+  });
+};
+
+var plugins = [storageSyncPlugin];
+
+/*  */
 var debug = process.env.NODE_ENV !== 'production';
 var structure = {
-  modules: ( obj = {}, obj[SETARIA_STORE] = common, obj ),
+  modules: ( obj = {}, obj[common.name] = common, obj ),
+  plugins: plugins,
   strict: debug
 };
 var obj;
@@ -858,114 +1107,6 @@ Http.all = function all (promiseArr) {
 
 Http.spread = function spread (callback) {
   return axios.spread(callback)
-};
-
-/*  */
-var STORAGE_KEY = '__Setaria_Storage_';
-/**
- * Storage生命期类型
- * @type {Object}
- */
-var STORAGE_TYPE = {
-  LOCAL: 'local',
-  SESSION: 'session'
-};
-
-
-
-/**
- * 取得指定生命周期的Storage实例。
- * 目前支持的生命周期：
- *   local: 永久存在，即使浏览器关闭也不会删除
- *   session: 浏览器使用期间存在，重新载入页面或恢复时也不会删除
- */
-function getStorageInstance (scope) {
-  return scope === STORAGE_TYPE.LOCAL ? window.localStorage : window.sessionStorage
-}
-
-/**
- * 更新指定Storage实例内的Store对象
- */
-function setStorageObjectByScope (scope, storageObject) {
-  var storage = getStorageInstance(scope);
-  storage.setItem(STORAGE_KEY, JSON.stringify(storageObject));
-}
-
-/**
- * 取得指定Storage实例内的Store对象
- * @param  {String} scope 生命期
- * @return {Object} Store对象
- */
-function getStorageObjectByScope (scope) {
-  var storage = getStorageInstance(scope);
-  var storageObject = storage.getItem(STORAGE_KEY);
-  // Storage对象没有被创建过的场合
-  if (storageObject === null) {
-    storage.setItem(STORAGE_KEY, JSON.stringify({}));
-  }
-  return JSON.parse(storage.getItem(STORAGE_KEY))
-}
-
-/**
- * 在指定生命周期的Storage实例内进行设值
- */
-function setItem (scope, key, value) {
-  var storageObject = getStorageObjectByScope(scope);
-  storageObject[key] = value;
-  setStorageObjectByScope(scope, storageObject);
-}
-
-/**
- * 在指定生命周期的Storage实例内进行取值
- */
-function getItem (scope, key) {
-  return getStorageObjectByScope(scope)[key]
-}
-
-/**
- * 删除指定生命周期的Storage实例内的指定值
- * @param  {String} scope 生命期
- * @param  {String} key   键
- */
-function removeItem (scope, key) {
-  var storageObject = getStorageObjectByScope(scope);
-  delete storageObject[key];
-  setStorageObjectByScope(scope, storageObject);
-}
-
-/**
- * 删除指定生命周期的Storage实例内的所有值
- * @param  {String} scope 生命期
- */
-function removeAllItem (scope) {
-  setStorageObjectByScope(scope, {});
-}
-
-var Storage = function Storage () {};
-
-Storage.setLocalItem = function setLocalItem (key, value) {
-  setItem(STORAGE_TYPE.LOCAL, key, value);
-};
-Storage.getLocalItem = function getLocalItem (key) {
-  return getItem(STORAGE_TYPE.LOCAL, key)
-};
-Storage.removeLocalItem = function removeLocalItem (key) {
-  removeItem(STORAGE_TYPE.LOCAL, key);
-};
-Storage.clearLocal = function clearLocal () {
-  removeAllItem(STORAGE_TYPE.LOCAL);
-};
-Storage.setSessionItem = function setSessionItem (key, value) {
-  setItem(STORAGE_TYPE.SESSION, key, value);
-};
-Storage.getSessionItem = function getSessionItem (key) {
-  return getItem(STORAGE_TYPE.SESSION, key)
-};
-Storage.removeSessionItem = function removeSessionItem (key) {
-  removeItem(STORAGE_TYPE.SESSION, key);
-};
-Storage.clearSession = function clearSession () {
-  removeAllItem(STORAGE_TYPE.SESSION);
 };
 
 /*  */
@@ -1272,7 +1413,7 @@ var index_esm = {
   store: store,
   storeTypes: types,
   util: Util,
-  version: '0.2.2'
+  version: '0.2.3'
 };
 
 export { ApplicationError, Http, Message, ServiceError, Storage, config$1 as config, router, store, types as storeTypes, Util as util };export default index_esm;

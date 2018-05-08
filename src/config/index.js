@@ -1,6 +1,5 @@
 import message from './message'
 import util from '../util'
-
 let config = {
   $env: {},
   env: {
@@ -11,19 +10,23 @@ let config = {
   message: {},
   router: {
     routes: []
-  }
+  },
+  auth: {
+    storageMode: 'none'
+  },
+  storeSync: {}
 }
+
 // 取得配置文件
 try {
   // 配置文件需与node_modules目录同级
-  const customConfig = require('../../../setaria.config.js')
+  const customConfig = require(`${process.env.SETARIA_CONFIG_CONTEXT + '/' || process.cwd()}setaria.config.js`)
   if (customConfig !== undefined && customConfig !== null) {
-    config = customConfig.default
+    config = Object.assign({}, config, customConfig.default)
   }
-  // 合并缺省框架内置系统错误
+  // 合并Setaria的系统错误
   config.message = Object.assign({}, message, config.message)
 } catch (e) {
-  console.error('setaria.config.js文件不存在')
 }
 // 加载CSS
 // 根据环境设置env
@@ -50,5 +53,7 @@ export type Config = {
   errorHanlder: ?Function;
   message: ?Object;
   router: ?Object;
+  auth: ?Object;
 }
+
 export default config

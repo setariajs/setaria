@@ -1,14 +1,14 @@
 /* @flow */
 import common from './common'
+import plugins from './plugins'
 import types from './types'
-
-const SETARIA_STORE = '_setaria_.common'
 
 const debug: boolean = process.env.NODE_ENV !== 'production'
 const structure: Object = {
   modules: {
-    [SETARIA_STORE]: common
+    [common.name]: common
   },
+  plugins,
   strict: debug
 }
 
@@ -30,6 +30,6 @@ export function registerModule (name: String, moduleObject: Object): void {
   storeInstance.registerModule(name, moduleObject)
 }
 
-export { SETARIA_STORE, types }
+export { types }
 
 export type SetariaStore = Function

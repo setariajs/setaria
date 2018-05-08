@@ -97,7 +97,7 @@ export default class Storage {
     setItem(scope, key, value)
   }
   static getItem (scope: SCOPE, key: string): ?any {
-    getItem(scope, key)
+    return getItem(scope, key)
   }
   static setLocalItem (key: string, value: any): void {
     setItem(STORAGE_TYPE.LOCAL, key, value)

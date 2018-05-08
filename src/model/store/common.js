@@ -1,4 +1,7 @@
 import * as types from './types'
+import auth from './auth'
+
+const name = types.MODULE_SETARIA_STORE
 
 // initial state
 const state = {
@@ -7,20 +10,16 @@ const state = {
   _setaria_routeHistory: {
     currentIndex: null,
     history: []
-  },
-  _setaria_token: '',
-  _setaria_user: null
+  }
 }
 
 // getters
 const getters = {
-  [types.GET_ROUTE_HISTORY]: state => state._setaria_routeHistory,
-  [types.GET_ROUTE_CURRENT_INDEX]: state => state._setaria_routeHistory.currentIndex,
-  [types.GET_IS_LOADING]: state => state._setaria_loading !== 0,
-  [types.GET_LOADING_COUNT]: state => state._setaria_loading,
-  [types.GET_USER]: state => state._setaria_user,
-  [types.GET_TOKEN]: state => state._setaria_token,
-  [types.GET_DIRECTION]: state => state._setaria_direction
+  [types._GET_ROUTE_HISTORY]: state => state._setaria_routeHistory,
+  [types._GET_ROUTE_CURRENT_INDEX]: state => state._setaria_routeHistory.currentIndex,
+  [types._GET_IS_LOADING]: state => state._setaria_loading !== 0,
+  [types._GET_LOADING_COUNT]: state => state._setaria_loading,
+  [types._GET_DIRECTION]: state => state._setaria_direction
 }
 
 // actions
@@ -29,29 +28,21 @@ const actions = {
 
 // mutations
 const mutations = {
-  [types.SET_DIRECTION] (stateObj, val) {
+  [types._SET_DIRECTION] (stateObj, val) {
     const s = stateObj
     s._setaria_direction = val
   },
-  [types.ADD_LOADING_COUNT] (stateObj) {
+  [types._ADD_LOADING_COUNT] (stateObj) {
     const s = stateObj
     s._setaria_loading += 1
   },
-  [types.SUB_LOADING_COUNT] (stateObj) {
+  [types._SUB_LOADING_COUNT] (stateObj) {
     const s = stateObj
     if (s._setaria_loading > 0) {
       s._setaria_loading -= 1
     }
   },
-  [types.SET_TOKEN] (stateObj, val) {
-    const s = stateObj
-    s._setaria_token = val
-  },
-  [types.SET_USER] (stateObj, val) {
-    const s = stateObj
-    s._setaria_user = val
-  },
-  [types.UPDATE_DIRECTION] (stateObj, { current, next }) {
+  [types._UPDATE_DIRECTION] (stateObj, { current, next }) {
     let direction = stateObj._setaria_direction
     const routeHistory = stateObj._setaria_routeHistory
     if (direction !== 'forward' && direction !== 'back') {
@@ -86,7 +77,7 @@ const mutations = {
       stateObj._setaria_direction = direction
     }
   },
-  [types.UPDATE_ROUTE_HISTORY] (stateObj, { current, next }) {
+  [types._UPDATE_ROUTE_HISTORY] (stateObj, { current, next }) {
     const direction = stateObj._setaria_direction
     const routeHistory = stateObj._setaria_routeHistory
     // 更新浏览历史
@@ -123,9 +114,16 @@ const mutations = {
   }
 }
 
+const modules = {
+  [auth.name]: auth
+}
+
 export default {
+  namespaced: true,
+  name,
   state,
   getters,
   actions,
-  mutations
+  mutations,
+  modules
 }

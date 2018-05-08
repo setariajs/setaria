@@ -3,11 +3,9 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = {
-
   devtool: 'inline-source-map',
 
   entry: fs.readdirSync(__dirname).reduce((entries, dir) => {
-    console.log(dir)
     const fullDir = path.join(__dirname, dir)
     const entry = path.join(fullDir, 'app.js')
     if (fs.statSync(fullDir).isDirectory() && fs.existsSync(entry)) {
@@ -43,7 +41,8 @@ module.exports = {
       filename: 'shared.js'
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.SETARIA_CONFIG_CONTEXT': JSON.stringify(path.join(__dirname, 'auth'))
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin()
