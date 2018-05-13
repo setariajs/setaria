@@ -23,11 +23,13 @@ function dispatchUnHandlerRejectEvent (reason: Object) {
 }
 
 export default class ServiceError extends ApplicationError {
-  detail: Object
-  type: string
+  _name: string;
+  detail: Object;
+  type: string;
   constructor (id?: string = '', reason: Object = {},
     params?: Array<string | number> = [], message?: string = '') {
     super(id, params, message)
+    this._name = 'ApplicationError'
     this.type = 'ServiceError'
     this.detail = reason
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件

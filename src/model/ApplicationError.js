@@ -6,6 +6,7 @@ export const ERROR_PREFIX = 'Setaria Error'
 export const ERROR_MSG_SPLICER = ':'
 
 export default class ApplicationError extends Error {
+  _name: string;
   id: string;
   params: Array<string | number>;
   type: string;
@@ -21,6 +22,7 @@ export default class ApplicationError extends Error {
     }
     const fullMessage = `${ERROR_PREFIX}[${id}]${ERROR_MSG_SPLICER}${msg}`
     super(fullMessage)
+    this._name = 'ApplicationError'
     this.id = id
     this.params = params
     this.type = MESSAGE_TYPE.ERROR

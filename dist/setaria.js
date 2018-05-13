@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.7
+ * Setaria v0.2.8
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -370,6 +370,7 @@ var ApplicationError = (function (Error) {
     }
     var fullMessage = ERROR_PREFIX + "[" + id + "]" + ERROR_MSG_SPLICER + msg;
     Error.call(this, fullMessage);
+    this._name = 'ApplicationError';
     this.id = id;
     this.params = params;
     this.type = MESSAGE_TYPE.ERROR;
@@ -383,6 +384,141 @@ var ApplicationError = (function (Error) {
 
   return ApplicationError;
 }(Error));
+
+/*  */
+/**
+ * 判断是否为ApplicationError
+ * @param {*} error
+ */
+function isApplicationError (error) {
+  return typeof error === 'object' && error._name &&
+    error._name === 'ApplicationError'
+}
+
+function parseApplicationError (error) {
+  var ret = null;
+  var id = '';
+  var message = '';
+  // ApplicationError对象
+  if (isApplicationError(error)) {
+    ret = new ApplicationError(error.id, [], error.noIdMessage);
+  // Error对象
+  } else if (error.message) {
+    message = error.message;
+    // 删除浏览器添加的错误信息前缀
+    // firefox
+    if (message.indexOf('Error: ') === 0) {
+      message = message.replace('Error: ', '');
+    // chrome, safari
+    } else if (message.indexOf('Uncaught Error: ') === 0) {
+      message = message.replace('Uncaught Error: ', '');
+    }
+    // 解析错误信息，取得错误代码和错误内容
+    var msgArr = message.split(ERROR_MSG_SPLICER);
+    id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
+    message = msgArr[1];
+    ret = new ApplicationError(id, [], message);
+  } else if (typeof error.toString === 'function') {
+    ret = new ApplicationError(null, null, error.toString());
+  } else {
+    ret = new ApplicationError('MAM004E');
+  }
+  return ret
+}
+
+var ERROR_TYPES = {
+  // 非Vue组件的常规错误
+  'NORMAL_ERROR': 0,
+  // Promise回调函数中的错误
+  'PROMISE_UNREJECT_ERROR': 1,
+  // 从 Vue 2.2.0 起，Vue组件生命周期钩子里的错误可以被捕获。
+  // 从 Vue 2.4.0 起，Vue组件自定义事件句柄内部的错误可以被捕获。
+  'VUE_ERROR': 2
+};
+
+var ErrorHandler = function ErrorHandler () {};
+
+ErrorHandler.catchError = function catchError () {
+  // Vue异常
+  Vue.config.errorHandler = function (err, vm, info) {
+    ErrorHandler.handleError(ERROR_TYPES.VUE_ERROR, err, {
+      vm: vm,
+      info: info
+    });
+  };
+  // JavaScript执行期异常
+  window.onerror = function (err) {
+    ErrorHandler.handleError(ERROR_TYPES.NORMAL_ERROR, err, {});
+  };
+
+  // promise异常
+  // 目前最新版的Firefox浏览器不支持PromiseRejectionEvent
+  // Promise Rejection异常处理函数
+  var unhandledrejectionHandler = function (err) {
+    ErrorHandler.handleError(ERROR_TYPES.PROMISE_UNREJECT_ERROR, err, {});
+  };
+  // 直接调用unhandledrejectionHandler的场合
+  if (window.unhandledrejectionHandler === undefined ||
+    window.unhandledrejectionHandler === null) {
+    window.onunhandledrejection = unhandledrejectionHandler;
+  }
+  // 触发unhandledrejectionHandler的场合
+  window.addEventListener('unhandledrejection', unhandledrejectionHandler);
+};
+
+/**
+ * 处理捕获的异常
+ */
+ErrorHandler.handleError = function handleError (
+  type,
+  error,
+  source) {
+  // 取得异常内容
+  var errorObject = this.parseError(type, error, source);
+  if (typeof config$1.errorHanlder === 'function') {
+    config$1.errorHanlder(errorObject, type, error, source);
+  }
+};
+
+/**
+ * 解析异常
+ */
+ErrorHandler.parseError = function parseError (
+  type,
+  error,
+  source) {
+  var ret = null;
+  // 自定义异常对象的场合
+  if (isApplicationError(error) ||
+    type === ERROR_TYPES.NORMAL_ERROR ||
+    type === ERROR_TYPES.VUE_ERROR) {
+    ret = parseApplicationError(error);
+  // Promise回调函数中抛出的异常
+  } else if (type === ERROR_TYPES.PROMISE_UNREJECT_ERROR) {
+    ret = parseApplicationError(error.reason);
+  // // 来源：未知
+  // } else if (error instanceof Object
+  // && Object.prototype.hasOwnProperty.call(error, 'message')) {
+  // ret = new ApplicationError(null, null, error.message)
+  // 在事件函数中抛出ApplicationError的场合
+  // 没有捕获的错误。（来源：事件函数中的运行期错误）
+  } else if (typeof error === 'string') {
+    if (error.indexOf('Uncaught Error: ') === 0) {
+      ret = new ApplicationError('', [], error.replace('Uncaught Error: ', ''));
+    } else {
+      ret = new ApplicationError('', [], error);
+    }
+  } else {
+    ret = new ApplicationError('MAM004E');
+  }
+
+  // 实现了Vue.config.errorHandler接口的场合，Vue不会在控制台显示错误。
+  if (type === ERROR_TYPES.VUE_ERROR) {
+    /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+    console.error(error);
+  }
+  return ret
+};
 
 /*  */
 function dispatchUnHandlerRejectEvent (reason) {
@@ -414,6 +550,7 @@ var ServiceError = (function (ApplicationError$$1) {
     if ( message === void 0 ) message = '';
 
     ApplicationError$$1.call(this, id, params, message);
+    this._name = 'ApplicationError';
     this.type = 'ServiceError';
     this.detail = reason;
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
@@ -428,133 +565,6 @@ var ServiceError = (function (ApplicationError$$1) {
 
   return ServiceError;
 }(ApplicationError));
-
-/*  */
-function isSetariaError (error) {
-  var ret = false;
-  if (error instanceof Object && error !== null &&
-    error !== undefined && error.id !== null &&
-    error.id !== undefined) {
-    ret = true;
-  } else if (typeof error === 'string') {
-    ret = error.indexOf(ERROR_PREFIX) !== -1;
-  }
-  return ret
-}
-
-function parseSetariaError (error) {
-  var id = '';
-  var message = '';
-  if (typeof error === 'string') {
-    // 删除浏览器添加的错误信息前缀
-    // firefox
-    if (error.indexOf('Error: ') === 0) {
-      error = error.replace('Error: ', '');
-    // chrome, safari
-    } else if (error.indexOf('Uncaught Error: ') === 0) {
-      error = error.replace('Uncaught Error: ', '');
-    }
-    // 解析错误信息，取得错误代码和错误内容
-    var msgArr = error.split(ERROR_MSG_SPLICER);
-    id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
-    message = msgArr[1];
-    return new ApplicationError(id, [], message)
-  } else {
-    return new ApplicationError(error.id, [], error.noIdMessage)
-  }
-}
-
-var ErrorHandler = function ErrorHandler () {};
-
-ErrorHandler.catchError = function catchError () {
-  // Vue异常
-  Vue.config.errorHandler = function (err, vm) {
-    ErrorHandler.handleError(err, vm);
-  };
-  // JavaScript执行期异常
-  window.onerror = function (err) {
-    ErrorHandler.handleError(err);
-  };
-  // promise异常
-  // 目前最新版的Firefox浏览器不支持PromiseRejectionEvent
-  window.addEventListener('unhandledrejection', function (err) {
-    ErrorHandler.handleError(err);
-  });
-};
-
-/**
- * 处理捕获的异常
- */
-ErrorHandler.handleError = function handleError (error, source) {
-  // 取得错误内容
-  var errorObject = this.parseError(error, source);
-  if (typeof config$1.errorHanlder === 'function') {
-    config$1.errorHanlder(errorObject, error);
-  }
-};
-
-/**
- * 解析异常
- */
-ErrorHandler.parseError = function parseError (error, source) {
-  var ret = null;
-  var isErrorFromVue = source instanceof Object;
-  // 自定义异常对象的场合
-  if (isSetariaError(error)) {
-    ret = parseSetariaError(error);
-  // 没有捕获Promise中抛出的异常
-  // 当在不支持PromiseRejectionEvent的浏览器中，通过PromiseRejectionEvent判断会报错
-  } else if (error.type === 'unhandledrejection' && typeof error === 'object') {
-    var ref = error.reason;
-      var id = ref.id;
-      var message = ref.message;
-      var noIdMessage = ref.noIdMessage;
-      var detail = ref.detail;
-    if (error.reason.type === 'ServiceError') {
-      ret = error.reason;
-    } else {
-      // ApplicationError
-      if (noIdMessage !== null && noIdMessage !== undefined) {
-        ret = new ServiceError(id, detail, [], noIdMessage);
-      // Error
-      } else if (message !== null && message !== undefined) {
-        ret = new ServiceError('', detail, [], message);
-      } else {
-        ret = new ServiceError('MAM004E', detail);
-      }
-    }
-  // 组件渲染或组件事件函数执行时抛出异常的场合
-  // 执行期异常的场合
-  } else if (isErrorFromVue && error instanceof Error) {
-    if (Util.isProdunctionEnv()) {
-      ret = new ApplicationError('MAM004E');
-    } else {
-      var message$1 = error.message;
-      ret = new ApplicationError('', [], message$1);
-    }
-  // // 来源：未知
-  // } else if (error instanceof Object
-  // && Object.prototype.hasOwnProperty.call(error, 'message')) {
-  // ret = new ApplicationError(null, null, error.message)
-  // 在事件函数中抛出ApplicationError的场合
-  // 没有捕获的错误。（来源：事件函数中的运行期错误）
-  } else if (typeof error === 'string') {
-    if (error.indexOf('Uncaught Error: ') === 0) {
-      ret = new ApplicationError('', [], error.replace('Uncaught Error: ', ''));
-    } else {
-      ret = new ApplicationError('', [], error);
-    }
-  } else {
-    ret = new ApplicationError('MAM004E');
-  }
-
-  // 实现了Vue.config.errorHandler接口的场合，Vue不会在控制台显示错误。
-  if (isErrorFromVue) {
-    /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-    console.error(error);
-  }
-  return ret
-};
 
 // [Module]Common
 var MODULE_SETARIA_STORE = '_setaria_common_';
@@ -1429,7 +1439,7 @@ var index = {
     router: router,
     store: store
   },
-  version: '0.2.7',
+  version: '0.2.8',
   ApplicationError: ApplicationError,
   ServiceError: ServiceError,
   Http: Http,
