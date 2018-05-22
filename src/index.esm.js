@@ -6,9 +6,9 @@ import ErrorHandler from './model/ErrorHandler'
 import ServiceError from './model/ServiceError'
 import Http from './model/Http'
 import Message from './model/Message'
-import Storage from './model/Storage'
+import Storage, { STORAGE_TYPE as storageTypes } from './model/Storage'
 import Navigate from './plugin/navigate/index'
-import store, { types as storeTypes } from './plugin/store'
+import store, { registerModule as storeRegister, types as storeTypes } from './plugin/store'
 import util from './util'
 
 // -- 环境变量设置
@@ -31,6 +31,7 @@ export default {
   Message,
   ServiceError,
   Storage,
+  storageTypes,
   config,
   install,
   plugin: {
@@ -39,6 +40,7 @@ export default {
   },
   router,
   store,
+  storeRegister,
   storeTypes,
   util,
   version: '__VERSION__'
@@ -50,9 +52,11 @@ export {
   Message,
   ServiceError,
   Storage,
+  storageTypes,
   config,
   router,
   store,
+  storeRegister,
   storeTypes,
   util
 }

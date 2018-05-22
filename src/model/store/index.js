@@ -1,7 +1,10 @@
 /* @flow */
+import config from './config'
 import common from './common'
 import plugins from './plugins'
 import types from './types'
+import { initState } from './util'
+import { SCOPE } from '../Storage'
 
 const debug: boolean = process.env.NODE_ENV !== 'production'
 const structure: Object = {
@@ -26,10 +29,18 @@ export function getStore (): ?Object {
   return storeInstance
 }
 
-export function registerModule (name: String, moduleObject: Object): void {
+function registerModule (name: String, moduleObject: Object, scope: SCOPE): void {
+  const module = moduleObject
+  if (scope) {
+    module.state = initState(module.state, name, scope)
+    config.sync[name] = scope
+  }
   storeInstance.registerModule(name, moduleObject)
 }
 
-export { types }
+export {
+  registerModule,
+  types
+}
 
 export type SetariaStore = Function

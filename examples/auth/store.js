@@ -1,6 +1,6 @@
-import { store } from 'setaria'
+import { storageTypes, storeRegister } from 'setaria'
 
-store.registerModule('module1', {
+storeRegister('module1', {
   namespaced: true,
   state: {
     str: ''
@@ -10,9 +10,9 @@ store.registerModule('module1', {
       state.str = payload
     }
   }
-})
+}, storageTypes.LOCAL)
 
-store.registerModule('module2', {
+storeRegister('module2', {
   namespaced: true,
   state: {
     num: 0
@@ -22,4 +22,4 @@ store.registerModule('module2', {
       state.num = payload
     }
   }
-})
+}, storageTypes.SESSION)

@@ -6,9 +6,9 @@ import ErrorHandler from './model/ErrorHandler'
 import ServiceError from './model/ServiceError'
 import Http from './model/Http'
 import Message from './model/Message'
-import Storage from './model/Storage'
+import Storage, { STORAGE_TYPE as storageTypes } from './model/Storage'
 import Navigate from './plugin/navigate/index'
-import store, { types as storeTypes } from './plugin/store'
+import store, { registerModule as storeRegister, types as storeTypes } from './plugin/store'
 import util from './util'
 
 // -- 环境变量设置
@@ -27,18 +27,22 @@ const router = new Navigate(config.router)
 ErrorHandler.catchError()
 
 export default {
-  install,
+  ApplicationError,
+  Http,
+  Message,
+  ServiceError,
+  Storage,
+  storageTypes,
   config,
+  install,
   plugin: {
     router,
     store
   },
-  version: '__VERSION__',
-  ApplicationError,
-  ServiceError,
-  Http,
-  Message,
-  Storage,
+  router,
+  store,
+  storeRegister,
   storeTypes,
-  util
+  util,
+  version: '__VERSION__'
 }

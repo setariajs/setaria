@@ -1,12 +1,14 @@
 import config from '../../config/index'
+import storeConfig from './config'
 import { initState } from './util'
 import { MODULE_SETARIA_STORE, MODULE_AUTH, _GET_USER, _GET_TOKEN, _SET_USER, _SET_TOKEN } from './types'
 
 const name = MODULE_AUTH
 const syncObjectPath = `${MODULE_SETARIA_STORE}/${name}`
 if (config) {
-  config.storeSync[syncObjectPath] = config.auth.storageMode
+  storeConfig.sync[syncObjectPath] = config.auth.storageMode
 }
+
 // initial state
 const state = initState({
   _setaria_token: '',

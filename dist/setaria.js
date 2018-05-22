@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.8
+ * Setaria v0.2.9
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -566,6 +566,10 @@ var ServiceError = (function (ApplicationError$$1) {
   return ServiceError;
 }(ApplicationError));
 
+var config$2 = {
+  sync: {}
+};
+
 // [Module]Common
 var MODULE_SETARIA_STORE = '_setaria_common_';
 // Getter
@@ -816,8 +820,9 @@ var getSyncItem = function (scope, key) {
 var name$1 = MODULE_AUTH;
 var syncObjectPath = MODULE_SETARIA_STORE + "/" + name$1;
 if (config$1) {
-  config$1.storeSync[syncObjectPath] = config$1.auth.storageMode;
+  config$2.sync[syncObjectPath] = config$1.auth.storageMode;
 }
+
 // initial state
 var state$1 = initState({
   _setaria_token: '',
@@ -988,10 +993,10 @@ var storageSyncPlugin = function (store) {
     var type = ref.type;
     var payload = ref.payload;
 
-    Object.keys(config$1.storeSync).forEach(function (moduleKey) {
+    Object.keys(config$2.sync).forEach(function (moduleKey) {
       // 根据定义进行同步
       if (type.indexOf(moduleKey) === 0) {
-        var scope = config$1.storeSync[moduleKey];
+        var scope = config$2.sync[moduleKey];
         setSyncItem(scope, moduleKey, Util.get(state, toObjectPath(moduleKey)));
       }
     });
@@ -1021,6 +1026,15 @@ function createStore (Store) {
 
 function getStore () {
   return storeInstance
+}
+
+function registerModule (name, moduleObject, scope) {
+  var module = moduleObject;
+  if (scope) {
+    module.state = initState(module.state, name, scope);
+    config$2.sync[name] = scope;
+  }
+  storeInstance.registerModule(name, moduleObject);
 }
 
 /*  */
@@ -1433,20 +1447,24 @@ var router = new Navigate(config$1.router);
 ErrorHandler.catchError();
 
 var index = {
-  install: install,
+  ApplicationError: ApplicationError,
+  Http: Http,
+  Message: Message,
+  ServiceError: ServiceError,
+  Storage: Storage,
+  storageTypes: STORAGE_TYPE,
   config: config$1,
+  install: install,
   plugin: {
     router: router,
     store: store
   },
-  version: '0.2.8',
-  ApplicationError: ApplicationError,
-  ServiceError: ServiceError,
-  Http: Http,
-  Message: Message,
-  Storage: Storage,
+  router: router,
+  store: store,
+  storeRegister: registerModule,
   storeTypes: types,
-  util: Util
+  util: Util,
+  version: '0.2.9'
 };
 
 return index;
