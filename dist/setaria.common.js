@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.9
+ * Setaria v0.2.10
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -242,16 +242,6 @@ var config$1 = config;
 // import applyMixin from './mixin'
 
 function install (_Vue) {
-  // if (Vue) {
-  //   if (process.env.NODE_ENV !== 'production') {
-  //     console.error(
-  //       '[setaria] already installed. Vue.use(Setaria) should be called only once.'
-  //     )
-  //   }
-  //   return
-  // }
-  // Vue = _Vue
-  // applyMixin()
 }
 
 /*  */
@@ -1463,7 +1453,7 @@ var index = {
   storeRegister: registerModule,
   storeTypes: types,
   util: Util,
-  version: '0.2.9'
+  version: '0.2.10'
 };
 
 module.exports = index;
