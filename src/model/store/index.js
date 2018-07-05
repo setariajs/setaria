@@ -17,7 +17,7 @@ const structure: Object = {
 
 let storeInstance: Object
 
-export function createStore (Store: Function): Object {
+function createStore (Store: Function): Object {
   // singleton
   if (storeInstance === null || storeInstance === undefined) {
     storeInstance = new Store(structure)
@@ -25,7 +25,7 @@ export function createStore (Store: Function): Object {
   return storeInstance
 }
 
-export function getStore (): ?Object {
+function getStore (): ?Object {
   return storeInstance
 }
 
@@ -39,6 +39,8 @@ function registerModule (name: String, moduleObject: Object, scope: SCOPE): void
 }
 
 export {
+  createStore,
+  getStore,
   registerModule,
   types
 }

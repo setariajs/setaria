@@ -60,6 +60,7 @@ export default class ErrorHandler {
   static catchError (): void {
     // Vue异常
     Vue.config.errorHandler = (err: Error, vm: Object, info: Object) => {
+      console.debug('The Exception from Vue')
       ErrorHandler.handleError(ERROR_TYPES.VUE_ERROR, err, {
         vm,
         info
@@ -67,6 +68,7 @@ export default class ErrorHandler {
     }
     // JavaScript执行期异常
     window.onerror = (err: Error) => {
+      console.debug('The Exception from window.onerror')
       ErrorHandler.handleError(ERROR_TYPES.NORMAL_ERROR, err, {})
     }
 
@@ -74,6 +76,7 @@ export default class ErrorHandler {
     // 目前最新版的Firefox浏览器不支持PromiseRejectionEvent
     // Promise Rejection异常处理函数
     const unhandledrejectionHandler = (err: Object | PromiseRejectionEvent) => {
+      console.debug('The Exception from promise')
       ErrorHandler.handleError(ERROR_TYPES.PROMISE_UNREJECT_ERROR, err, {})
     }
     // 直接调用unhandledrejectionHandler的场合
@@ -107,26 +110,19 @@ export default class ErrorHandler {
     error: string | Object | Error | PromiseRejectionEvent,
     source?: Object): ApplicationError {
     let ret: ?ApplicationError = null
-    // 自定义异常对象的场合
-    if (isApplicationError(error) ||
-      type === ERROR_TYPES.NORMAL_ERROR ||
-      type === ERROR_TYPES.VUE_ERROR) {
+    // 从Vue中抛出异常的场合
+    if (type === ERROR_TYPES.VUE_ERROR) {
+      ret = parseApplicationError(error)
+    } else if (type === ERROR_TYPES.NORMAL_ERROR) {
+      if (typeof error === 'string') {
+        error = {
+          message: error
+        }
+      }
       ret = parseApplicationError(error)
     // Promise回调函数中抛出的异常
     } else if (type === ERROR_TYPES.PROMISE_UNREJECT_ERROR) {
       ret = parseApplicationError(error.reason)
-    // // 来源：未知
-    // } else if (error instanceof Object
-    //   && Object.prototype.hasOwnProperty.call(error, 'message')) {
-    //   ret = new ApplicationError(null, null, error.message)
-    // 在事件函数中抛出ApplicationError的场合
-    // 没有捕获的错误。（来源：事件函数中的运行期错误）
-    } else if (typeof error === 'string') {
-      if (error.indexOf('Uncaught Error: ') === 0) {
-        ret = new ApplicationError('', [], error.replace('Uncaught Error: ', ''))
-      } else {
-        ret = new ApplicationError('', [], error)
-      }
     } else {
       ret = new ApplicationError('MAM004E')
     }

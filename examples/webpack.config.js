@@ -42,7 +42,7 @@ module.exports = {
     }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-      'process.env.SETARIA_CONFIG_CONTEXT': JSON.stringify(path.join(__dirname, 'auth'))
+      'process.env.SETARIA_CONFIG_CONTEXT': JSON.stringify(path.join(__dirname, 'base'))
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin()

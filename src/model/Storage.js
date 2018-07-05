@@ -25,11 +25,11 @@ function getStorageInstance (scope: SCOPE): Object {
     ret = (scope === STORAGE_TYPE.LOCAL) ? window.localStorage : window.sessionStorage
   } catch (error) {
     // 浏览器禁止Storage功能的场合
-    throw new ApplicationError('MAM009E')
+    throw new ApplicationError('SYSMSG-NOT-SUPPORT-STORAGE')
   }
   // 不支持localStorage和sessionStorage的场合
   if (ret === undefined) {
-    throw new ApplicationError('MAM009E')
+    throw new ApplicationError('SYSMSG-NOT-SUPPORT-STORAGE')
   }
   return ret
 }

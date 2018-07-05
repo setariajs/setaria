@@ -47,11 +47,8 @@ const getStoreObjectFromStorage = (scope) => {
 
 export const setSyncItem = (scope, key, value) => {
   const storeStorageObj = getStoreObjectFromStorage(scope)
-  let item = util.get(storeStorageObj, key)
-  if (util.isEmpty(item)) {
-    item = {}
-  }
-  Object.assign(item, value)
+  const item = util.get(storeStorageObj, key, {})
+  util.assign(item, value)
   storeStorageObj[key] = item
   Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj)
 }

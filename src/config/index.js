@@ -22,10 +22,10 @@ try {
   // 配置文件需与node_modules目录同级
   const customConfig = require(`${process.env.SETARIA_CONFIG_CONTEXT || process.cwd()}/setaria.config.js`)
   if (customConfig !== undefined && customConfig !== null) {
-    config = Object.assign({}, config, customConfig.default)
+    config = util.assign({}, config, customConfig.default)
   }
   // 合并Setaria的系统错误
-  config.message = Object.assign({}, message, config.message)
+  config.message = util.assign({}, message, config.message)
 } catch (e) {
 }
 // 加载CSS
@@ -40,10 +40,10 @@ if (util.isEmpty(devEnv) && util.isEmpty(prodEnv) && !util.isEmpty(config.env)) 
 config.$env = config.env
 // 生产环境的场合
 if (util.isProdunctionEnv()) {
-  config.env = Object.assign({}, prodEnv)
+  config.env = util.assign({}, prodEnv)
 // 开发环境的场合
 } else {
-  config.env = Object.assign({}, prodEnv, devEnv)
+  config.env = util.assign({}, prodEnv, devEnv)
 }
 
 /* @flow */

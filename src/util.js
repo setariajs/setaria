@@ -151,4 +151,17 @@ export default class Util {
     }
     return ret
   }
+
+  /**
+   * 将所有可枚举属性的值从一个或多个源对象复制到目标对象
+   *
+   * @static
+   * @param {Object} object The destination object.
+   * @param {...Object} [sources] The source objects.
+   * @returns {Object}
+   * @memberof Util
+   */
+  static assign (object: Object): Object {
+    return _.assign.apply(null, arguments)
+  }
 }

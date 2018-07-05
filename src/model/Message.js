@@ -21,7 +21,7 @@ function getCustomMessageObject (): ?Object {
  * 取得系统消息对象和自定义消息对象
  */
 function getMessageObject (): Object {
-  return Object.assign({}, systemMessage, getCustomMessageObject())
+  return util.assign({}, systemMessage, getCustomMessageObject())
 }
 
 /**

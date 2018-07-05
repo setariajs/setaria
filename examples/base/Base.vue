@@ -99,7 +99,7 @@
   }
 </style>
 <script>
-  import { ApplicationError, config, Http, Message, ServiceError, Storage, util } from 'setaria'
+  import { ApplicationError, config, Http, Message, ServiceError, Storage, storeTypes, util } from 'setaria'
   
   const STORAGE_KEY = 'storageKey'
 
@@ -145,7 +145,7 @@
         return `存储信息至${this.storageType}`
       },
       loadingState () {
-        return util.get(this.$store, 'getters', {})['common/isLoading'] ? '加载中' : ''
+        return util.get(this.$store, 'getters')[storeTypes.GET_IS_LOADING] > 0 ? '加载中' : '...';
       }
     },
     created () {
@@ -168,7 +168,8 @@
         this.now = util.getNow()
       },
       doGetWeather () {
-        Http.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33').then((res) => {
+        const { heweather } = Http
+        heweather.get('forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33').then((res) => {
           const w = res.data.HeWeather6[0]
           const forecast = w.daily_forecast[0]
           this.weather.location = w.basic.location
@@ -179,10 +180,11 @@
         })
       },
       doGetWeatherFull () {
-        const weatherPromise = Http.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
-        const airPromise = Http.get('https://free-api.heweather.com/s6/air/now?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
-        Http.all([weatherPromise, airPromise])
-          .then(Http.spread((weather, air) => {
+        const { heweather } = Http
+        const weatherPromise = heweather.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
+        const airPromise = heweather.get('https://free-api.heweather.com/s6/air/now?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
+        heweather.all([weatherPromise, airPromise])
+          .then(heweather.spread((weather, air) => {
             const w = weather.data.HeWeather6[0]
             const forecast = w.daily_forecast[0]
             this.fullWeather.location = w.basic.location
@@ -191,7 +193,7 @@
             this.fullWeather.tmpMin = forecast.tmp_min
             this.fullWeather.tmpMax = forecast.tmp_max
             const a = air.data.HeWeather6[0]
-            const airCity = a.air_now.air_city
+            const airCity = a.air_now_city
             this.fullWeather.aqi = airCity.aqi
             this.fullWeather.main = util.isEmpty(airCity.main) ? '无' : airCity.main
             this.fullWeather.qlty = airCity.qlty
@@ -204,8 +206,9 @@
         throw new ApplicationError('MCM006E')
       },
       doThrowPromiseException () {
-        Http.get('/api/weather', null, {
-          isShowError: false
+        const { heweather } = Http
+        heweather.get('/api/weather', null, {
+          showError: false
         }).then((res) => {
           throw new ServiceError('MCM007E')
         })

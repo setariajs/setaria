@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.10
+ * Setaria v0.2.11
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -23,16 +23,15 @@ var Vuex = _interopDefault(require('vuex'));
 //   I Info
 //   W Warning
 var MESSAGE = {
-  MAM001E: '调用远程服务的过程中出现未知错误，请重试或联系管理员。',
-  MAM002E: '由于您长时间未操作，登录状态已过期，请重新登录。',
-  MAM003E: '服务未在预定时间（{0}秒）内返回结果，请联系管理员或稍后重试。',
-  MAM004E: '客户端出现错误，请重试或联系管理员。',
-  MAM005E: '认证过期或无权访问此服务，请点击注销按钮重新登录。',
-  MAM006E: '无法找到指定的画面。',
-  MAM007E: '请求的服务访问超时，请联系管理员或稍后重试。',
-  MAM008E: '无法找到指定的{0}定义文件。',
-  MAM009E: '当前浏览器设置不允许访问本地存储空间。',
-  MAM404E: '请求的服务不存在。'
+  'SYSMSG-SERVICE-UNKNOWN-ERROR': '调用远程服务的过程中出现未知错误，请重试或联系管理员。',
+  'SYSMSG-TIMEOUT': '服务未在预定时间（{0}秒）内返回结果，请联系管理员或稍后重试。',
+  'SYSMSG-CLIENT-UNKNOWN-ERROR': '客户端出现错误，请重试或联系管理员。',
+  'SYSMSG-SERVICE-NETWORK-ERROR': '远程服务器无法连接，请联系管理员或稍后重试。',
+  'SYSMSG-NOT-SUPPORT-STORAGE': '当前浏览器设置不允许访问本地存储空间。',
+  'SYSMSG-SERVICE-STATUS-400': '无效的请求。',
+  'SYSMSG-SERVICE-STATUS-401': '当前请求需要用户验证。',
+  'SYSMSG-SERVICE-STATUS-403': '远程服务拒绝执行。',
+  'SYSMSG-SERVICE-STATUS-404': '请求所希望得到的资源未被在服务器上发现。'
 };
 
 /*  */
@@ -188,6 +187,19 @@ Util.getUrlParameter = function getUrlParameter (paramKey) {
   return ret
 };
 
+/**
+ * 将所有可枚举属性的值从一个或多个源对象复制到目标对象
+ *
+ * @static
+ * @param {Object} object The destination object.
+ * @param {...Object} [sources] The source objects.
+ * @returns {Object}
+ * @memberof Util
+ */
+Util.assign = function assign (object) {
+  return _.assign.apply(null, arguments)
+};
+
 var config = {
   $env: {},
   env: {
@@ -210,10 +222,10 @@ try {
   // 配置文件需与node_modules目录同级
   var customConfig = require(((process.env.SETARIA_CONFIG_CONTEXT || process.cwd()) + "/setaria.config.js"));
   if (customConfig !== undefined && customConfig !== null) {
-    config = Object.assign({}, config, customConfig.default);
+    config = Util.assign({}, config, customConfig.default);
   }
   // 合并Setaria的系统错误
-  config.message = Object.assign({}, MESSAGE, config.message);
+  config.message = Util.assign({}, MESSAGE, config.message);
 } catch (e) {
 }
 // 加载CSS
@@ -228,10 +240,10 @@ if (Util.isEmpty(devEnv) && Util.isEmpty(prodEnv) && !Util.isEmpty(config.env)) 
 config.$env = config.env;
 // 生产环境的场合
 if (Util.isProdunctionEnv()) {
-  config.env = Object.assign({}, prodEnv);
+  config.env = Util.assign({}, prodEnv);
 // 开发环境的场合
 } else {
-  config.env = Object.assign({}, prodEnv, devEnv);
+  config.env = Util.assign({}, prodEnv, devEnv);
 }
 
 /*  */
@@ -263,7 +275,7 @@ function getCustomMessageObject () {
  * 取得系统消息对象和自定义消息对象
  */
 function getMessageObject () {
-  return Object.assign({}, MESSAGE, getCustomMessageObject())
+  return Util.assign({}, MESSAGE, getCustomMessageObject())
 }
 
 /**
@@ -430,6 +442,7 @@ var ErrorHandler = function ErrorHandler () {};
 ErrorHandler.catchError = function catchError () {
   // Vue异常
   Vue.config.errorHandler = function (err, vm, info) {
+    console.debug('The Exception from Vue');
     ErrorHandler.handleError(ERROR_TYPES.VUE_ERROR, err, {
       vm: vm,
       info: info
@@ -437,6 +450,7 @@ ErrorHandler.catchError = function catchError () {
   };
   // JavaScript执行期异常
   window.onerror = function (err) {
+    console.debug('The Exception from window.onerror');
     ErrorHandler.handleError(ERROR_TYPES.NORMAL_ERROR, err, {});
   };
 
@@ -444,6 +458,7 @@ ErrorHandler.catchError = function catchError () {
   // 目前最新版的Firefox浏览器不支持PromiseRejectionEvent
   // Promise Rejection异常处理函数
   var unhandledrejectionHandler = function (err) {
+    console.debug('The Exception from promise');
     ErrorHandler.handleError(ERROR_TYPES.PROMISE_UNREJECT_ERROR, err, {});
   };
   // 直接调用unhandledrejectionHandler的场合
@@ -477,26 +492,19 @@ ErrorHandler.parseError = function parseError (
   error,
   source) {
   var ret = null;
-  // 自定义异常对象的场合
-  if (isApplicationError(error) ||
-    type === ERROR_TYPES.NORMAL_ERROR ||
-    type === ERROR_TYPES.VUE_ERROR) {
+  // 从Vue中抛出异常的场合
+  if (type === ERROR_TYPES.VUE_ERROR) {
+    ret = parseApplicationError(error);
+  } else if (type === ERROR_TYPES.NORMAL_ERROR) {
+    if (typeof error === 'string') {
+      error = {
+        message: error
+      };
+    }
     ret = parseApplicationError(error);
   // Promise回调函数中抛出的异常
   } else if (type === ERROR_TYPES.PROMISE_UNREJECT_ERROR) {
     ret = parseApplicationError(error.reason);
-  // // 来源：未知
-  // } else if (error instanceof Object
-  // && Object.prototype.hasOwnProperty.call(error, 'message')) {
-  // ret = new ApplicationError(null, null, error.message)
-  // 在事件函数中抛出ApplicationError的场合
-  // 没有捕获的错误。（来源：事件函数中的运行期错误）
-  } else if (typeof error === 'string') {
-    if (error.indexOf('Uncaught Error: ') === 0) {
-      ret = new ApplicationError('', [], error.replace('Uncaught Error: ', ''));
-    } else {
-      ret = new ApplicationError('', [], error);
-    }
   } else {
     ret = new ApplicationError('MAM004E');
   }
@@ -631,11 +639,11 @@ function getStorageInstance (scope) {
     ret = (scope === STORAGE_TYPE.LOCAL) ? window.localStorage : window.sessionStorage;
   } catch (error) {
     // 浏览器禁止Storage功能的场合
-    throw new ApplicationError('MAM009E')
+    throw new ApplicationError('SYSMSG-NOT-SUPPORT-STORAGE')
   }
   // 不支持localStorage和sessionStorage的场合
   if (ret === undefined) {
-    throw new ApplicationError('MAM009E')
+    throw new ApplicationError('SYSMSG-NOT-SUPPORT-STORAGE')
   }
   return ret
 }
@@ -793,11 +801,8 @@ var getStoreObjectFromStorage = function (scope) {
 
 var setSyncItem = function (scope, key, value) {
   var storeStorageObj = getStoreObjectFromStorage(scope);
-  var item = Util.get(storeStorageObj, key);
-  if (Util.isEmpty(item)) {
-    item = {};
-  }
-  Object.assign(item, value);
+  var item = Util.get(storeStorageObj, key, {});
+  Util.assign(item, value);
   storeStorageObj[key] = item;
   Storage.setItem(scope, STORE_KEY_IN_STORAGE, storeStorageObj);
 };
@@ -1032,119 +1037,124 @@ function registerModule (name, moduleObject, scope) {
  * @version 1.0
  * @author HanL
  */
-// import type { SetariaStore } from './store'
+var KEY_DEFAULTS_SETTING = 'defaults';
 
-var REQUEST_TYPE = {
-  GET: 'get',
-  POST: 'post',
-  PUT: 'put',
-  DELETE: 'delete',
-  OPTIONS: 'options',
-  PATCH: 'patch'
-};
+var ret = axios;
 
-function getHttpStatusMessage (status, error) {
-  var ret = new ServiceError('MAM001E', error);
-  if (status !== null && status !== undefined) {
-    var id = null;
-    switch (status) {
+// Http Config
+var httpConfig = Util.get(config$1, 'http');
+// set default http config
+var httpConfigDefault = Util.get(httpConfig, KEY_DEFAULTS_SETTING);
+if (httpConfigDefault) {
+  console.debug(httpConfigDefault);
+  Object.keys(httpConfigDefault).forEach(function (key) {
+    axios.defaults[key] = httpConfigDefault[key];
+  });
+}
+
+// set custom http instance
+var isCreateCustomHttpInstance = false;
+if (httpConfig !== null && httpConfig !== undefined) {
+  isCreateCustomHttpInstance = Object.keys(httpConfig).some(function (key) {
+    if (key !== KEY_DEFAULTS_SETTING) {
+      return true
+    }
+    return false
+  });
+  if (isCreateCustomHttpInstance) {
+    ret = {};
+    Object.keys(httpConfig).forEach(function (key) {
+      var config = httpConfig[key];
+      config.showLoading = true;
+      ret[key] = axios.create(config);
+      // add non-exist function to axios instance
+      ret[key].all = axios.all;
+      ret[key].spread = axios.spread;
+    });
+  }
+}
+
+// interceptor
+// Tips: response interceptor will not be executed when got error
+// loading interceptor
+function addLoading (config) {
+  var storeInstance = getStore();
+  if (storeInstance && config.showLoading !== false) {
+    storeInstance.commit(types.ADD_LOADING_COUNT);
+  }
+  return config
+}
+function subLoading (response) {
+  var storeInstance = getStore();
+  if (storeInstance && response.config.showLoading !== false) {
+    storeInstance.commit(types.SUB_LOADING_COUNT);
+  }
+  return response
+}
+
+// error handler
+function commonErrorHandler (error) {
+  // sub loading state count
+  subLoading({
+    config: error.config
+  });
+  // server have response
+  if (error.response) {
+    console.debug('server have response', error);
+    var messagePrefix = 'SYSMSG-SERVICE-STATUS-';
+    var messageId = '';
+    switch (error.response.status) {
+      case 400:
+        messageId = '400';
+        break
+      case 401:
+        messageId = '401';
+        break
+      case 403:
+        messageId = '403';
+        break
       case 404:
-        id = '404';
+        messageId = '404';
         break
       default:
-        id = '001';
+        messageId = '';
     }
-    ret = new ServiceError(("MAM" + id + "E"), error);
-  }
-  return ret
-}
-
-function execute (type, url, data, config) {
-  if ( config === void 0 ) config = {};
-
-  return new Promise(function (resolve, reject) {
-    var p = null;
-    var axiosConfig = config;
-    if (type === REQUEST_TYPE.GET || type === REQUEST_TYPE.DELETE ||
-      type === REQUEST_TYPE.OPTIONS) {
-      axiosConfig.params = data;
-      p = axios[type](url, axiosConfig);
+    var message = 'SYSMSG-SERVICE-UNKNOWN-ERROR';
+    if (messageId !== '') {
+      message = "" + messagePrefix + messageId;
+    }
+    throw new ServiceError(message, error)
+  // The request was made but no response was received
+  } else if (error.request) {
+    console.debug('The request was made but no response was received', error);
+  // Something happened in setting up the request that triggered an Error
+  } else {
+    console.debug('Something happened in setting up the request that triggered an Error', error);
+    // timeout
+    if (error.message.indexOf('timeout of ') === 0) {
+      throw new ServiceError('SYSMSG-TIMEOUT', error, [error.config.timeout / 1000])
+    // server unavaliable
+    } else if (error.message.indexOf('Network Error') === 0) {
+      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', error)
     } else {
-      p = axios[type](url, data, axiosConfig);
+      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', error)
     }
-    var storeInstance = getStore();
-    if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-      storeInstance.commit(types.ADD_LOADING_COUNT);
-    }
-    p.then(function (res) {
-      if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-        storeInstance.commit(types.SUB_LOADING_COUNT);
-      }
-      resolve(res);
-    }).catch(function (error) {
-      if (config.loading !== false && storeInstance !== null && storeInstance !== undefined) {
-        storeInstance.commit(types.SUB_LOADING_COUNT);
-      }
-      var rejectError = new ServiceError('MAM001E', error);
-      if (error.response !== null && error.response !== undefined &&
-        typeof error.response.status === 'number') {
-        rejectError = getHttpStatusMessage(error.response.status, error);
-      }
-      if (error.message.indexOf('timeout of') === 0) {
-        var timeout = error.config.timeout;
-        if (timeout === undefined || timeout === null) {
-          rejectError = new ServiceError('MAM007E', error);
-        } else {
-          rejectError = new ServiceError('MAM003E', error, [timeout]);
-        }
-      }
-      reject(rejectError);
-    });
-  })
+  }
+  return Promise.reject(error)
 }
 
-function executeAll (promiseArr) {
-  return new Promise(function (resolve, reject) {
-    axios.all(promiseArr)
-      .then(function (res) {
-        resolve(res);
-      });
-  })
+// add interceptor to instance
+if (typeof ret === 'function') {
+  ret.interceptors.request.use(addLoading);
+  ret.interceptors.response.use(subLoading, commonErrorHandler);
+} else {
+  Object.keys(ret).forEach(function (key) {
+    ret[key].interceptors.request.use(addLoading);
+    ret[key].interceptors.response.use(subLoading, commonErrorHandler);
+  });
 }
 
-var Http = function Http () {};
-
-Http.get = function get (url, data, config) {
-  return execute(REQUEST_TYPE.GET, url, data, config)
-};
-
-Http.post = function post (url, data, config) {
-  return execute(REQUEST_TYPE.POST, url, data, config)
-};
-
-Http.put = function put (url, data, config) {
-  return execute(REQUEST_TYPE.PUT, url, data, config)
-};
-
-Http.delete = function delete$1 (url, data, config) {
-  return execute(REQUEST_TYPE.DELETE, url, data, config)
-};
-
-Http.options = function options (url, data, config) {
-  return execute(REQUEST_TYPE.OPTIONS, url, data, config)
-};
-
-Http.patch = function patch (url, data, config) {
-  return execute(REQUEST_TYPE.PATCH, url, data, config)
-};
-
-Http.all = function all (promiseArr) {
-  return executeAll(promiseArr)
-};
-
-Http.spread = function spread (callback) {
-  return axios.spread(callback)
-};
+var Http = ret;
 
 /*  */
 Vue.use(Vuex);
@@ -1202,177 +1212,15 @@ var updateHistory = function (to, from, next) {
 // 限制1: 不支持同一路由不同参数间画面的跳转 /user/1 -> /user/2
 // 限制2: 不支持<router-link>的方式跳转，且此链接内如果定义path，则params不生效（vue-router的限制）
 // 限制3: 新增<navi-link>用于定义静态路由链接。
-/**
- * 取得路由中定义的中间件
- * 注意：中间件的文件必须位于src/middleware目录下，其中src目录与node_modules位于同级目录
- * @param {String} name
- */
-function getMiddleware (name) {
-  var middleware = null;
-  try {
-    middleware = require('../../../src/middleware/' + name + '.js');
-    if (middleware) {
-      middleware = middleware.default;
-    }
-  } catch (e) {
-    console.debug(("找不到指定的中间件" + name), e);
-  }
-  return middleware
-}
-
-/**
- * 根据指定值调用Vue-Route的路由钩子函数
- * @param {Function} nextFunc
- * @param {*} val
- */
-function routeNext (nextFunc, val) {
-  if (val !== null && val !== undefined) {
-    nextFunc(val);
-  } else {
-    nextFunc();
-  }
-}
-
-/**
- * 取得定义了中间件的路由一览
- * @param {Array} routes
- */
-function findComponentMiddleware (routes) {
-  var ret = [];
-  routes.forEach(function (r) {
-    // 定义了中间件的场合
-    if (!Util.isEmpty(r.middleware)) {
-      ret.push(r);
-    // 存在子路有的场合
-    } else if (!Util.isEmpty(r.children)) {
-      ret = ret.concat(findComponentMiddleware(r.children));
-    }
-  });
-  return ret
-}
-
-/**
- * 判断是否为同一路由
- * @param {Object} param0 当前目标路由
- * @param {Object} param1 定义了中间件的路由
- */
-function compareRoute (ref, ref$1) {
-  var name = ref.name;
-  var matched = ref.matched;
-  var originName = ref$1.name;
-  var originPath = ref$1.path;
-
-  // 优先使用Name属性进行判断
-  if (!Util.isEmpty(originName)) {
-    return name === originName
-  // 没有定义Name属性的场合，使用path属性进行判断
-  } else if (!Util.isEmpty(matched) && !Util.isEmpty(originPath)) {
-    var routeDefinedPath = matched[matched.length - 1].path;
-    if (originPath.indexOf('/') !== 0) {
-      matched.forEach(function (m) {
-        if (routeDefinedPath.indexOf(m.path) === 0) {
-          routeDefinedPath = routeDefinedPath.substring(m.path.length);
-        }
-      });
-      // 存在父路由的场合
-      if (matched.length > 1) {
-        if (routeDefinedPath.indexOf('/') === 0) {
-          routeDefinedPath = routeDefinedPath.substring(1);
-        }
-      }
-    }
-    if (routeDefinedPath === originPath) {
-      return true
-    }
-  }
-  return false
-}
-
 var Navigate = (function (VueRouter$$1) {
   function Navigate (options) {
-    var this$1 = this;
     if ( options === void 0 ) options = {};
 
     VueRouter$$1.call(this, options);
-    var self = this;
     // 注册默认全局守卫
     this.beforeEach(updateDirection);
     this.beforeEach(updateHistory);
-    // 注册中间件
-    var globalMiddleware = [];
-    // 取得全局中间件
-    if (typeof options.middleware === 'string') {
-      var m = getMiddleware(options.middleware);
-      if (typeof m === 'function') {
-        globalMiddleware.push(m);
-      }
-    } else if (Util.isArray(options.middleware)) {
-      options.middleware.forEach(function (middleware) {
-        var m = getMiddleware(middleware);
-        if (typeof m === 'function') {
-          globalMiddleware.push(m);
-        }
-      });
-    }
-    // 注册全局守卫
-    globalMiddleware.forEach(function (m) {
-      this$1.beforeEach(function (to, from, next) {
-        var result = m({
-          path: to.path,
-          query: to.query,
-          params: to.params,
-          name: to.name,
-          from: from,
-          to: to,
-          route: self
-        });
-        if (result instanceof Promise) {
-          result.then(function (res) {
-            routeNext(next, res);
-          })
-          .catch(function (err) {
-            routeNext(next, err);
-          });
-        } else {
-          routeNext(next, result);
-        }
-      });
-    });
-    // 取得定义了中间件的路由一览
-    var middlewareRouteArray = findComponentMiddleware(options.routes);
-    if (!Util.isEmpty(middlewareRouteArray)) {
-      middlewareRouteArray.forEach(function (route) {
-        var m = getMiddleware(route.middleware);
-        if (Util.isFunction(m)) {
-          this$1.beforeEach(function (to, from, next) {
-            // 判断是否为定义中间件的路由
-            if (compareRoute(to, route)) {
-              var result = m({
-                path: to.path,
-                query: to.query,
-                params: to.params,
-                name: to.name,
-                from: from,
-                to: to,
-                route: self
-              });
-              if (result instanceof Promise) {
-                result.then(function (res) {
-                  routeNext(next, res);
-                })
-                .catch(function (err) {
-                  routeNext(next, err);
-                });
-              } else {
-                routeNext(next, result);
-              }
-            } else {
-              next();
-            }
-          });
-        }
-      });
-    }
+
     this.afterEach(function () {
       store.commit(types.SET_DIRECTION, '');
     });
@@ -1453,7 +1301,7 @@ var index = {
   storeRegister: registerModule,
   storeTypes: types,
   util: Util,
-  version: '0.2.10'
+  version: '0.2.11'
 };
 
 module.exports = index;
