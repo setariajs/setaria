@@ -16,19 +16,19 @@ const resolve = _path => path.resolve(__dirname, '../', _path)
 
 const configs = {
   umdDev: {
-    entry: resolve('src/index.js'),
+    entry: resolve('src/index.esm.js'),
     dest: resolve('dist/setaria.js'),
     format: 'umd',
     env: 'development'
   },
   umdProd: {
-    entry: resolve('src/index.js'),
+    entry: resolve('src/index.esm.js'),
     dest: resolve('dist/setaria.min.js'),
     format: 'umd',
     env: 'production'
   },
   commonjs: {
-    entry: resolve('src/index.js'),
+    entry: resolve('src/index.esm.js'),
     dest: resolve('dist/setaria.common.js'),
     format: 'cjs'
   },
