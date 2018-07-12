@@ -15,17 +15,7 @@ import { isNotEmpty, merge } from './util/lang'
 
 class Setaria {
   constructor (options = {}) {
-    this.http = options.http || {}
-    this.message = options.message || {}
-    this.routes = options.routes || {}
-    this.store = options.store || {}
-    this.storeScopeKey = options.storeScopeKey
-
-    this.init()
-  }
-
-  init () {
-    this.initConfig()
+    this.initConfig(options)
     this.initGlobalApi()
     ErrorHandler.init()
   }
@@ -46,14 +36,14 @@ class Setaria {
     initHttp()
   }
 
-  initConfig () {
-    config.message = merge(setariaMessage, this.message)
-    config.http = this.http
-    config.routes = this.routes
-    config.store = this.store
+  initConfig ({ message = {}, http = {}, routes = {}, store = {}, storeScopeKey }) {
+    config.message = merge(setariaMessage, message)
+    config.http = http || {}
+    config.routes = routes || {}
+    config.store = store || {}
     // Vuex Store Scope Key
-    if (isNotEmpty(this.storeScopeKey)) {
-      config.storeScopeKey = this.storeScopeKey
+    if (isNotEmpty(storeScopeKey)) {
+      config.storeScopeKey = storeScopeKey
     }
   }
 
