@@ -41,8 +41,7 @@ module.exports = {
       filename: 'shared.js'
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-      'process.env.SETARIA_CONFIG_CONTEXT': JSON.stringify(path.join(__dirname, 'base'))
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin()

@@ -1,62 +1,86 @@
-import Vue from 'vue'
-import config from './config/index'
-import { install } from './main'
-import ApplicationError from './model/ApplicationError'
-import ErrorHandler from './model/ErrorHandler'
-import ServiceError from './model/ServiceError'
-import Http from './model/Http'
-import Message from './model/Message'
-import Storage, { STORAGE_TYPE as storageTypes } from './model/Storage'
-import Navigate from './plugin/navigate/index'
-import store, { registerModule as storeRegister, types as storeTypes } from './plugin/store'
-import util from './util'
+import { install } from './install'
+import { init as initHttp } from './global-api/Http'
+import config from './core/config'
+import ErrorHandler from './core/ErrorHandler'
+import http from './global-api/Http'
+import ApplicationError from './global-object/ApplicationError'
+import Message from './global-object/Message'
+import ServiceError from './global-object/ServiceError'
+import { getStore } from './plugin/store/index'
+import { getRouter } from './plugin/router/index'
+import setariaMessage from './resource/message'
+import constants from './shared/constants'
+import { inBrowser } from './util/dom'
+import { isNotEmpty, merge } from './util/lang'
 
-// -- 环境变量设置
-// 生产环境的场合
-if (util.isProdunctionEnv()) {
-  // 不显示Vue日志和警告
-  Vue.config.silent = true
-  // 不显示Vue产品信息
-  Vue.config.productionTip = false
+class Setaria {
+  constructor (options = {}) {
+    this.http = options.http || {}
+    this.message = options.message || {}
+    this.routes = options.routes || {}
+    this.store = options.store || {}
+    this.storeScopeKey = options.storeScopeKey
+
+    this.init()
+  }
+
+  init () {
+    this.initConfig()
+    this.initGlobalApi()
+    ErrorHandler.init()
+  }
+
+  initGlobalApi () {
+    // config
+    const configDef = {}
+    configDef.get = () => config
+    if (process.env.NODE_ENV !== 'production') {
+      configDef.set = () => {
+        console.warn(
+          'Do not replace the Setaria.config object, set individual fields instead.'
+        )
+      }
+    }
+    Object.defineProperty(Setaria, 'config', configDef)
+
+    initHttp()
+  }
+
+  initConfig () {
+    config.message = merge(setariaMessage, this.message)
+    config.http = this.http
+    config.routes = this.routes
+    config.store = this.store
+    // Vuex Store Scope Key
+    if (isNotEmpty(this.storeScopeKey)) {
+      config.storeScopeKey = this.storeScopeKey
+    }
+  }
+
+  getStore () {
+    const store = getStore()
+    return store
+  }
+
+  getRouter () {
+    const router = getRouter()
+    return router
+  }
 }
 
-// -- 加载路由组件
-const router = new Navigate(config.router)
-// -- 异常处理
-ErrorHandler.catchError()
+Setaria.install = install
+Setaria.version = '__VERSION__'
 
-export default {
-  ApplicationError,
-  Http,
-  Message,
-  ServiceError,
-  Storage,
-  storageTypes,
-  config,
-  install,
-  plugin: {
-    router,
-    store
-  },
-  router,
-  store,
-  storeRegister,
-  storeTypes,
-  util,
-  version: '__VERSION__'
-}
+export default Setaria
 
 export {
   ApplicationError,
-  Http,
+  constants,
+  http,
   Message,
-  ServiceError,
-  Storage,
-  storageTypes,
-  config,
-  router,
-  store,
-  storeRegister,
-  storeTypes,
-  util
+  ServiceError
+}
+
+if (inBrowser && window.Vue) {
+  window.Vue.use(Setaria)
 }
