@@ -1,6 +1,6 @@
 {
   "name": "setaria",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Enterprise Frontend Framework base on Vue",
   "main": "dist/setaria.common.js",
   "module": "dist/setaria.esm.js",
