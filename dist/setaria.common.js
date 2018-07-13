@@ -1,5 +1,5 @@
 /**
- * Setaria v0.2.11
+ * Setaria v0.3.1
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -959,7 +959,7 @@ function initInstance (httpConfig) {
     });
     return ret
   } else {
-    return null
+    return {}
   }
 }
 
@@ -1260,7 +1260,7 @@ Setaria.prototype.getRouter = function getRouter$1 () {
 };
 
 Setaria.install = install$$1;
-Setaria.version = '0.2.11';
+Setaria.version = '0.3.1';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
