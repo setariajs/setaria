@@ -1,5 +1,5 @@
 /**
- * Setaria v0.3.1
+ * Setaria v0.3.2
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -9,10 +9,10 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var VueRouter = _interopDefault(require('vue-router'));
+var axios = _interopDefault(require('axios'));
 var Vuex = _interopDefault(require('vuex'));
 var R = require('ramda');
-var axios = _interopDefault(require('axios'));
+var VueRouter = _interopDefault(require('vue-router'));
 var Vue = _interopDefault(require('vue'));
 
 /*  */
@@ -50,20 +50,6 @@ var config = ({
    */
   storeScopeKey: 'scope'
 });
-
-/*  */
-var router;
-
-function install$1 (Vue$$1, options) {
-  // 安装VueRouter
-  Vue$$1.use(VueRouter);
-  // 创建Vue Router实例
-  router = new VueRouter(config.routes);
-}
-
-function getRouter () {
-  return router
-}
 
 // Module
 // Common
@@ -731,7 +717,7 @@ function createStorageSyncPlugin (syncConfig) {
     store.subscribe(function (ref, state) {
       var type = ref.type;
 
-      // console.log(config.store, store, mutation, state, state.module1.foo)
+      // console.log(config.store, store, state)
       // 存在子模块的场合
       if (config.store !== null && config.store !== undefined &&
           config.store.modules !== null && config.store.modules !== undefined) {
@@ -758,7 +744,7 @@ function install$2 (Vue$$1, options) {
   // 取得Module同步信息
   var syncConfig = createSyncConfigByStructure(storeStructure, config.storeScopeKey);
   // 注册插件
-  initPlugin(syncConfig);
+  initPlugin(storeStructure, syncConfig);
   // 初始化State
   initSyncState(storeStructure, syncConfig);
   // 创建Vuex Store实例
@@ -769,8 +755,8 @@ function getStore () {
   return store
 }
 
-function initPlugin (syncConfig) {
-  storeConfig.plugins.push(createStorageSyncPlugin(syncConfig));
+function initPlugin (storeStructure, syncConfig) {
+  storeStructure.plugins.push(createStorageSyncPlugin(syncConfig));
 }
 
 function mergeConfig (customStore, setariaStore) {
@@ -790,47 +776,20 @@ function mergeConfig (customStore, setariaStore) {
   return ret
 }
 
-var _Vue;
-
-function install$$1 (Vue$$1, options) {
-  if (install$$1.installed && _Vue === Vue$$1) { return }
-  install$$1.installed = true;
-  _Vue = Vue$$1;
-
-  var isDef = function (v) { return v !== undefined; };
-
-  Vue$$1.mixin({
-    beforeCreate: function beforeCreate () {
-      // console.debug('beforeCreate', this.$options.setaria)
-      if (isDef(this.$options.setaria)) {
-        this._setaria = this.$options.setaria;
-        // set store instance on vue
-        this.$options.store = this._setaria.getStore();
-        // set router instance on vue
-        this.$options.router = this._setaria.getRouter();
-      } else {
-        this._setaria = (this.$parent && this.$parent._setaria) || this;
-      }
-    },
-    destroyed: function destroyed () {
-      // console.debug('destroyed', this.$options.setaria)
-    }
-  });
-
-  if (Vue$$1.prototype.$http === null || Vue$$1.prototype.$http === undefined) {
-    Object.defineProperty(Vue$$1.prototype, '$http', {
-      get: function get () { return this._setaria.http }
-    });
+function addLoading (config) {
+  var storeInstance = getStore();
+  if (storeInstance && config.showLoading !== false) {
+    storeInstance.commit(STORE_KEY.ADD_LOADING_COUNT);
   }
+  return config
+}
 
-  Object.defineProperty(Vue$$1.prototype, '$s', {
-    get: function get () { return this._setaria }
-  });
-
-  // init store
-  install$2(Vue$$1, options);
-  // init router
-  install$1(Vue$$1, options);
+function subLoading (response) {
+  var storeInstance = getStore();
+  if (storeInstance && response.config.showLoading !== false) {
+    storeInstance.commit(STORE_KEY.SUB_LOADING_COUNT);
+  }
+  return response
 }
 
 var inBrowser = typeof window !== 'undefined';
@@ -887,18 +846,70 @@ var ServiceError = (function (ApplicationError$$1) {
   return ServiceError;
 }(ApplicationError));
 
+// error handler
+function errorHandler (error) {
+  // sub loading state count
+  subLoading({
+    config: error.config
+  });
+  // server have response
+  if (error.response) {
+    console.debug('server have response', error);
+    var messagePrefix = 'SYSMSG-SERVICE-STATUS-';
+    var messageId = '';
+    switch (error.response.status) {
+      case 400:
+        messageId = '400';
+        break
+      case 401:
+        messageId = '401';
+        break
+      case 403:
+        messageId = '403';
+        break
+      case 404:
+        messageId = '404';
+        break
+      default:
+        messageId = '';
+    }
+    var message = 'SYSMSG-SERVICE-UNKNOWN-ERROR';
+    if (messageId !== '') {
+      message = "" + messagePrefix + messageId;
+    }
+    throw new ServiceError(message, error)
+  // The request was made but no response was received
+  } else if (error.request) {
+    console.debug('The request was made but no response was received', error);
+  // Something happened in setting up the request that triggered an Error
+  } else {
+    console.debug('Something happened in setting up the request that triggered an Error', error);
+    // timeout
+    if (error.message.indexOf('timeout of ') === 0) {
+      throw new ServiceError('SYSMSG-TIMEOUT', error, [error.config.timeout / 1000])
+    // server unavaliable
+    } else if (error.message.indexOf('Network Error') === 0) {
+      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', error)
+    } else {
+      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', error)
+    }
+  }
+  return Promise.reject(error)
+}
+
 /*  */
 /**
  * 远程服务调用模块
  * @version 1.0
  * @author HanL
  */
-var KEY_DEFAULTS_SETTING = 'defaults';
-var ret = {
-  defaults: axios
-};
+var http;
 
-function init () {
+function install$1 (Vue$$1, options) {
+  http = {
+    defaults: axios
+  };
+
   // Http Config
   var httpConfig = config.http || {};
 
@@ -909,15 +920,19 @@ function init () {
   if (Object.keys(httpConfig).length > 0) {
     var instance = initInstance(httpConfig);
     Object.keys(instance).forEach(function (key) {
-      ret[key] = instance[key];
+      http[key] = instance[key];
     });
   }
 
   // Set Http Interceptor
-  initInterceptor(ret);
-
-  return ret
+  initInterceptor(http);
 }
+
+function getHttp () {
+  return http
+}
+
+var KEY_DEFAULTS_SETTING = 'defaults';
 
 /**
  * Set Http Default Config
@@ -973,8 +988,11 @@ function initInterceptor (http) {
     [addLoading]
   ];
   var responseInterceptors = [
-    [subLoading, commonErrorHandler]
+    [
+      subLoading, errorHandler
+    ]
   ];
+  // Tips: response interceptor will not be executed when got error
   // add interceptor to instance
   if (typeof http === 'function') {
     requestInterceptors.forEach(function (interceptor) {
@@ -999,73 +1017,65 @@ function initInterceptor (http) {
   }
 }
 
-// interceptor
-// Tips: response interceptor will not be executed when got error
-// loading interceptor
-function addLoading (config$$1) {
-  var storeInstance = getStore();
-  if (storeInstance && config$$1.showLoading !== false) {
-    storeInstance.commit(STORE_KEY.ADD_LOADING_COUNT);
-  }
-  return config$$1
-}
-function subLoading (response) {
-  var storeInstance = getStore();
-  if (storeInstance && response.config.showLoading !== false) {
-    storeInstance.commit(STORE_KEY.SUB_LOADING_COUNT);
-  }
-  return response
+/*  */
+var router;
+
+function install$3 (Vue$$1, options) {
+  // 安装VueRouter
+  Vue$$1.use(VueRouter);
+  // 创建Vue Router实例
+  router = new VueRouter(config.routes);
 }
 
-// error handler
-function commonErrorHandler (error) {
-  // sub loading state count
-  subLoading({
-    config: error.config
-  });
-  // server have response
-  if (error.response) {
-    console.debug('server have response', error);
-    var messagePrefix = 'SYSMSG-SERVICE-STATUS-';
-    var messageId = '';
-    switch (error.response.status) {
-      case 400:
-        messageId = '400';
-        break
-      case 401:
-        messageId = '401';
-        break
-      case 403:
-        messageId = '403';
-        break
-      case 404:
-        messageId = '404';
-        break
-      default:
-        messageId = '';
+function getRouter () {
+  return router
+}
+
+var _Vue;
+
+function install$$1 (Setaria, Vue$$1, options) {
+  return function (Vue$$1, options) {
+    if (install$$1.installed && _Vue === Vue$$1) { return }
+    install$$1.installed = true;
+    _Vue = Vue$$1;
+
+    var isDef = function (v) { return v !== undefined; };
+
+    Vue$$1.mixin({
+      beforeCreate: function beforeCreate () {
+        // console.debug('beforeCreate', this.$options.setaria)
+        if (isDef(this.$options.setaria)) {
+          this._setaria = this.$options.setaria;
+          // set store instance on vue
+          this.$options.store = Setaria.getStore();
+          // set router instance on vue
+          this.$options.router = Setaria.getRouter();
+        } else {
+          this._setaria = (this.$parent && this.$parent._setaria) || this;
+        }
+      },
+      destroyed: function destroyed () {
+        // console.debug('destroyed', this.$options.setaria)
+      }
+    });
+
+    if (Vue$$1.prototype.$http === null || Vue$$1.prototype.$http === undefined) {
+      Object.defineProperty(Vue$$1.prototype, '$http', {
+        get: function get () { return Setaria.getHttp() }
+      });
     }
-    var message = 'SYSMSG-SERVICE-UNKNOWN-ERROR';
-    if (messageId !== '') {
-      message = "" + messagePrefix + messageId;
-    }
-    throw new ServiceError(message, error)
-  // The request was made but no response was received
-  } else if (error.request) {
-    console.debug('The request was made but no response was received', error);
-  // Something happened in setting up the request that triggered an Error
-  } else {
-    console.debug('Something happened in setting up the request that triggered an Error', error);
-    // timeout
-    if (error.message.indexOf('timeout of ') === 0) {
-      throw new ServiceError('SYSMSG-TIMEOUT', error, [error.config.timeout / 1000])
-    // server unavaliable
-    } else if (error.message.indexOf('Network Error') === 0) {
-      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', error)
-    } else {
-      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', error)
-    }
+
+    // Object.defineProperty(Vue.prototype, '$s', {
+    //   get () { return this._setaria }
+    // })
+
+    // init http
+    install$1(Vue$$1, options);
+    // init store
+    install$2(Vue$$1, options);
+    // init router
+    install$3(Vue$$1, options);
   }
-  return Promise.reject(error)
 }
 
 /*  */
@@ -1189,6 +1199,28 @@ ErrorHandler.parseError = function parseError (
   return ret
 };
 
+function initGlobalAPI (Setaria, instance) {
+  // config
+  var configDef = {};
+  configDef.get = function () { return config; };
+  if (process.env.NODE_ENV !== 'production') {
+    configDef.set = function () {
+      console.warn(
+        'Do not replace the Setaria.config object, set individual fields instead.'
+      );
+    };
+  }
+  Object.defineProperty(Setaria, 'config', configDef);
+
+  Setaria.getHttp = getHttp;
+  Setaria.getRouter = getRouter;
+  Setaria.getStore = getStore;
+
+  instance.http = getHttp();
+  instance.router = getRouter();
+  instance.store = getStore();
+}
+
 // M[Message Catagory]XXX[Message Type]
 // Message Catagory:
 //   AM Application Message
@@ -1211,25 +1243,10 @@ var setariaMessage = {
 var Setaria = function Setaria (options) {
   if ( options === void 0 ) options = {};
 
+  var _setaria = this;
   this.initConfig(options);
-  this.initGlobalApi();
+  initGlobalAPI(Setaria, _setaria);
   ErrorHandler.init();
-};
-
-Setaria.prototype.initGlobalApi = function initGlobalApi () {
-  // config
-  var configDef = {};
-  configDef.get = function () { return config; };
-  if (process.env.NODE_ENV !== 'production') {
-    configDef.set = function () {
-      console.warn(
-        'Do not replace the Setaria.config object, set individual fields instead.'
-      );
-    };
-  }
-  Object.defineProperty(Setaria, 'config', configDef);
-
-  init();
 };
 
 Setaria.prototype.initConfig = function initConfig (ref) {
@@ -1249,18 +1266,8 @@ Setaria.prototype.initConfig = function initConfig (ref) {
   }
 };
 
-Setaria.prototype.getStore = function getStore$1 () {
-  var store = getStore();
-  return store
-};
-
-Setaria.prototype.getRouter = function getRouter$1 () {
-  var router = getRouter();
-  return router
-};
-
-Setaria.install = install$$1;
-Setaria.version = '0.3.1';
+Setaria.install = install$$1(Setaria);
+Setaria.version = '0.3.2';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
@@ -1269,6 +1276,5 @@ if (inBrowser && window.Vue) {
 exports['default'] = Setaria;
 exports.ApplicationError = ApplicationError;
 exports.constants = constants;
-exports.http = ret;
 exports.Message = Message;
 exports.ServiceError = ServiceError;
