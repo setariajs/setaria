@@ -78,7 +78,7 @@ function initInstance (httpConfig) {
     })
     return ret
   } else {
-    return null
+    return {}
   }
 }
 
