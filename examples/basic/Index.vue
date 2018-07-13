@@ -89,7 +89,7 @@
   }
 </style>
 <script>
-import Setaria, { ApplicationError, constants, http, Message } from 'setaria'
+import Setaria, { ApplicationError, constants, Message } from 'setaria'
 
 export default {
   data () {
@@ -138,7 +138,6 @@ export default {
     }
   },
   created () {
-    console.log(this.$http)
     Setaria.config.errorHanlder = ({ id, noIdMessage, detail = {}}) => {
       const config = detail.config || {}
       if (config.isShowError !== false) {
@@ -154,7 +153,7 @@ export default {
       this.messageTest.message = new Message(this.messageTest.messageId)
     },
     handleGetWeather () {
-      const { heweather } = http
+      const { heweather } = this.$http
       heweather.get('forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33').then((res) => {
         const w = res.data.HeWeather6[0]
         const forecast = w.daily_forecast[0]
@@ -166,7 +165,7 @@ export default {
       })
     },
     handleGetMultiWeather () {
-      const { heweather } = http
+      const { heweather } = this.$http
       const weatherPromise = heweather.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
       const airPromise = heweather.get('https://free-api.heweather.com/s6/air/now?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
       heweather.all([weatherPromise, airPromise])
@@ -198,7 +197,7 @@ export default {
       throw new ApplicationError('MCM006E')
     },
     handleThrowPromiseException () {
-      const { heweather } = http
+      const { heweather } = this.$http
       heweather.get('/api/weather', null, {
         showError: false
       }).then((res) => {

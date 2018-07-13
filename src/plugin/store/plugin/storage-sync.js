@@ -16,7 +16,7 @@ export default function createStorageSyncPlugin (syncConfig) {
   return store => {
     // 会在每个 mutation 完成后调用，接收 mutation 和经过 mutation 后的状态作为参数
     store.subscribe(({ type }, state) => {
-      // console.log(config.store, store, mutation, state, state.module1.foo)
+      // console.log(config.store, store, state)
       // 存在子模块的场合
       if (config.store !== null && config.store !== undefined &&
           config.store.modules !== null && config.store.modules !== undefined) {

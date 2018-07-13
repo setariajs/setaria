@@ -15,7 +15,7 @@ export function install (Vue, options) {
   // 取得Module同步信息
   const syncConfig = createSyncConfigByStructure(storeStructure, config.storeScopeKey)
   // 注册插件
-  initPlugin(syncConfig)
+  initPlugin(storeStructure, syncConfig)
   // 初始化State
   initSyncState(storeStructure, syncConfig)
   // 创建Vuex Store实例
@@ -26,8 +26,8 @@ export function getStore () {
   return store
 }
 
-function initPlugin (syncConfig) {
-  storeConfig.plugins.push(createStorageSyncPlugin(syncConfig))
+function initPlugin (storeStructure, syncConfig) {
+  storeStructure.plugins.push(createStorageSyncPlugin(syncConfig))
 }
 
 function mergeConfig (customStore, setariaStore) {
