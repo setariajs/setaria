@@ -70,6 +70,11 @@ function getMessageType (id: string): string {
       ret = 'warning'
       break
     case 'I':
+      ret = 'info'
+      break
+    case 'S':
+      ret = 'success'
+      break
     default:
       ret = 'info'
   }
