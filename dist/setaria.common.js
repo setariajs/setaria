@@ -1,5 +1,5 @@
 /**
- * Setaria v0.3.2
+ * Setaria v0.3.3
  * (c) 2018 Ray Han
  * @license MIT
  */
@@ -349,6 +349,11 @@ function getMessageType (id) {
       ret = 'warning';
       break
     case 'I':
+      ret = 'info';
+      break
+    case 'S':
+      ret = 'success';
+      break
     default:
       ret = 'info';
   }
@@ -1267,7 +1272,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.3.2';
+Setaria.version = '0.3.3';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
