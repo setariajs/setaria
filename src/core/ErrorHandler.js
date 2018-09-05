@@ -20,7 +20,7 @@ function parseApplicationError (error: string | Object): ApplicationError {
   // ApplicationError对象
   if (isApplicationError(error)) {
     ret = new ApplicationError(error.id, [], error.noIdMessage)
-  // Error对象
+  // 普通Error对象
   } else if (error.message) {
     message = error.message
     // 删除浏览器添加的错误信息前缀
@@ -31,10 +31,12 @@ function parseApplicationError (error: string | Object): ApplicationError {
     } else if (message.indexOf('Uncaught Error: ') === 0) {
       message = message.replace('Uncaught Error: ', '')
     }
-    // 解析错误信息，取得错误代码和错误内容
-    const msgArr: Array<string> = message.split(ERROR_MSG_SPLICER)
-    id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
-    message = msgArr[1]
+    // 解析Setaria错误信息，取得错误代码和错误内容
+    if (message.indexOf(ERROR_PREFIX) !== -1) {
+      const msgArr: Array<string> = message.split(ERROR_MSG_SPLICER)
+      id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
+      message = msgArr[1]
+    }
     ret = new ApplicationError(id, [], message)
   } else if (typeof error.toString === 'function') {
     ret = new ApplicationError(null, null, error.toString())

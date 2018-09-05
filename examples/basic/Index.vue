@@ -72,6 +72,9 @@
         普通异常信息：id: {{ exception.id }}, message: {{ exception.message }}
       </li>
       <li>
+        <input type="button" @click="handleThrowRuntimeException" value="抛出执行期未捕获的异常信息">
+      </li>
+      <li>
         <input type="button" @click="handleThrowException" value="抛出异常信息">
       </li>
       <li>
@@ -147,6 +150,7 @@ export default {
         }
       }
     }
+    this.handleThrowRuntimeException()
   },
   methods: {
     handleGetMessage () {
@@ -192,6 +196,10 @@ export default {
       this.$store.commit('module1/set_foo', 'module1-foo')
       this.$store.commit('module1/module1-1/set_foo', 'module1-1-foo')
       this.$store.commit('module2/set_foo', 'module2-foo')
+    },
+    handleThrowRuntimeException () {
+      const obj = null
+      obj.data = 1
     },
     handleThrowException () {
       throw new ApplicationError('MCM006E')
