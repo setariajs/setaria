@@ -37,6 +37,7 @@ export default ({
 
   /**
    * Vuex Store Scope Key
+   * The key which be used for define module sync scope(session or local)
    */
   storeScopeKey: 'scope'
 }: Config)
