@@ -30,7 +30,7 @@ export default class ServiceError extends ApplicationError {
   constructor (id?: string = '', reason: Object = {},
     params?: Array<string | number> = [], message?: string = '') {
     super(id, params, message)
-    this._name = 'ApplicationError'
+    this._name = 'ServiceError'
     this.type = 'ServiceError'
     this.detail = reason
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
