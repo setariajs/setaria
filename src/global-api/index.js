@@ -19,8 +19,4 @@ export function initGlobalAPI (Setaria, instance) {
   Setaria.getHttp = getHttp
   Setaria.getRouter = getRouter
   Setaria.getStore = getStore
-
-  instance.http = getHttp()
-  instance.router = getRouter()
-  instance.store = getStore()
 }

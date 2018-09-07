@@ -14,15 +14,16 @@ export function install (Setaria, Vue, options) {
 
     Vue.mixin({
       beforeCreate () {
-        // console.debug('beforeCreate', this.$options.setaria)
         if (isDef(this.$options.setaria)) {
           this._setaria = this.$options.setaria
+          // this.$setaria = this._setaria
           // set store instance on vue
           this.$options.store = Setaria.getStore()
           // set router instance on vue
           this.$options.router = Setaria.getRouter()
         } else {
           this._setaria = (this.$parent && this.$parent._setaria) || this
+          // this.$setaria = this._setaria
         }
       },
       destroyed () {
@@ -30,6 +31,7 @@ export function install (Setaria, Vue, options) {
       }
     })
 
+    // set http instance on vue
     if (Vue.prototype.$http === null || Vue.prototype.$http === undefined) {
       Object.defineProperty(Vue.prototype, '$http', {
         get () { return Setaria.getHttp() }

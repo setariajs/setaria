@@ -76,7 +76,6 @@ export function createSyncConfigByStructure (structure, storeScopeKey) {
       path(syncConfig, storeScopeKey, structure.modules[key], key)
     })
   }
-  console.debug('storeSyncConfig', syncConfig)
   return syncConfig
 }
 
