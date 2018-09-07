@@ -51,16 +51,25 @@
     <ul>
       Store测试
       <li>
-        foo: {{ storeFoo }}
+        <span class="label">[全局Dispatch执行状态]:</span>
+        {{ globalDispatchFlag ? '执行中...' : '待机' }}
       </li>
       <li>
-        module1 foo: {{ storeModule1Foo }}
+        [{{ fooDispatchFlag ? '执行中...' : '待机' }}]
+        &nbsp;
+        <span class="label">Root foo:</span>
+        <input v-model="store.form.foo"/>
       </li>
       <li>
-        module1-1 foo: {{ storeModuleChild1Foo }}
+        <span class="label">Root/module1 foo:</span> {{ store.module1Foo }}
       </li>
       <li>
-        module2 foo: {{ storeModule2Foo }}
+        [{{ module1_1FooDispatchFlag ? '执行中...' : '待机' }}]
+        &nbsp;
+        <span class="label">Root/module1/module1-1 Foo:</span> {{ storeModuleChild1Foo }}
+      </li>
+      <li>
+        <span class="label">Root/module2 foo:</span> {{ storeModule2Foo }}
       </li>
       <li>
         <input type="button" @click="handleSetStoreValue" value="设置Store的值"/>
@@ -90,12 +99,16 @@
   .highlight {
     background-color: yellow
   }
+  .label {
+    font-weight: 200;
+  }
 </style>
 <script>
 import Setaria, { ApplicationError, constants, Message } from 'setaria'
 
 export default {
   data () {
+    const store = this.$store
     return {
       messageTest: {
         messageId: '',
@@ -120,15 +133,16 @@ export default {
         main: '',
         qlty: ''
       },
-      exception: {}
+      exception: {},
+      store: {
+        form: store.state.form,
+        module1Foo: store.getters['module1/get_foo']
+      }
     }
   },
   computed: {
     storeFoo () {
       return this.$store.state.foo
-    },
-    storeModule1Foo () {
-      return this.$store.getters['module1/get_foo']
     },
     storeModule2Foo () {
       return this.$store.getters['module2/get_foo']
@@ -138,6 +152,15 @@ export default {
     },
     isLoading () {
       return this.$store.getters[constants.STORE_KEY.GET_IS_LOADING]
+    },
+    fooDispatchFlag () {
+      return this.$store.state.loading.actions.global_dispatch_foo
+    },
+    globalDispatchFlag () {
+      return this.$store.getters['loading/global']
+    },
+    module1_1FooDispatchFlag () {
+      return this.$store.state.loading.actions['module1/module1-1/dispatch_foo']
     }
   },
   created () {
@@ -196,6 +219,8 @@ export default {
       this.$store.commit('module1/set_foo', 'module1-foo')
       this.$store.commit('module1/module1-1/set_foo', 'module1-1-foo')
       this.$store.commit('module2/set_foo', 'module2-foo')
+      this.$store.dispatch('module1/module1-1/dispatch_foo', 'async_module1-1-foo')
+      this.$store.dispatch('global_dispatch_foo', 'global_async_foo')
     },
     handleThrowRuntimeException () {
       const obj = null
