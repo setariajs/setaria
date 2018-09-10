@@ -5,6 +5,22 @@ import storeConfig from './config'
 import createStorageSyncPlugin from './plugin/storage-sync'
 import { createSyncConfigByStructure, initSyncState } from './util'
 
+const {
+  createNamespacedHelpers,
+  mapActions,
+  mapGetters,
+  mapMutations,
+  mapState
+} = Vuex
+
+export default {
+  createNamespacedHelpers,
+  mapActions,
+  mapGetters,
+  mapMutations,
+  mapState
+}
+
 let store
 
 export function install (Vue, options) {

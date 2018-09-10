@@ -5,6 +5,7 @@ import { initGlobalAPI } from './global-api/index'
 import ApplicationError from './global-object/ApplicationError'
 import Message from './global-object/Message'
 import ServiceError from './global-object/ServiceError'
+import StoreGlobalAPI from './plugin/store/index'
 import setariaMessage from './resource/message'
 import constants from './shared/constants'
 import { inBrowser } from './util/dom'
@@ -39,7 +40,8 @@ export {
   ApplicationError,
   constants,
   Message,
-  ServiceError
+  ServiceError,
+  StoreGlobalAPI
 }
 
 if (inBrowser && window.Vue) {
