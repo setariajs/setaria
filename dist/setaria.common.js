@@ -11,9 +11,9 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var axios = _interopDefault(require('axios'));
 var Vuex = _interopDefault(require('vuex'));
+var Vue = _interopDefault(require('vue'));
 var R = require('ramda');
 var VueRouter = _interopDefault(require('vue-router'));
-var Vue = _interopDefault(require('vue'));
 
 /*  */
 
@@ -47,6 +47,7 @@ var config = ({
 
   /**
    * Vuex Store Scope Key
+   * The key which be used for define module sync scope(session or local)
    */
   storeScopeKey: 'scope'
 });
@@ -247,8 +248,33 @@ var common = {
   modules: modules
 };
 
+var loading = {
+  namespaced: true,
+  state: {
+    actions: {}
+  },
+  getters: {
+    /**
+     * 全局dispatch状态，有任一dispatch执行时，此状态为true
+     */
+    global: function global (state) {
+      return Object.keys(state.actions).some(function (name) { return state.actions[name] === true; })
+    }
+  },
+  mutations: {
+    updateActions: function updateActions (state, ref) {
+      var name = ref.name;
+      var status = ref.status; if ( status === void 0 ) status = false;
+
+      Vue.set(state.actions, name, status);
+    }
+  }
+};
+
 var storeConfig = {
-  modules: ( obj = {}, obj[SETARIA_STORE_MODULE] = common, obj ),
+  modules: ( obj = {
+    loading: loading
+  }, obj[SETARIA_STORE_MODULE] = common, obj ),
   plugins: []
 };
 var obj;
@@ -599,7 +625,6 @@ function createSyncConfigByStructure (structure, storeScopeKey) {
       path(syncConfig, storeScopeKey, structure.modules[key], key);
     });
   }
-  console.debug('storeSyncConfig', syncConfig);
   return syncConfig
 }
 
@@ -739,6 +764,20 @@ function createStorageSyncPlugin (syncConfig) {
 }
 
 /*  */
+var createNamespacedHelpers = Vuex.createNamespacedHelpers;
+var mapActions = Vuex.mapActions;
+var mapGetters = Vuex.mapGetters;
+var mapMutations = Vuex.mapMutations;
+var mapState = Vuex.mapState;
+
+var index = {
+  createNamespacedHelpers: createNamespacedHelpers,
+  mapActions: mapActions,
+  mapGetters: mapGetters,
+  mapMutations: mapMutations,
+  mapState: mapState
+};
+
 var store;
 
 function install$2 (Vue$$1, options) {
@@ -746,6 +785,8 @@ function install$2 (Vue$$1, options) {
   Vue$$1.use(Vuex);
   // 取得Vuex Store配置
   var storeStructure = mergeConfig(config.store, storeConfig);
+  // 添加Actions属性的访问者，在Actions的执行前和执行后进行相应处理
+  addActionVisitor('', storeStructure, '');
   // 取得Module同步信息
   var syncConfig = createSyncConfigByStructure(storeStructure, config.storeScopeKey);
   // 注册插件
@@ -762,6 +803,71 @@ function getStore () {
 
 function initPlugin (storeStructure, syncConfig) {
   storeStructure.plugins.push(createStorageSyncPlugin(syncConfig));
+}
+
+function addActionVisitor (moduleName, moduleStructure, currentModuleNames) {
+  var actions = moduleStructure.actions;
+  var modules = moduleStructure.modules;
+  var namespaced = moduleStructure.namespaced;
+  // 添加命名空间
+  if (namespaced === true) {
+    if (currentModuleNames.length > 0) {
+      currentModuleNames = currentModuleNames + "/" + moduleName;
+    } else {
+      currentModuleNames = moduleName;
+    }
+  }
+  if (actions) {
+    Object.keys(actions).forEach(function (actionName) {
+      // action调用路径 (module_xxx/action)
+      var actionFullName =
+        "" + (currentModuleNames.length > 0 ? currentModuleNames + '/' : currentModuleNames) + actionName;
+      if (typeof actions[actionName] === 'function') {
+        actions[actionName] = createActionVisitor(actionFullName, actions[actionName]);
+      // 命名空间的模块内注册的全局 action 的场合
+      } else {
+        if (actions[actionName].root === true) {
+          actionFullName = actionName;
+        }
+        if (typeof actions[actionName].handler === 'function') {
+          actions[actionName].handler = createActionVisitor(actionFullName, actions[actionName].handler);
+        }
+      }
+    });
+  }
+  if (modules) {
+    Object.keys(modules).forEach(function (moduleName) {
+      addActionVisitor(moduleName, modules[moduleName], currentModuleNames);
+    });
+  }
+}
+
+function createActionVisitor (name, action) {
+  return function (context, payload) {
+    var result = action(context, payload);
+    if (result && result.then) {
+      getStore().commit('loading/updateActions', {
+        name: name,
+        status: true
+      });
+      return new Promise(function (resolve, reject) {
+        result.then(function (res) {
+          resolve(res);
+          getStore().commit('loading/updateActions', {
+            name: name,
+            status: false
+          });
+        })
+        .catch(function (err) {
+          reject(err);
+          getStore().commit('loading/updateActions', {
+            name: name,
+            status: false
+          });
+        });
+      })
+    }
+  }
 }
 
 function mergeConfig (customStore, setariaStore) {
@@ -835,7 +941,7 @@ var ServiceError = (function (ApplicationError$$1) {
     if ( message === void 0 ) message = '';
 
     ApplicationError$$1.call(this, id, params, message);
-    this._name = 'ApplicationError';
+    this._name = 'ServiceError';
     this.type = 'ServiceError';
     this.detail = reason;
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
@@ -1048,15 +1154,16 @@ function install$$1 (Setaria, Vue$$1, options) {
 
     Vue$$1.mixin({
       beforeCreate: function beforeCreate () {
-        // console.debug('beforeCreate', this.$options.setaria)
         if (isDef(this.$options.setaria)) {
           this._setaria = this.$options.setaria;
+          // this.$setaria = this._setaria
           // set store instance on vue
           this.$options.store = Setaria.getStore();
           // set router instance on vue
           this.$options.router = Setaria.getRouter();
         } else {
           this._setaria = (this.$parent && this.$parent._setaria) || this;
+          // this.$setaria = this._setaria
         }
       },
       destroyed: function destroyed () {
@@ -1064,6 +1171,7 @@ function install$$1 (Setaria, Vue$$1, options) {
       }
     });
 
+    // set http instance on vue
     if (Vue$$1.prototype.$http === null || Vue$$1.prototype.$http === undefined) {
       Object.defineProperty(Vue$$1.prototype, '$http', {
         get: function get () { return Setaria.getHttp() }
@@ -1100,7 +1208,7 @@ function parseApplicationError (error) {
   // ApplicationError对象
   if (isApplicationError(error)) {
     ret = new ApplicationError(error.id, [], error.noIdMessage);
-  // Error对象
+  // 普通Error对象
   } else if (error.message) {
     message = error.message;
     // 删除浏览器添加的错误信息前缀
@@ -1111,10 +1219,12 @@ function parseApplicationError (error) {
     } else if (message.indexOf('Uncaught Error: ') === 0) {
       message = message.replace('Uncaught Error: ', '');
     }
-    // 解析错误信息，取得错误代码和错误内容
-    var msgArr = message.split(ERROR_MSG_SPLICER);
-    id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
-    message = msgArr[1];
+    // 解析Setaria错误信息，取得错误代码和错误内容
+    if (message.indexOf(ERROR_PREFIX) !== -1) {
+      var msgArr = message.split(ERROR_MSG_SPLICER);
+      id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
+      message = msgArr[1];
+    }
     ret = new ApplicationError(id, [], message);
   } else if (typeof error.toString === 'function') {
     ret = new ApplicationError(null, null, error.toString());
@@ -1220,10 +1330,6 @@ function initGlobalAPI (Setaria, instance) {
   Setaria.getHttp = getHttp;
   Setaria.getRouter = getRouter;
   Setaria.getStore = getStore;
-
-  instance.http = getHttp();
-  instance.router = getRouter();
-  instance.store = getStore();
 }
 
 // M[Message Catagory]XXX[Message Type]
@@ -1283,3 +1389,4 @@ exports.ApplicationError = ApplicationError;
 exports.constants = constants;
 exports.Message = Message;
 exports.ServiceError = ServiceError;
+exports.StoreGlobalAPI = index;
