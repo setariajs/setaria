@@ -51,7 +51,7 @@ npm config get registry
   2. 安装后点击VS Code上方菜单的 `查看`，然后选择 `命令面板`。
   3. 在显示的命令面板内输入 `sync`。
   4. 将光标移动至 `Sync: 下载设置` 并回车。
-  5. 在显示的 `Enter Your GitHub Token` 输入框中输入 `3312630f9df658df47c0e25041c41f419bdd902a`，按回车键。
+  5. 在显示的 `Enter Your GitHub Token` 输入框中输入 `a746e6d90b877647d8212e2a6f537334c6b35bbc`，按回车键。
   6. 在显示的 `Enter Gist ID` 输入框中输入 `8941c50a9a273719a7bbf13aa640661b`，按回车键。
   7. 此时插件开始自动进行下载（根据网络情况下载所需时间有所不同，大约需5 ～ 10分钟），在下载成功后自动弹出的对话框中依据提示重新启动VS Code。
   8. VS Code重新启动后，点击左侧扩展菜单项，可查看已启动扩展（Vetur等）
