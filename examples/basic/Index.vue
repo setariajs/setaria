@@ -11,25 +11,28 @@
       </li>
     </ul>
     <ul>
-      Http Restful服务调用测试
+      Http Restful服务调用测试<br/>
+      1.Setaria.api.defaults或者$api为axios默认对象<br/>
+      2.在config文件内定义的服务(如下面的下载服务等)，已经默认增加了相关的interceptor用于处理返回值
       <li>
-        状态： {{ isLoading }}
+        状态： {{ isLoading ? '加载中' : '' }}
       </li>
       <li>
-        单一服务
+        自定义内部服务调用
       </li>
       <li>
-        天气信息：城市: <span class="forecast">{{ weather.location }}</span>
-        | 白天：<span class="forecast">{{ weather.condDay }}</span>
-        | 夜间：<span class="forecast">{{ weather.condNight }}</span>
-        | 最低气温：<span class="forecast">{{ weather.tmpMin }}℃</span>
-        | 最高气温：<span class="forecast">{{ weather.tmpMax }}℃</span>
+        <input type="button" @click="handlerCallBizApi" value="调用内部自定义服务"/>
       </li>
       <li>
-        <input type="button" @click="handleGetWeather" value="取得天气信息">
+        自定义内部下载文件服务(POST)
       </li>
       <li>
-        多个服务
+        <input type="button" @click="handleFileDownloadByPost('excel')" value="下载Excel"/>
+        <input type="button" @click="handleFileDownloadByPost('pdf')" value="下载Pdf"/>
+        <input type="button" @click="handleFileDownloadByPost('txt')" value="下载Text"/>
+      </li>
+      <li>
+        外部服务调用
       </li>
       <li>
         天气信息：城市: <span class="forecast">{{ fullWeather.location }}</span>
@@ -57,19 +60,19 @@
       <li>
         [{{ fooDispatchFlag ? '执行中...' : '待机' }}]
         &nbsp;
-        <span class="label">Root foo:</span>
-        <input v-model="store.form.foo"/>
+        <span class="label">Root foo: {{ storeFoo }}</span>
+        <input/>
       </li>
       <li>
-        <span class="label">Root/module1 foo:</span> {{ store.module1Foo }}
+        <span class="label">Root/module1 foo: {{ storeModule1Foo }}</span>
       </li>
       <li>
         [{{ module1_1FooDispatchFlag ? '执行中...' : '待机' }}]
         &nbsp;
-        <span class="label">Root/module1/module1-1 Foo:</span> {{ storeModuleChild1Foo }}
+        <span class="label">Root/module1/module1-1 Foo: {{ storeModuleChild1Foo }}</span>
       </li>
       <li>
-        <span class="label">Root/module2 foo:</span> {{ storeModule2Foo }}
+        <span class="label">Root/module2 foo: {{ storeModule2Foo }}</span>
       </li>
       <li>
         <input type="button" @click="handleSetStoreValue" value="设置Store的值"/>
@@ -78,16 +81,25 @@
     <ul>
       异常处理
       <li>
-        普通异常信息：id: {{ exception.id }}, message: {{ exception.message }}
+        普通异常信息：id: {{ exception.id }}, message: {{ exception.message }}, requestId: {{ exception.requestId }}
       </li>
       <li>
-        <input type="button" @click="handleThrowRuntimeException" value="抛出执行期未捕获的异常信息">
+        {{ lastestError }}
       </li>
       <li>
-        <input type="button" @click="handleThrowException" value="抛出异常信息">
+        <input type="button" @click="handleThrowRuntimeException" value="抛出执行期未捕获的JavaScript异常信息">
       </li>
       <li>
-        <input type="button" @click="handleThrowPromiseException" value="抛出Promise异常信息">
+        <input type="button" @click="handleThrowException" value="抛出ApplicationError前端业务异常信息">
+      </li>
+      <li>
+        <input type="button" @click="handleThrowPromiseExceptionByCallHttp" value="[服务]调用HTTP抛出Promise异常信息">
+      </li>
+      <li>
+        <input type="button" @click="handleBusinessException" value="[服务]调用服务返回404异常">
+      </li>
+      <li>
+        <input type="button" @click="handleDownloadBusinessException" value="[服务]下载服务返回业务异常">
       </li>
     </ul>
   </div>
@@ -104,23 +116,15 @@
   }
 </style>
 <script>
-import Setaria, { ApplicationError, constants, Message } from 'setaria'
+import Setaria, { ApplicationError, Message, constants } from 'setaria'
 
 export default {
   data () {
-    const store = this.$store
+    // const store = this.$store
     return {
       messageTest: {
         messageId: '',
         message: ''
-      },
-      weather: {
-        location: '',
-        date: '',
-        condDay: '',
-        condNight: '',
-        tmpMin: '',
-        tmpMax: ''
       },
       fullWeather: {
         location: '',
@@ -135,17 +139,20 @@ export default {
       },
       exception: {},
       store: {
-        form: store.state.form,
-        module1Foo: store.getters['module1/get_foo']
+        // form: store.state.form,
+        // module1Foo: store.getters['module1/get_foo']
       }
     }
   },
   computed: {
     storeFoo () {
-      return this.$store.state.foo
+      return this.$store.state.form.foo
     },
     storeModule2Foo () {
       return this.$store.getters['module2/get_foo']
+    },
+    storeModule1Foo () {
+      return this.$store.getters['module1/get_foo']
     },
     storeModuleChild1Foo () {
       return this.$store.getters['module1/module1-1/get_foo']
@@ -161,42 +168,44 @@ export default {
     },
     module1_1FooDispatchFlag () {
       return this.$store.state.loading.actions['module1/module1-1/dispatch_foo']
+    },
+    lastestError () {
+      return this.$store.getters[constants.STORE_KEY.GET_LASTEST_ERROR]
     }
   },
   created () {
-    Setaria.config.errorHanlder = ({ id, noIdMessage, detail = {}}) => {
-      const config = detail.config || {}
+    Setaria.config.errorHanlder = (error, type, origin) => {
+      const config = error.detail && error.detail.config || {}
       if (config.isShowError !== false) {
         this.exception = {
-          id,
-          message: noIdMessage
+          id: error.id,
+          message: error.noIdMessage,
+          requestId: error.requestId
         }
       }
     }
     this.handleThrowRuntimeException()
   },
   methods: {
+    async handlerCallBizApi () {
+      const res = await this.$api.biz.get('user')
+      const { data } = res.data
+      alert(`返回数据：${JSON.stringify(data)}`)
+    },
+    handleFileDownloadByPost (fileType) {
+      this.$api.biz.post(`${fileType}-download`, {}, {
+        responseType: 'arraybuffer'
+      })
+    },
     handleGetMessage () {
       this.messageTest.message = new Message(this.messageTest.messageId)
     },
-    handleGetWeather () {
-      const { heweather } = this.$http
-      heweather.get('forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33').then((res) => {
-        const w = res.data.HeWeather6[0]
-        const forecast = w.daily_forecast[0]
-        this.weather.location = w.basic.location
-        this.weather.condDay = forecast.cond_txt_d
-        this.weather.condNight = forecast.cond_txt_n
-        this.weather.tmpMin = forecast.tmp_min
-        this.weather.tmpMax = forecast.tmp_max
-      })
-    },
     handleGetMultiWeather () {
-      const { heweather } = this.$http
-      const weatherPromise = heweather.get('https://free-api.heweather.com/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
-      const airPromise = heweather.get('https://free-api.heweather.com/s6/air/now?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
-      heweather.all([weatherPromise, airPromise])
-        .then(heweather.spread((weather, air) => {
+      const defaultHttp = this.$api.defaults
+      const weatherPromise = defaultHttp.get('/heweather/s6/weather/forecast?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
+      const airPromise = defaultHttp.get('/heweather/s6/air/now?location=dalian&key=fb30dfca36fe4d0a92bb935fb2fedb33')
+      defaultHttp.all([weatherPromise, airPromise])
+        .then(defaultHttp.spread((weather, air) => {
           const w = weather.data.HeWeather6[0]
           const forecast = w.daily_forecast[0]
           this.fullWeather.location = w.basic.location
@@ -223,24 +232,23 @@ export default {
       this.$store.dispatch('global_dispatch_foo', 'global_async_foo')
     },
     handleThrowRuntimeException () {
-      const obj = null
-      obj.data = 1
+      Object.prototype.findIndex()
     },
     handleThrowException () {
       throw new ApplicationError('MCM006E')
     },
-    handleThrowPromiseException () {
-      const { heweather } = this.$http
-      heweather.get('/api/weather', null, {
-        showError: false
-      }).then((res) => {
-        throw new ApplicationError('MCM007E')
+    handleThrowPromiseExceptionByCallHttp () {
+      this.$api.biz.post('business-error', {})
+    },
+    handleBusinessException () {
+      this.$api.typicode.get('standard/business-exception', {})
+    },
+    handleDownloadBusinessException () {
+      this.$api.biz.post('download-business-error', {}, {
+        responseType: 'arraybuffer'
       })
-      // .catch(() => {
-      //   console.log('cache error')
-      //   // throw new ServiceError('MCM008E')
-      // })
     }
   }
 }
 </script>
+ 

@@ -111,19 +111,19 @@ function createActionVisitor (name, action) {
   }
 }
 
-function mergeConfig (customStore, setariaStore) {
+function mergeConfig (customStore, sdkStore) {
   const ret = customStore || {}
   // merge modules
   if (ret.modules === undefined || ret.modules === null) {
     ret.modules = {}
   }
-  Object.keys(setariaStore.modules).forEach((key) => {
-    ret.modules[key] = setariaStore.modules[key]
+  Object.keys(sdkStore.modules).forEach((key) => {
+    ret.modules[key] = sdkStore.modules[key]
   })
   // merge plugins
   if (ret.plugins === undefined || ret.plugins === null) {
     ret.plugins = []
   }
-  ret.plugins = setariaStore.plugins.concat(ret.plugins)
+  ret.plugins = sdkStore.plugins.concat(ret.plugins)
   return ret
 }

@@ -1,6 +1,9 @@
 import { install as httpInstall } from './plugin/http/index'
 import { install as routerInstall } from './plugin/router/index'
 import { install as storeInstall } from './plugin/store/index'
+import config from './core/config'
+import { LOG_TYPE, STORE_KEY } from './shared/constants'
+import { findIndex, isNotEmpty } from './util/lang'
 
 export let _Vue
 
@@ -14,32 +17,25 @@ export function install (Setaria, Vue, options) {
 
     Vue.mixin({
       beforeCreate () {
-        if (isDef(this.$options.setaria)) {
-          this._setaria = this.$options.setaria
-          // this.$setaria = this._setaria
+        if (isDef(this.$options.sdk)) {
+          this._sdk = this.$options.sdk
+          // this.$sdk = this._sdk
           // set store instance on vue
           this.$options.store = Setaria.getStore()
           // set router instance on vue
           this.$options.router = Setaria.getRouter()
         } else {
-          this._setaria = (this.$parent && this.$parent._setaria) || this
-          // this.$setaria = this._setaria
+          this._sdk = (this.$parent && this.$parent._sdk) || this
+          // this.$sdk = this._sdk
         }
       },
       destroyed () {
-        // console.debug('destroyed', this.$options.setaria)
+        // console.error('destroyed', this.$options.sdk)
       }
     })
 
-    // set http instance on vue
-    if (Vue.prototype.$http === null || Vue.prototype.$http === undefined) {
-      Object.defineProperty(Vue.prototype, '$http', {
-        get () { return Setaria.getHttp() }
-      })
-    }
-
     // Object.defineProperty(Vue.prototype, '$s', {
-    //   get () { return this._setaria }
+    //   get () { return this._sdk }
     // })
 
     // init http
@@ -48,5 +44,51 @@ export function install (Setaria, Vue, options) {
     storeInstall(Vue, options)
     // init router
     routerInstall(Vue, options)
+
+    Vue.mixin({
+      beforeRouteEnter (to, from, next) {
+        const loadStartTime = new Date().getTime()
+        next((vm) => {
+          if (vm && vm.$options) {
+            const currentComponentName = vm.$options.name || ''
+            const excludeComponentArray = config.excludeRecordPageLoadTimeComponentName || []
+            if (findIndex(excludeComponentArray, item => item === currentComponentName) === -1) {
+              const currentTime = new Date().getTime()
+              const pageName = vm.$store.getters[STORE_KEY.GET_PAGE_FULL_NAME](',')
+              if (typeof config.logHandler === 'function') {
+                try {
+                  config.logHandler(pageName, LOG_TYPE.PAGE_LOAD, currentTime - loadStartTime, vm)
+                } catch (e) {
+                  // do nothing
+                }
+              }
+              console.log(`${pageName} 页面加载耗时 ${currentTime - loadStartTime}ms`)
+            }
+          }
+        })
+      }
+    })
+
+    // set http instance on vue
+    if (Vue.prototype.$api === null || Vue.prototype.$api === undefined) {
+      Object.defineProperty(Vue.prototype, '$api', {
+        get () { return Setaria.getHttp() }
+      })
+    }
+
+    // add alias for http usage
+    Setaria.api = Setaria.getHttp()
+
+    // 系统信息处理
+    // 保存工程子模块url与模块属性的映射关系
+    const { moduleUrlRules } = config
+    if (isNotEmpty(moduleUrlRules)) {
+      Object.keys(moduleUrlRules).forEach((rule) => {
+        Setaria.getStore().commit(STORE_KEY.SET_PAGE_MODULE, {
+          uriContext: rule,
+          modules: moduleUrlRules[rule]
+        })
+      })
+    }
   }
 }

@@ -1,9 +1,10 @@
-import Vue from 'vue'
+import { merge } from '../../../util/lang'
 
 export default {
   namespaced: true,
   state: {
-    actions: {}
+    actions: {
+    }
   },
   getters: {
     /**
@@ -11,11 +12,20 @@ export default {
      */
     global (state) {
       return Object.keys(state.actions).some(name => state.actions[name] === true)
+    },
+    action (state, key) {
+      return (key) => {
+        return state.actions[key]
+      }
     }
   },
   mutations: {
     updateActions (state, { name, status = false }) {
-      Vue.set(state.actions, name, status)
+      if (typeof state.actions[name] !== 'boolean') {
+        state.actions[name] = false
+      }
+      state.actions[name] = status
+      state.actions = merge({}, state.actions)
     }
   }
 }

@@ -2,7 +2,7 @@
 import ApplicationError from '../global-object/ApplicationError'
 import { STORAGE_TYPE } from '../shared/constants'
 
-const STORAGE_KEY = '__Setaria_Storage_'
+const STORAGE_KEY = '__Setaria_SDK_Storage_'
 
 export type SCOPE = 'local' | 'session'
 

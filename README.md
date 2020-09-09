@@ -15,6 +15,7 @@
 ## 开发所需软件
 
 1. NodeJS
+
 > 用于在本地进行前端的开发与调试。
 
   [安装包下载地址](https://nodejs.org/zh-cn/download/)
@@ -28,16 +29,19 @@ npm config get registry
 ```
 
 2. Yarn
+
 > 用于安装项目所需的第三方依赖包
 
   [安装包下载地址和安装说明](https://yarnpkg.com/zh-Hans/docs/install/)
 
 3. Git
+
 > 版本管理工具。用于下载项目的代码和在开发时进行代码和文档的版本管理。
 
   [安装说明](https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%AE%89%E8%A3%85-Git)
 
 ## 安装步骤
+
 ``` bash
 # 下载工程到本地
 git clone https://github.com/bluejfox/setaria.git
@@ -46,10 +50,13 @@ cd setaria
 # 安装项目依赖
 yarn install
 ```
+
 ## 浏览器支持
+
 支持各种主流浏览器(Chrome, Firefox, Safari)和Internet Explorer 9+.
 
 ## 依赖包列表
+
 * [vue](https://github.com/vuejs/vue)
 * [axios](https://github.com/mzabriskie/axios)
 * [lodash](https://lodash.com/)
@@ -58,12 +65,15 @@ yarn install
 * [vuex](https://github.com/vuejs/vuex)
 
 ## 开发前需要掌握的知识
+
 * [ES6](http://es6.ruanyifeng.com/)
 
 ## 生态圈
+
 * [Setaria-UI](https://github.com/bluejfox/setaria-ui) 桌面端组件库
 
 ### 公共模块
+
 - [ ] 鉴权
 - [X] 消息处理
 - [X] 服务调用
@@ -73,4 +83,5 @@ yarn install
 - [ ] 用户状态管理
 
 ## License
+
 MIT

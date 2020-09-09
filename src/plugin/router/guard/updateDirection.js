@@ -1,17 +1,22 @@
-import store, { types } from '../../store'
+import { getStore } from '../../store/index'
+import { STORE_KEY } from '../../../shared/constants'
 
 export default function (to, from, next) {
-  const params = to.params
+  const store = getStore()
+  const { params, query } = to
   const currentPageFullPath = from.fullPath
-  let direction = store.state[types.GET_DIRECTION]
+  let direction = ''
   const nextPageFullPath = to.fullPath
-  if (params && params.$$direction === 'forward') {
-    direction = 'forward'
-    // 保存跳转方向
-    store.commit(types.SET_DIRECTION, direction)
+  // 设置了path的场合，params会被无视
+  if (query && typeof query._direction === 'string') {
+    direction = query._direction
+  } else if (params && params._direction) {
+    direction = params._direction
   }
+  // 保存跳转方向
+  store.commit(STORE_KEY.SET_DIRECTION, direction)
   // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
-  store.commit(types.UPDATE_DIRECTION, {
+  store.commit(STORE_KEY.UPDATE_DIRECTION, {
     current: currentPageFullPath,
     next: nextPageFullPath
   })

@@ -1,22 +1,23 @@
 import config from '../core/config'
-import { getHttp } from '../plugin/http/index'
+import { getHttp, createModuleDefaultBaseURL } from '../plugin/http/index'
 import { getStore } from '../plugin/store/index'
 import { getRouter } from '../plugin/router/index'
 
-export function initGlobalAPI (Setaria, instance) {
+export function initGlobalAPI (SDK, instance) {
   // config
   const configDef = {}
   configDef.get = () => config
   if (process.env.NODE_ENV !== 'production') {
     configDef.set = () => {
       console.warn(
-        'Do not replace the Setaria.config object, set individual fields instead.'
+        'Do not replace the SDK.config object, set individual fields instead.'
       )
     }
   }
-  Object.defineProperty(Setaria, 'config', configDef)
+  Object.defineProperty(SDK, 'config', configDef)
 
-  Setaria.getHttp = getHttp
-  Setaria.getRouter = getRouter
-  Setaria.getStore = getStore
+  SDK.getHttp = getHttp
+  SDK.createModuleDefaultBaseURL = createModuleDefaultBaseURL
+  SDK.getRouter = getRouter
+  SDK.getStore = getStore
 }
