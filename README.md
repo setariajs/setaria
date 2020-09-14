@@ -151,6 +151,19 @@ computed: {
 
 通过Vuex使用`constants.STORE_KEY.SET_INITIAL_STATE` mutation将数据手动保存至全局Vuex Module中
 
+```javascript
+import { constants } from 'setaria';
+
+this.$store.commit(constants.STORE_KEY.SET_INITIAL_STATE, {
+  data: {
+    user: {
+      id: 'setaria-user',
+      sex: 'gender'
+    }
+  }
+})
+```
+
 ## 公共模块
 
 - [ ] 鉴权
