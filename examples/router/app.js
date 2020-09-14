@@ -1,13 +1,37 @@
 import 'babel-polyfill'
-import Vue from 'vue'
+// import Vue from 'vue'
 import Setaria from 'setaria'
 import App from './App.vue'
 import routes from './routes'
+import LoadingComponent from './Loading.vue'
+import ErrorComponent from './Error.vue'
 
-const sdk = new Setaria({
+const entry = {
+  el: '#app',
+  getInitialState ({ http }) {
+    return new Promise((resolve, reject) => {
+      http.biz.get('user', { showLoading: true })
+        .then((res) => {
+          const { data } = res.data
+          resolve({ user: data })
+        })
+        .catch((error) => {
+          reject(error)
+        })
+    })
+  },
+  render: h => h(App)
+}
+
+new Setaria({
+  entry,
+  loading: LoadingComponent,
+  error: ErrorComponent,
   http: {
     defaults: {},
-    sys: {}
+    biz: {
+      baseURL: '/api/biz'
+    }
   },
   routes,
   moduleUrlRules: {
@@ -24,9 +48,8 @@ const sdk = new Setaria({
   }
 })
 
-Vue.use(Setaria)
-new Vue({
-  el: '#app',
-  sdk,
-  render: h => h(App)
-})
+// 使用原始方式初始化Vue根组件
+// sdk为上面new Setaria后获得的实例
+// entry.sdk = sdk
+// Vue.use(Setaria)
+// new Vue(entry)

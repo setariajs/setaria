@@ -1,6 +1,7 @@
 import { install as httpInstall } from './plugin/http/index'
 import { install as routerInstall } from './plugin/router/index'
 import { install as storeInstall } from './plugin/store/index'
+import { install as initialStateInstall } from './plugin/initial-state/index'
 import config from './core/config'
 import { LOG_TYPE, STORE_KEY } from './shared/constants'
 import { findIndex, isNotEmpty } from './util/lang'
@@ -12,21 +13,18 @@ export function install (Setaria, Vue, options) {
     if (install.installed && _Vue === Vue) return
     install.installed = true
     _Vue = Vue
-
     const isDef = v => v !== undefined
 
     Vue.mixin({
       beforeCreate () {
         if (isDef(this.$options.sdk)) {
           this._sdk = this.$options.sdk
-          // this.$sdk = this._sdk
           // set store instance on vue
           this.$options.store = Setaria.getStore()
           // set router instance on vue
           this.$options.router = Setaria.getRouter()
         } else {
           this._sdk = (this.$parent && this.$parent._sdk) || this
-          // this.$sdk = this._sdk
         }
       },
       destroyed () {
@@ -34,16 +32,14 @@ export function install (Setaria, Vue, options) {
       }
     })
 
-    // Object.defineProperty(Vue.prototype, '$s', {
-    //   get () { return this._sdk }
-    // })
-
     // init http
     httpInstall(Vue, options)
     // init store
     storeInstall(Vue, options)
     // init router
     routerInstall(Vue, options)
+    // init vue app
+    initialStateInstall(Setaria, Vue, options)
 
     Vue.mixin({
       beforeRouteEnter (to, from, next) {

@@ -4,6 +4,11 @@ import { getRouter } from '../../router/index'
 
 // initial state
 const state = {
+  // 自定义初始化数据
+  _setaria_initial_state: {
+    data: null,
+    error: null
+  },
   _setaria_direction: '',
   _setaria_loading: 0,
   _setaria_routeHistory: {
@@ -45,6 +50,10 @@ function getPageName (state, isSingleName, separator) {
 
 // getters
 const getters = {
+  /**
+   * 系统自定义初始化状态
+   */
+  [_GETTER._GET_INITIAL_STATE]: state => state._setaria_initial_state,
   /**
    * 取得当前路由历史
    */
@@ -129,6 +138,16 @@ const actions = {
 
 // mutations
 const mutations = {
+  /**
+   * 设置系统自定义出售计划状态
+   * @param {*} stateObj
+   * @param {*} val
+   */
+  [_MUTATION._SET_INITIAL_STATE] (stateObj, { data, error }) {
+    const s = stateObj
+    s._setaria_initial_state.data = data
+    s._setaria_initial_state.error = error
+  },
   [_MUTATION._SET_DIRECTION] (stateObj, val) {
     const s = stateObj
     s._setaria_direction = val

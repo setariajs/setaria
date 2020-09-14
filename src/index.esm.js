@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import { install } from './install'
 import config from './core/config'
 import ErrorHandler from './core/ErrorHandler'
@@ -10,7 +11,7 @@ import sdkMessage from './resource/message'
 import constants from './shared/constants'
 import defaultConfig from './shared/default-config'
 import { inBrowser } from './util/dom'
-import { isNotEmpty, merge } from './util/lang'
+import { isEmpty, isNotEmpty, merge } from './util/lang'
 import * as util from './util/index'
 
 class Setaria {
@@ -19,7 +20,13 @@ class Setaria {
     this.initConfig(options)
     initGlobalAPI(Setaria, _sdk)
     ErrorHandler.init()
+    // 不由框架进行Vue根组件的创建
+    if (isEmpty(options.entry)) {
+      return
+    }
+    Vue.use(Setaria, options)
   }
+
   /**
    * 初始化设置，增加新设置项的场合，需要在此处进行merge
    */

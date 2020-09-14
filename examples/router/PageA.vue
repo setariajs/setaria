@@ -1,11 +1,14 @@
 <template>
   <div>
-    PageA
-    <input type="button" @click="$router.push({name:'pageB'})" value="Go to PageB">
-    <input type="button" @click="c2Click" value="Go to PageC2">
-    <input type="button" @click="$router.push({name:'pageC1', params:{ 'id':2 }, query: { 'foo': 'bar' }})" value="Go to PageC">
-    <input type="button" @click="$router.replace({name:'pageC1', params:{ 'id':2 }, query: { 'foo': 'bar' }})" value="Replace to PageC">
-    <input type="button" value="pageForwardWithObject" @click="onGlobalPageForward">
+    PageA {{ initialState }}
+    <div>
+      <input type="button" @click="$router.push({name:'pageB'})" value="Go to PageB">
+      <input type="button" @click="c2Click" value="Go to PageC2">
+      <input type="button" @click="$router.push({name:'pageC1', params:{ 'id':2 }, query: { 'foo': 'bar' }})" value="Go to PageC">
+      <input type="button" @click="$router.replace({name:'pageC1', params:{ 'id':2 }, query: { 'foo': 'bar' }})" value="Replace to PageC">
+      <input type="button" value="pageForwardWithObject" @click="onGlobalPageForward">
+    </div>
+    <child></child>
     <ul>
       <li>
         <span class="label">1. 添加事件记录</span>
@@ -36,10 +39,20 @@
 </template>
 <script>
   import { constants } from 'setaria'
+  import Child from './Child.vue'
 
   export default {
+    /**
+     * Vue实例创建前钩子，$router, $store等实例还没有注入
+     */
+    beforeCreate () {
+      console.log('A beforeCreate', this.initialState ? Object.keys(this.initialState) : null)
+    },
     created () {
-      console.log('A Created')
+      console.log('A Created', Object.keys(this.initialState))
+    },
+    mounted () {
+      console.log('A mounted', Object.keys(this.initialState))
     },
     beforeDestroy () {
       console.log('A beforeDestroy')
@@ -58,6 +71,14 @@
     beforeRouteLeave (to, from, next) {
       console.log('A beforeRouteLeave')
       next()
+    },
+    computed: {
+      initialState() {
+        return this.$store.getters[constants.STORE_KEY.GET_INITIAL_STATE]
+      }
+    },
+    components: {
+      Child,
     },
     methods: {
       handleAddTrack () {

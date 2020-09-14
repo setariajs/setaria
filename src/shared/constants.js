@@ -5,14 +5,13 @@ export const SETARIA_SDK_STORE_MODULE_SYSTEM_CONFIG = 'systemConfig'
 
 // Getter
 export const _GETTER = {
+  '_GET_INITIAL_STATE': '_setaria_initial_state',
   '_GET_IS_LOADING': '_setaria_get_is_loading',
   '_GET_LOADING_COUNT': '_setaria_get_loading_count',
   '_GET_ROUTE_HISTORY': '_setaria_get_route_history',
   '_GET_ROUTE_CURRENT_INDEX': '_setaria_get_route_current_index',
   '_GET_TARGET_ROUTE': '_setaria_get_target_route',
   '_GET_DIRECTION': '_setaria_get_direction',
-  '_GET_CURRENT_MENU_NAME_LIST': '_setaria_get_current_menu_name_list',
-  '_GET_BREAD_CRUMB_LIST': '_setaria_get_bread_crumb_list',
   '_GET_FROM_PAGE_TYPE': '_setaria_get_from_page_type',
   '_GET_LASTEST_TRACK': '_setaria_get_lastest_track',
   '_GET_TRACK_LIST': '_setaria_get_track_list',
@@ -38,6 +37,7 @@ export const _MUTATION = {
   '_ADD_TRACK': '_setaria_add_track',
   '_UPDATE_CURRENT_PAGE_MODULE': '_setaria_update_current_page_module',
   '_ADD_ERROR': '_setaria_add_error',
+  '_SET_INITIAL_STATE': '_setaria_initial_state',
   '_SET_PAGE_MODULE': '_setaria_set_page_module',
   '_SET_REQUEST_ID': '_setaria_request_id',
   '_SET_ODD_NUMBER': '_setaria_odd_number',
@@ -49,14 +49,13 @@ export const STORE_KEY = {
   // Common
   SETARIA_SDK_STORE_MODULE,
   // Getters
+  GET_INITIAL_STATE: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_INITIAL_STATE}`,
   GET_IS_LOADING: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_IS_LOADING}`,
   GET_LOADING_COUNT: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_LOADING_COUNT}`,
   GET_ROUTE_HISTORY: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_ROUTE_HISTORY}`,
   GET_ROUTE_CURRENT_INDEX: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_ROUTE_CURRENT_INDEX}`,
   GET_TARGET_ROUTE: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_TARGET_ROUTE}`,
   GET_DIRECTION: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_DIRECTION}`,
-  GET_CURRENT_MENU_NAME_LIST: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_CURRENT_MENU_NAME_LIST}`,
-  GET_BREAD_CRUMB_LIST: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_BREAD_CRUMB_LIST}`,
   GET_FROM_PAGE_TYPE: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_FROM_PAGE_TYPE}`,
   GET_FROM_PAGE_NAME: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_FROM_PAGE_NAME}`,
   GET_TRACK_LIST: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_TRACK_LIST}`,
@@ -72,6 +71,7 @@ export const STORE_KEY = {
   // Getters - SytemConfig
   GET_TODO_REDIRECT_URL: `${SETARIA_SDK_STORE_MODULE_SYSTEM_CONFIG}/${_GETTER._GET_TODO_REDIRECT_URL}`,
   // Mutations
+  SET_INITIAL_STATE: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._SET_INITIAL_STATE}`,
   SET_DIRECTION: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._SET_DIRECTION}`,
   ADD_LOADING_COUNT: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._ADD_LOADING_COUNT}`,
   SUB_LOADING_COUNT: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._SUB_LOADING_COUNT}`,

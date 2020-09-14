@@ -43,14 +43,21 @@ app.use('^/heweather', createProxyMiddleware({
 
 // mock data for test start
 app.get('/api/biz/user', function (req, res) {
-  res.json({
-    code: '00000',
-    data: {
-      'userId': 'setaria',
-      'sex': 'gender',
-      'name': 'Ray'
-    }
-  })
+  // 模拟服务返回时间
+  setTimeout(() => {
+    res.json({
+      code: '00000',
+      data: {
+        'userId': 'setaria',
+        'sex': 'gender',
+        'name': 'Ray'
+      }
+    })
+    // res.status(500).json({
+    //   code: 'PLN00069',
+    //   message: '用户信息无法取得！'
+    // })
+  }, 2000)
 })
 app.post('/api/biz/business-error', function (req, res) {
   res.status(500).json({

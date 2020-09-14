@@ -72,7 +72,86 @@ yarn install
 
 * [Setaria-UI](https://github.com/bluejfox/setaria-ui) 桌面端组件库
 
-### 公共模块
+## 特色功能
+
+### 1. 初始化数据设置
+
+> 约定一个地方生产和消费初始化数据
+
+#### 1.1 启用方式
+
+```javascript
+// 在app.js中将传入new Vue构造函数中的组件配置信息放置到 `Setaria.config.entry` 中
+new Setaria({
+  // Vue入口组件配置信息
+  entry： {
+    // 原new Vue构造函数参数
+    el: '#app',
+    // 原new Vue构造函数参数
+    render: h => h(App),
+    // 定义getInitialState函数，必须返回Promise对象
+    getInitialState ({ http }) {
+      return new Promise((resolve, reject) => {
+        http.biz.get('user', { showLoading: true })
+          .then((res) => {
+            const { data } = res.data
+            // 返回值会由Setaria存入Vuex中，请根据实际情况构建适合的initialState结构
+            resolve({ user: data })
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      })
+    }
+  },
+  loading: LoadingComponent,
+  error: ErrorComponent,
+  http: {
+    defaults: {},
+    biz: {
+    }
+  },
+  routes
+})
+
+```
+
+#### 1.2 运行时配置
+
+`getInitialState`函数会在整个应用最开始执行，返回值会作为全局共享的数据。执行成功后框架会初始化根Vue实例，之后在Vue实例中可以通过 `this.$store.getters[constants.STORE_KEY.GET_INITIAL_STATE]` 直接获取到这份数据。
+
+#### 1.3 API
+
+##### 获取返回值
+
+```javascript
+computed: {
+  initialState() {
+    const { data, error } = this.$store.getters[constants.STORE_KEY.GET_INITIAL_STATE];
+    return data;
+  }
+},
+```
+
+##### data
+
+* Type: any
+* Default: null
+
+运行时配置中，`getInitialState` 的返回值
+
+##### error
+
+* Type: Error
+* Default: null
+
+当运行时配置中，`getInitialState` throw Error 时，会将错误储存在 `error` 中。
+
+##### 手动设置返回值
+
+通过Vuex使用`constants.STORE_KEY.SET_INITIAL_STATE` mutation将数据手动保存至全局Vuex Module中
+
+## 公共模块
 
 - [ ] 鉴权
 - [X] 消息处理
