@@ -15,6 +15,12 @@ export function install (Setaria, Vue, options) {
     _Vue = Vue
     const isDef = v => v !== undefined
 
+    if (!isDef(Vue.prototype.$setaria)) {
+      Vue.prototype.$setaria = {
+        api: {}
+      }
+    }
+
     Vue.mixin({
       beforeCreate () {
         if (isDef(this.$options.sdk)) {

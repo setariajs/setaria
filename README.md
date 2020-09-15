@@ -147,6 +147,21 @@ computed: {
 
 当运行时配置中，`getInitialState` throw Error 时，会将错误储存在 `error` 中。
 
+##### refreshInitialState 刷新初始化数据
+
+* Type: () => Promise
+
+重新执行 getInitialState 方法，并获取新数据。
+
+```javascript
+import Setaria from 'setaria'
+
+Setaria.refreshInitialState()
+
+// 或者在Vue实例内使用如下方式执行
+// this.$setaria.api.refreshInitialState()
+```
+
 ##### 手动设置返回值
 
 通过Vuex使用`constants.STORE_KEY.SET_INITIAL_STATE` mutation将数据手动保存至全局Vuex Module中

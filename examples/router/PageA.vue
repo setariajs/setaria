@@ -1,6 +1,6 @@
 <template>
   <div>
-    PageA {{ initialState }}
+    PageA {{ loadingInitialState ? 'initialState取得中' : initialState }} <input type="button" @click="handleRefreshInitialState" value="刷新initialState">
     <div>
       <input type="button" @click="$router.push({name:'pageB'})" value="Go to PageB">
       <input type="button" @click="c2Click" value="Go to PageC2">
@@ -38,10 +38,15 @@
   </div>
 </template>
 <script>
-  import { constants } from 'setaria'
+  import Setaria, { constants } from 'setaria'
   import Child from './Child.vue'
 
   export default {
+    data() {
+      return {
+        loadingInitialState: false
+      }
+    },
     /**
      * Vue实例创建前钩子，$router, $store等实例还没有注入
      */
@@ -81,6 +86,14 @@
       Child,
     },
     methods: {
+      handleRefreshInitialState () {
+        this.loadingInitialState = true
+        console.log(Setaria.refreshInitialState())
+        this.$setaria.api.refreshInitialState()
+          .then(() => {
+            this.loadingInitialState = false
+          })
+      },
       handleAddTrack () {
         this.$store.commit(constants.STORE_KEY.ADD_TRACK, {
           componentName: 'ElButton',

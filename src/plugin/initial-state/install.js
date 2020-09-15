@@ -14,30 +14,16 @@ export default function install (Setaria, Vue, options) {
   if (isNotEmpty(entry)) {
     // 进行异步处理，getInitialState函数必须返回Promise
     if (typeof entry.getInitialState === 'function') {
+      Setaria.refreshInitialState = Vue.prototype.$setaria.api.refreshInitialState = () => {
+        return getInitialState(entry, getHttp(), getRouter(), getStore())
+      }
       Vue.component(
         'async-app',
         // 这个动态导入会返回一个 `Promise` 对象。
         () => (
           {
             // 需要加载的组件 (应该是一个 `Promise` 对象)
-            component: new Promise((resolve, reject) => {
-              const store = getStore()
-              entry.getInitialState({
-                http: getHttp(),
-                router: getRouter(),
-                store
-              }).then((res) => {
-                store.commit(STORE_KEY.SET_INITIAL_STATE, {
-                  data: res
-                })
-                resolve(entry)
-              }).catch((error) => {
-                store.commit(STORE_KEY.SET_INITIAL_STATE, {
-                  error
-                })
-                reject(error)
-              })
-            }),
+            component: getInitialState(entry, getHttp(), getRouter(), getStore()),
             // 异步组件加载时使用的组件
             loading,
             // 加载失败时使用的组件
@@ -66,6 +52,22 @@ export default function install (Setaria, Vue, options) {
   }
 }
 
-function createVueInstance(options) {
-  new Vue(options)
+function getInitialState (entry, http, router, store) {
+  return new Promise((resolve, reject) => {
+    entry.getInitialState({
+      http,
+      router,
+      store
+    }).then((res) => {
+      store.commit(STORE_KEY.SET_INITIAL_STATE, {
+        data: res
+      })
+      resolve(entry)
+    }).catch((error) => {
+      store.commit(STORE_KEY.SET_INITIAL_STATE, {
+        error
+      })
+      reject(error)
+    })
+  })
 }

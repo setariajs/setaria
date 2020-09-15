@@ -41,16 +41,20 @@ app.use('^/heweather', createProxyMiddleware({
   }
 }))
 
+let pid = 0
+
 // mock data for test start
 app.get('/api/biz/user', function (req, res) {
   // 模拟服务返回时间
   setTimeout(() => {
+    pid += 1
     res.json({
       code: '00000',
       data: {
         'userId': 'setaria',
         'sex': 'gender',
-        'name': 'Ray'
+        'name': 'Ray',
+        'pid': pid
       }
     })
     // res.status(500).json({
