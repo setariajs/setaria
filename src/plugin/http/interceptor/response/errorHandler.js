@@ -1,14 +1,13 @@
 import { isNotEmpty } from '../../../../util/lang'
-import CustomBusinessApiError from '../../../../global-object/CustomBusinessApiError'
 import ServiceError from '../../../../global-object/ServiceError'
 import subLoading from './subLoading'
 
 function throwDefaultError (messageId, messagePrefix, error) {
-  let errorMessage = 'SYSMSG-SERVICE-UNKNOWN-ERROR'
+  let errorCode = 'SYSMSG-SERVICE-UNKNOWN-ERROR'
   if (messageId !== '') {
-    errorMessage = `${messagePrefix}${messageId}`
+    errorCode = `${messagePrefix}${messageId}`
   }
-  throw new ServiceError(errorMessage, error)
+  throw new ServiceError(errorCode, null, error)
 }
 // 处理401 无权操作的信息
 function process401 () {
@@ -71,8 +70,9 @@ export default function errorHandler (error) {
         }
       }
       const { code, message, requestId, oddNumber } = responseData
+      console.log('111')
       if (isNotEmpty(code)) {
-        throw new CustomBusinessApiError(code, message, error, requestId, oddNumber)
+        throw new ServiceError(code, message, error, requestId, oddNumber)
       }
     }
     throwDefaultError(messageId, messagePrefix, error)
@@ -84,12 +84,12 @@ export default function errorHandler (error) {
     console.error('Something happened in setting up the request that triggered an Error', error)
     // timeout
     if (error.message.indexOf('timeout of ') === 0) {
-      throw new ServiceError('SYSMSG-SERVICE-TIMEOUT', error, [error.config.timeout / 1000])
+      throw new ServiceError('SYSMSG-SERVICE-TIMEOUT', null, error, [error.config.timeout / 1000])
     // server unavaliable
     } else if (error.message.indexOf('Network Error') === 0) {
-      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', error)
+      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', null, error)
     } else {
-      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', error)
+      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', null, error)
     }
   }
   return Promise.reject(error)

@@ -81,7 +81,7 @@
     <ul>
       异常处理
       <li>
-        普通异常信息：id: {{ exception.id }}, message: {{ exception.message }}, requestId: {{ exception.requestId }}
+        普通异常信息：id: {{ exception.code }}, message: {{ exception.message }}
       </li>
       <li>
         {{ lastestError }}
@@ -178,8 +178,8 @@ export default {
       const config = error.detail && error.detail.config || {}
       if (config.isShowError !== false) {
         this.exception = {
-          id: error.id,
-          message: error.noIdMessage,
+          code: error.errorCode,
+          message: error.errorMessage,
           requestId: error.requestId
         }
       }

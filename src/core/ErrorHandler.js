@@ -1,6 +1,6 @@
 /* @flow */
 import Vue from 'vue'
-import { ERROR_TYPES, STORE_KEY } from '../shared/constants'
+import { ERROR_THROW_TYPES, STORE_KEY } from '../shared/constants'
 import { getStore } from '../plugin/store/index'
 import config from './config'
 import ApplicationError, { ERROR_PREFIX, ERROR_MSG_SPLICER } from '../global-object/ApplicationError'
@@ -45,6 +45,9 @@ function parseApplicationError (error: string | Object): ApplicationError {
     // chrome, safari
     } else if (message.indexOf('Uncaught Error: ') === 0) {
       message = message.replace('Uncaught Error: ', '')
+    // chrome
+    } else if (message.indexOf('Uncaught TypeError: ' === 0)) {
+      message = message.replace('Uncaught TypeError: ', '')
     }
     // 解析SDK错误信息，取得错误代码和错误内容
     if (message.indexOf(ERROR_PREFIX) !== -1) {
@@ -75,7 +78,7 @@ function isIgnoreError (errorObject) {
   } else if (typeof errorObject === 'object' && errorObject.name) {
     errorString = errorObject.name
   }
-  const ignoreErrorTypeArray = ['TypeError', 'ReferenceError', 'SCRIPT438']
+  const ignoreErrorTypeArray = ['SCRIPT438']
   const index = findIndex(ignoreErrorTypeArray, ignoreErrorType => errorString.indexOf(ignoreErrorType) === 0)
   return index !== -1
 }
@@ -86,9 +89,13 @@ export default class ErrorHandler {
    */
   static init (): void {
     // Vue异常
+    // 从 2.2.0 起，这个钩子也会捕获组件生命周期钩子里的错误。同样的，当这个钩子是 undefined 时，被捕获的错误会通过 console.error 输出而避免应用崩溃。
+    // 从 2.4.0 起，这个钩子也会捕获 Vue 自定义事件处理函数内部的错误了。
+    // 从 2.6.0 起，这个钩子也会捕获 v-on DOM 监听器内部抛出的错误。另外，如果任何被覆盖的钩子或处理函数返回一个 Promise 链 (例如 async 函数)，
+    // 则来自其 Promise 链的错误也会被处理。
     Vue.config.errorHandler = (err: Error, vm: Object, info: Object) => {
       console.error('The Exception from Vue', vm, info)
-      ErrorHandler.handleError(ERROR_TYPES.VUE_ERROR, err, {
+      ErrorHandler.handleError(ERROR_THROW_TYPES.VUE_ERROR, err, {
         vm,
         info
       })
@@ -96,7 +103,7 @@ export default class ErrorHandler {
     // JavaScript执行期异常
     window.onerror = (err: Error) => {
       console.error('The Exception from window.onerror')
-      ErrorHandler.handleError(ERROR_TYPES.NORMAL_ERROR, err, {})
+      ErrorHandler.handleError(ERROR_THROW_TYPES.NORMAL_ERROR, err, {})
     }
 
     // promise异常
@@ -104,7 +111,7 @@ export default class ErrorHandler {
     // Promise Rejection异常处理函数
     const unhandledrejectionHandler = (err: Object | PromiseRejectionEvent) => {
       console.error('The Exception from promise')
-      ErrorHandler.handleError(ERROR_TYPES.PROMISE_UNREJECT_ERROR, err, {})
+      ErrorHandler.handleError(ERROR_THROW_TYPES.PROMISE_UNREJECT_ERROR, err, {})
     }
     // 绑定Promise Reject Event处理逻辑
     window.onunhandledrejection = unhandledrejectionHandler
@@ -114,12 +121,12 @@ export default class ErrorHandler {
    * 处理捕获的异常
    */
   static handleError (
-    type: ERROR_TYPES,
+    type: ERROR_THROW_TYPES,
     error: string | Object | Error | PromiseRejectionEvent,
     source?: Object): void {
     let requestId = null
     let oddNumber = null
-    if (type === ERROR_TYPES.PROMISE_UNREJECT_ERROR) {
+    if (type === ERROR_THROW_TYPES.PROMISE_UNREJECT_ERROR) {
       requestId = error.reason.requestId
       oddNumber = error.reason.oddNumber
     }
@@ -144,14 +151,14 @@ export default class ErrorHandler {
    * 解析异常
    */
   static parseError (
-    type: ERROR_TYPES,
+    type: ERROR_THROW_TYPES,
     error: string | Object | Error | PromiseRejectionEvent,
     source?: Object): ApplicationError {
     let ret: ?ApplicationError = null
     // 从Vue中抛出异常的场合
-    if (type === ERROR_TYPES.VUE_ERROR) {
+    if (type === ERROR_THROW_TYPES.VUE_ERROR) {
       ret = parseApplicationError(error)
-    } else if (type === ERROR_TYPES.NORMAL_ERROR) {
+    } else if (type === ERROR_THROW_TYPES.NORMAL_ERROR) {
       if (typeof error === 'string') {
         error = {
           message: error
@@ -159,14 +166,14 @@ export default class ErrorHandler {
       }
       ret = parseApplicationError(error)
     // Promise回调函数中抛出的异常
-    } else if (type === ERROR_TYPES.PROMISE_UNREJECT_ERROR) {
+    } else if (type === ERROR_THROW_TYPES.PROMISE_UNREJECT_ERROR) {
       ret = parseApplicationError(error.reason)
     } else {
       ret = new ApplicationError('MAM004E')
     }
 
     // 实现了Vue.config.errorHandler接口的场合，Vue不会在控制台显示错误。
-    if (type === ERROR_TYPES.VUE_ERROR) {
+    if (type === ERROR_THROW_TYPES.VUE_ERROR) {
       /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
       console.error(error)
     }

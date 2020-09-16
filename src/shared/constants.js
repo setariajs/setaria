@@ -109,7 +109,11 @@ export const MESSAGE_TYPE = {
   ERROR: 'error'
 }
 
-export const ERROR_TYPES = {
+export const ERROR_PREFIX = 'Setaria Error'
+
+export const ERROR_MSG_SPLICER = ':'
+
+export const ERROR_THROW_TYPES = {
   // 非Vue组件的常规错误
   'NORMAL_ERROR': 0,
   // Promise回调函数中的错误
@@ -150,7 +154,9 @@ export const LOG_TYPE = {
 }
 
 export default {
-  ERROR_TYPES,
+  ERROR_THROW_TYPES,
+  ERROR_PREFIX,
+  ERROR_MSG_SPLICER,
   MESSAGE_TYPE,
   STORE_KEY,
   STORAGE_TYPE,

@@ -1,4 +1,4 @@
-import CustomBusinessApiError from '../../../../global-object/CustomBusinessApiError'
+import ServiceError from '../../../../global-object/ServiceError'
 import { API_RESPOSNE_CODE_TYPES } from '../../../../shared/constants'
 
 export default function businessErrorHandler (response) {
@@ -8,7 +8,7 @@ export default function businessErrorHandler (response) {
     const { code, message, requestId, oddNumber } = response.data
     // when got business exception
     if (code !== API_RESPOSNE_CODE_TYPES.SUCCESS) {
-      throw new CustomBusinessApiError(code, message, null, requestId, oddNumber)
+      throw new ServiceError(code, message, null, requestId, oddNumber)
     }
   }
   return response

@@ -12,7 +12,8 @@
     "setaria": "bin/script.js"
   },
   "scripts": {
-    "dev": "node examples/server.js",
+    "dev": "cross-env NODE_ENV=development node examples/server.js",
+    "prod:test": "cross-env NODE_ENV=production node examples/server.js",
     "dev:dist": "rollup -wm -c build/rollup.dev.config.js",
     "build": "npm run build:main",
     "build:main": "node build/build.main.js",
@@ -39,13 +40,13 @@
     "vuex": "^2.3.1"
   },
   "peerDependencies": {
-    "vue": "2.5.21",
     "gulp": "^4.0.2",
     "mkdirp": "^0.5.1",
     "prettier": "^1.18.2",
     "rimraf": "^2.6.3",
     "sonarqube-scanner": "^2.5.0",
-    "swagger-parser-mock": "^1.1.2"
+    "swagger-parser-mock": "^1.1.2",
+    "vue": "2.5.21"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -59,6 +60,7 @@
     "babel-preset-flow-vue": "^1.0.0",
     "chalk": "^2.4.2",
     "connect-history-api-fallback": "^1.6.0",
+    "cross-env": "^7.0.2",
     "cross-spawn": "^5.0.1",
     "css-loader": "^0.26.1",
     "eslint": "^3.15.0",
@@ -86,6 +88,7 @@
     "sonarqube-scanner": "^2.5.0",
     "swagger-parser-mock": "^1.1.2",
     "uglify-js": "^2.7.5",
+    "vue": "2.5.21",
     "vue-loader": "^12.0.0",
     "vue-template-compiler": "2.5.21",
     "webpack": "^2.6.1",

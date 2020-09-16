@@ -24,8 +24,12 @@ app.use(history({
   index: '/index.html',
   rewrites: [
     {
-      from: /\/router\//,
+      from: /\/router/,
       to: '/router/index.html'
+    },
+    {
+      from: /\/basic/,
+      to: '/basic/index.html'
     }
   ],
   logger: console.log.bind(console)

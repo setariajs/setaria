@@ -1,33 +1,30 @@
 /* @flow */
 import { isEmpty } from '../util/lang'
+import AbstractError from './AbstractError'
 import Message from './Message'
-import { MESSAGE_TYPE } from '../shared/constants'
 
 export const ERROR_PREFIX = 'Setaria Error'
 export const ERROR_MSG_SPLICER = ':'
 
-export default class ApplicationError extends Error {
-  _name: string;
-  id: string;
+export default class ApplicationError extends AbstractError {
+  // 前端定义消息messageCode
+  messageCode: string;
+  // message中的占位数据
   params: Array<string | number>;
-  type: string;
-  noIdMessage: string;
-  message: string;
-  constructor (id?: string = '', params?: Array<string | number> = [], message?: string = '') {
+  constructor (messageCode?: string = '', params?: Array<string | number> = [], message?: string = '') {
     let msg: string = message
-    if (isEmpty(id)) {
-      id = 'unknown'
+    // 生产环境屏蔽javascript执行期错误
+    if (isEmpty(messageCode) && process.env.NODE_ENV === 'production') {
+      console.error(msg)
+      messageCode = 'SYSMSG-CLIENT-UNKNOWN-ERROR'
+      msg = ''
     }
-    if (isEmpty(message)) {
-      msg = new Message(id, params, message).getMessage()
+    if (!isEmpty(messageCode) && isEmpty(msg)) {
+      msg = new Message(messageCode, params, msg).getMessage() || new Message('SYSMSG-CLIENT-UNKNOWN-ERROR').getMessage()
     }
-    const fullMessage = `${ERROR_PREFIX}[${id}]${ERROR_MSG_SPLICER}${msg}`
-    super(fullMessage)
-    this._name = 'ApplicationError'
-    this.id = id
+    // 从window.onerror只能取得字符串类型的错误信息
+    super(messageCode, msg, 'ApplicationError')
+    this.messageCode = messageCode
     this.params = params
-    this.type = MESSAGE_TYPE.ERROR
-    this.noIdMessage = msg
-    this.message = fullMessage
   }
 }
