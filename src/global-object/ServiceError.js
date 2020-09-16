@@ -27,8 +27,6 @@ function dispatchUnHandlerRejectEvent (reason: Object) {
 export default class ServiceError extends AbstractError {
   // Convenient for back-end Troubleshooting: unique request ID
   requestId: string;
-  // error display type： 0 silent; 1 message.warn; 2 message.error; 4 notification; 9 page
-  showType: number;
   oddNumber: string;
   detail: Object;
   constructor (
@@ -38,7 +36,7 @@ export default class ServiceError extends AbstractError {
     params?: Array<string | number> = [],
     requestId?: string = '',
     oddNumber?: string = '',
-    showType?: number = 4) {
+    showType?: number = 2) {
     let msg = errorMessage
     // 系统自定义消息
     if (errorCode &&
@@ -51,9 +49,8 @@ export default class ServiceError extends AbstractError {
         msg = new Message('SYSMSG-SERVICE-UNKNOWN-ERROR').getMessage()
       }
     }
-    super(errorCode, msg, 'ServiceError')
+    super(errorCode, msg, 'ServiceError', showType)
     this.detail = reason
-    this.showType = showType
     this.requestId = requestId
     this.oddNumber = oddNumber
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件

@@ -111,7 +111,7 @@ export const MESSAGE_TYPE = {
 
 export const ERROR_PREFIX = 'Setaria Error'
 
-export const ERROR_MSG_SPLICER = ':'
+export const ERROR_MSG_SPLICER = '_$:$_'
 
 export const ERROR_THROW_TYPES = {
   // 非Vue组件的常规错误

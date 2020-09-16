@@ -238,7 +238,7 @@ export default {
       Object.prototype.findIndex()
     },
     handleThrowException () {
-      throw new ApplicationError('MCM006E')
+      throw new ApplicationError('MCM006E', null, null, 4)
     },
     handleThrowPromiseExceptionByCallHttp () {
       this.$api.biz.post('business-error', {})

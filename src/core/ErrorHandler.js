@@ -1,10 +1,10 @@
 /* @flow */
 import Vue from 'vue'
-import { ERROR_THROW_TYPES, STORE_KEY } from '../shared/constants'
+import { ERROR_THROW_TYPES, ERROR_PREFIX, ERROR_MSG_SPLICER, STORE_KEY } from '../shared/constants'
 import { getStore } from '../plugin/store/index'
 import config from './config'
-import ApplicationError, { ERROR_PREFIX, ERROR_MSG_SPLICER } from '../global-object/ApplicationError'
-import { findIndex } from '../util/lang'
+import ApplicationError from '../global-object/ApplicationError'
+import { findIndex, isNotEmpty } from '../util/lang'
 
 /**
  * 判断是否为ApplicationError
@@ -26,17 +26,19 @@ function isServiceError (error: string | Object | Error | PromiseRejectionEvent)
 
 function parseApplicationError (error: string | Object): ApplicationError {
   let ret: ApplicationError = null
-  let id: string = ''
-  let message: ?string = ''
   // TODO 需要确认此处error为什么为undefined
   if (error === undefined || error === null) {
     ret = new ApplicationError('MAM004E')
   } else if (isApplicationError(error)) {
-    ret = new ApplicationError(error.errorCode, [], error.errorMessage)
+    ret = new ApplicationError(error.errorCode, [], error.errorMessage, error.showType)
   } else if (isServiceError(error)) {
     ret = error
-  // 普通Error对象
+    // 普通Error对象
   } else if (error.message) {
+    let code: string = ''
+    let message: ?string = ''
+    // eslint-disable-next-line no-undef-init
+    let showType: ?number = undefined
     message = error.message
     // 删除浏览器添加的错误信息前缀
     // firefox
@@ -52,17 +54,18 @@ function parseApplicationError (error: string | Object): ApplicationError {
     // 解析SDK错误信息，取得错误代码和错误内容
     if (message.indexOf(ERROR_PREFIX) !== -1) {
       if (message.indexOf(ERROR_MSG_SPLICER) !== -1) {
-        const msgArr: Array<string> = []
-        const splicerIndex = message.indexOf(ERROR_MSG_SPLICER)
-        msgArr[0] = message.substring(0, splicerIndex)
-        msgArr[1] = message.substring(splicerIndex + 1)
-        id = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
-        message = msgArr[1]
+        const msgArr: Array<string> = message.split(ERROR_MSG_SPLICER)
+        code = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '')
+        showType = msgArr[1]
+        if (isNotEmpty(showType)) {
+          showType = showType.replace('{', '').replace('}', '')
+        }
+        message = msgArr[2]
       } else {
-        id = 'unknown'
+        code = 'unknown'
       }
     }
-    ret = new ApplicationError(id, [], message)
+    ret = new ApplicationError(code, [], message, showType)
   } else if (typeof error.toString === 'function') {
     ret = new ApplicationError(null, null, error.toString())
   } else {

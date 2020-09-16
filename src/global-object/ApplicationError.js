@@ -11,7 +11,7 @@ export default class ApplicationError extends AbstractError {
   messageCode: string;
   // message中的占位数据
   params: Array<string | number>;
-  constructor (messageCode?: string = '', params?: Array<string | number> = [], message?: string = '') {
+  constructor (messageCode?: string = '', params?: Array<string | number> = [], message?: string = '', showType?: number = 2) {
     let msg: string = message
     // 生产环境屏蔽javascript执行期错误
     if (isEmpty(messageCode) && process.env.NODE_ENV === 'production') {
@@ -23,7 +23,7 @@ export default class ApplicationError extends AbstractError {
       msg = new Message(messageCode, params, msg).getMessage() || new Message('SYSMSG-CLIENT-UNKNOWN-ERROR').getMessage()
     }
     // 从window.onerror只能取得字符串类型的错误信息
-    super(messageCode, msg, 'ApplicationError')
+    super(messageCode, msg, 'ApplicationError', showType)
     this.messageCode = messageCode
     this.params = params
   }
