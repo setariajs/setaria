@@ -93,10 +93,13 @@
         <input type="button" @click="handleThrowException" value="抛出ApplicationError前端业务异常信息">
       </li>
       <li>
-        <input type="button" @click="handleThrowPromiseExceptionByCallHttp" value="[服务]调用HTTP抛出Promise异常信息">
+        <input type="button" @click="handleBusinessException" value="[服务]调用HTTP服务返回404异常">
       </li>
       <li>
-        <input type="button" @click="handleBusinessException" value="[服务]调用服务返回404异常">
+        <input type="button" @click="handleThrowPromiseExceptionByCallHttp" value="[服务]调用HTTP服务返回业务服务异常">
+      </li>
+      <li>
+        <input type="button" @click="handleThrowJavaScriptExceptionByCallHttp" value="[服务]调用HTTP服务返回Javascript异常">
       </li>
       <li>
         <input type="button" @click="handleDownloadBusinessException" value="[服务]下载服务返回业务异常">
@@ -247,6 +250,12 @@ export default {
       this.$api.biz.post('download-business-error', {}, {
         responseType: 'arraybuffer'
       })
+    },
+    handleThrowJavaScriptExceptionByCallHttp () {
+      this.$api.biz.get('user')
+        .then(() => {
+          throw new ApplicationError('MCM007E')
+        })
     }
   }
 }

@@ -70,7 +70,6 @@ export default function errorHandler (error) {
         }
       }
       const { code, message, requestId, oddNumber } = responseData
-      console.log('111')
       if (isNotEmpty(code)) {
         throw new ServiceError(code, message, error, requestId, oddNumber)
       }

@@ -32,7 +32,7 @@ function parseApplicationError (error: string | Object): ApplicationError {
   if (error === undefined || error === null) {
     ret = new ApplicationError('MAM004E')
   } else if (isApplicationError(error)) {
-    ret = new ApplicationError(error.id, [], error.noIdMessage)
+    ret = new ApplicationError(error.errorCode, [], error.errorMessage)
   } else if (isServiceError(error)) {
     ret = error
   // 普通Error对象
