@@ -13,7 +13,7 @@ export default {
   computed: {
     error() {
       const initialState = this.$store.getters[constants.STORE_KEY.GET_INITIAL_STATE]
-      return util.pathOr('', ['error', 'noIdMessage'], initialState)
+      return util.pathOr('', ['error', 'errorMessage'], initialState)
     }
   }
 }

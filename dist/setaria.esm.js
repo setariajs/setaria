@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.0
+ * Setaria v0.4.1
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -2001,7 +2001,6 @@ function errorHandler (error) {
       var message = responseData.message;
       var requestId = responseData.requestId;
       var oddNumber = responseData.oddNumber;
-      console.log('111');
       if (isNotEmpty(code)) {
         throw new ServiceError(code, message, error, requestId, oddNumber)
       }
@@ -2661,7 +2660,7 @@ function parseApplicationError (error) {
   if (error === undefined || error === null) {
     ret = new ApplicationError('MAM004E');
   } else if (isApplicationError(error)) {
-    ret = new ApplicationError(error.id, [], error.noIdMessage);
+    ret = new ApplicationError(error.errorCode, [], error.errorMessage);
   } else if (isServiceError(error)) {
     ret = error;
   // 普通Error对象
@@ -3009,7 +3008,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.0';
+Setaria.version = '0.4.1';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
