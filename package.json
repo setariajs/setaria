@@ -35,9 +35,7 @@
   "dependencies": {
     "axios": "^0.15.x",
     "lodash": "^4.17.20",
-    "ramda": "^0.25.0",
-    "vue-router": "^2.2.x",
-    "vuex": "^2.3.1"
+    "ramda": "^0.25.0"
   },
   "peerDependencies": {
     "gulp": "^4.0.2",
@@ -46,7 +44,9 @@
     "rimraf": "^2.6.3",
     "sonarqube-scanner": "^2.5.0",
     "swagger-parser-mock": "^1.1.2",
-    "vue": "2.5.21"
+    "vue": "2.5.21",
+    "vue-router": "^2.2.x",
+    "vuex": "^2.3.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
