@@ -3,13 +3,13 @@ export default {
   lintOnSave: true,
   productionSourceMap: false,
   pages: {
-    index: process.env.VUE_APP_ENTRY_PAGE_FILE
+    index: process.env.VUE_APP_ENTRY_PAGE_FILE || 'src/main.js'
   },
   configureWebpack: {
     devtool: (process.env.NODE_ENV === 'production') ? false : 'eval-source-map',
     entry: {
       framework: ['setaria'],
-      vendors: ['vue', 'vuex', 'vue-router', 'moment', 'lodash', 'numeral']
+      vendors: ['vue', 'vuex', 'vue-router', 'moment', 'numeral', 'ramda']
     },
     optimization: {
       splitChunks: {
