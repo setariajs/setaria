@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.1
+ * Setaria v0.4.2
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -276,7 +276,7 @@ var MESSAGE_TYPE = {
 
 var ERROR_PREFIX = 'Setaria Error';
 
-var ERROR_MSG_SPLICER = ':';
+var ERROR_MSG_SPLICER = '_$:$_';
 
 var ERROR_THROW_TYPES = {
   // 非Vue组件的常规错误
@@ -330,21 +330,23 @@ var constants = {
   LAST_PAGE_NAME: LAST_PAGE_NAME
 };
 
-function encodeErrorMessage (prefix, id, message) {
-  return (prefix + "[" + id + "]" + ERROR_MSG_SPLICER + message)
+function encodeErrorMessage (prefix, code, message, showType) {
+  return (prefix + "[" + code + "]" + ERROR_MSG_SPLICER + "{" + showType + "}" + ERROR_MSG_SPLICER + message)
 }
 
 /*  */
 var AbstractError = (function (Error) {
-  function AbstractError (errorCode, errorMessage, className) {
+  function AbstractError (errorCode, errorMessage, className, showType) {
     if ( errorCode === void 0 ) errorCode = '';
     if ( errorMessage === void 0 ) errorMessage = '';
     if ( className === void 0 ) className = '';
+    if ( showType === void 0 ) showType = 2;
 
-    var encodeMessage = encodeErrorMessage(ERROR_PREFIX, errorCode, errorMessage);
+    var encodeMessage = encodeErrorMessage(ERROR_PREFIX, errorCode, errorMessage, showType);
     Error.call(this, encodeMessage);
     this._name = className || 'AbstractError';
     this.type = MESSAGE_TYPE.ERROR;
+    this.showType = showType;
     this.errorCode = errorCode;
     this.errorMessage = errorMessage;
   }
@@ -438,14 +440,15 @@ function getMessageType (id) {
 }
 
 /*  */
-var ERROR_PREFIX$1 = 'Setaria Error';
-var ERROR_MSG_SPLICER$1 = ':';
+
+
 
 var ApplicationError = (function (AbstractError$$1) {
-  function ApplicationError (messageCode, params, message) {
+  function ApplicationError (messageCode, params, message, showType) {
     if ( messageCode === void 0 ) messageCode = '';
     if ( params === void 0 ) params = [];
     if ( message === void 0 ) message = '';
+    if ( showType === void 0 ) showType = 2;
 
     var msg = message;
     // 生产环境屏蔽javascript执行期错误
@@ -458,7 +461,7 @@ var ApplicationError = (function (AbstractError$$1) {
       msg = new Message(messageCode, params, msg).getMessage() || new Message('SYSMSG-CLIENT-UNKNOWN-ERROR').getMessage();
     }
     // 从window.onerror只能取得字符串类型的错误信息
-    AbstractError$$1.call(this, messageCode, msg, 'ApplicationError');
+    AbstractError$$1.call(this, messageCode, msg, 'ApplicationError', showType);
     this.messageCode = messageCode;
     this.params = params;
   }
@@ -1895,7 +1898,7 @@ var ServiceError = (function (AbstractError$$1) {
     if ( params === void 0 ) params = [];
     if ( requestId === void 0 ) requestId = '';
     if ( oddNumber === void 0 ) oddNumber = '';
-    if ( showType === void 0 ) showType = 4;
+    if ( showType === void 0 ) showType = 2;
 
     var msg = errorMessage;
     // 系统自定义消息
@@ -1909,9 +1912,8 @@ var ServiceError = (function (AbstractError$$1) {
         msg = new Message('SYSMSG-SERVICE-UNKNOWN-ERROR').getMessage();
       }
     }
-    AbstractError$$1.call(this, errorCode, msg, 'ServiceError');
+    AbstractError$$1.call(this, errorCode, msg, 'ServiceError', showType);
     this.detail = reason;
-    this.showType = showType;
     this.requestId = requestId;
     this.oddNumber = oddNumber;
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
@@ -2659,17 +2661,19 @@ function isServiceError (error) {
 
 function parseApplicationError (error) {
   var ret = null;
-  var id = '';
-  var message = '';
   // TODO 需要确认此处error为什么为undefined
   if (error === undefined || error === null) {
     ret = new ApplicationError('MAM004E');
   } else if (isApplicationError(error)) {
-    ret = new ApplicationError(error.errorCode, [], error.errorMessage);
+    ret = new ApplicationError(error.errorCode, [], error.errorMessage, error.showType);
   } else if (isServiceError(error)) {
     ret = error;
-  // 普通Error对象
+    // 普通Error对象
   } else if (error.message) {
+    var code = '';
+    var message = '';
+    // eslint-disable-next-line no-undef-init
+    var showType = undefined;
     message = error.message;
     // 删除浏览器添加的错误信息前缀
     // firefox
@@ -2683,19 +2687,20 @@ function parseApplicationError (error) {
       message = message.replace('Uncaught TypeError: ', '');
     }
     // 解析SDK错误信息，取得错误代码和错误内容
-    if (message.indexOf(ERROR_PREFIX$1) !== -1) {
-      if (message.indexOf(ERROR_MSG_SPLICER$1) !== -1) {
-        var msgArr = [];
-        var splicerIndex = message.indexOf(ERROR_MSG_SPLICER$1);
-        msgArr[0] = message.substring(0, splicerIndex);
-        msgArr[1] = message.substring(splicerIndex + 1);
-        id = msgArr[0].replace(ERROR_PREFIX$1, '').replace('[', '').replace(']', '');
-        message = msgArr[1];
+    if (message.indexOf(ERROR_PREFIX) !== -1) {
+      if (message.indexOf(ERROR_MSG_SPLICER) !== -1) {
+        var msgArr = message.split(ERROR_MSG_SPLICER);
+        code = msgArr[0].replace(ERROR_PREFIX, '').replace('[', '').replace(']', '');
+        showType = msgArr[1];
+        if (isNotEmpty(showType)) {
+          showType = showType.replace('{', '').replace('}', '');
+        }
+        message = msgArr[2];
       } else {
-        id = 'unknown';
+        code = 'unknown';
       }
     }
-    ret = new ApplicationError(id, [], message);
+    ret = new ApplicationError(code, [], message, showType);
   } else if (typeof error.toString === 'function') {
     ret = new ApplicationError(null, null, error.toString());
   } else {
@@ -3013,7 +3018,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.1';
+Setaria.version = '0.4.2';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
