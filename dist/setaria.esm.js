@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.2
+ * Setaria v0.4.3
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -2510,10 +2510,8 @@ function install$4 (Setaria, Vue$$1, options) {
           }
         ); }
       );
-      entry.sdk = {};
-      new Vue$$1({
+      createRootVue(Vue$$1, {
         el: entry.el,
-        sdk: {},
         render: function (h) {
           return h('async-app')
         }
@@ -2522,8 +2520,17 @@ function install$4 (Setaria, Vue$$1, options) {
       if (entry.el) {
         delete entry.el;
       }
+    } else {
+      createRootVue(Vue$$1, entry);
     }
   }
+}
+
+function createRootVue (Vue$$1, options) {
+  if (isEmpty$1(options.sdk)) {
+    options.sdk = {};
+  }
+  new Vue$$1(options);
 }
 
 function getInitialState (entry, http, router, store) {
@@ -3013,7 +3020,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.2';
+Setaria.version = '0.4.3';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
