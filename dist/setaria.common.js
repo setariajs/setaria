@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.3
+ * Setaria v0.4.4
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -12,7 +12,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var Vue = _interopDefault(require('vue'));
 var axios = _interopDefault(require('axios'));
 var R = require('ramda');
-var _ = _interopDefault(require('lodash'));
+var lodashKebabCase = _interopDefault(require('lodash.kebabcase'));
+var lodashCamelCase = _interopDefault(require('lodash.camelcase'));
 var Vuex = _interopDefault(require('vuex'));
 var VueRouter = _interopDefault(require('vue-router'));
 
@@ -97,7 +98,7 @@ function findIndex$1 (list, fn) {
 }
 
 function keys (val) {
-  return _.keys(val)
+  return Object.keys(val)
 }
 
 function isNotEmpty (val) {
@@ -115,7 +116,7 @@ function isEmpty$1 (val) {
 }
 
 function isArray (val) {
-  return _.isArray(val)
+  return Array.isArray(val)
 }
 
 function clone$1 (val) {
@@ -149,7 +150,7 @@ function endsWith$1 (char, val) {
  * @returns
  */
 function camelCase (val) {
-  return _.camelCase(val)
+  return lodashCamelCase(val)
 }
 
 /**
@@ -160,7 +161,7 @@ function camelCase (val) {
  * @returns
  */
 function kebabCase (val) {
-  return _.kebabCase(val)
+  return lodashKebabCase(val)
 }
 
 // Module
@@ -2871,13 +2872,13 @@ var defaultVueConfig = {
   lintOnSave: true,
   productionSourceMap: false,
   pages: {
-    index: process.env.VUE_APP_ENTRY_PAGE_FILE
+    index: process.env.VUE_APP_ENTRY_PAGE_FILE || 'src/main.js'
   },
   configureWebpack: {
     devtool: (process.env.NODE_ENV === 'production') ? false : 'eval-source-map',
     entry: {
       framework: ['setaria'],
-      vendors: ['vue', 'vuex', 'vue-router', 'moment', 'lodash', 'numeral']
+      vendors: ['vue', 'vuex', 'vue-router', 'moment', 'numeral', 'ramda']
     },
     optimization: {
       splitChunks: {
@@ -3025,7 +3026,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.3';
+Setaria.version = '0.4.4';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
