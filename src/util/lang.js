@@ -1,5 +1,6 @@
 import * as R from 'ramda'
-import _ from 'lodash'
+import lodashKebabCase from 'lodash.kebabcase'
+import lodashCamelCase from 'lodash.camelcase'
 
 export function merge (obj1, obj2) {
   return R.merge(obj1, obj2)
@@ -22,7 +23,7 @@ export function findIndex (list, fn) {
 }
 
 export function keys (val) {
-  return _.keys(val)
+  return Object.keys(val)
 }
 
 export function isNotEmpty (val) {
@@ -40,7 +41,7 @@ export function isEmpty (val) {
 }
 
 export function isArray (val) {
-  return _.isArray(val)
+  return Array.isArray(val)
 }
 
 export function clone (val) {
@@ -74,7 +75,7 @@ export function endsWith (char, val) {
  * @returns
  */
 export function camelCase (val) {
-  return _.camelCase(val)
+  return lodashCamelCase(val)
 }
 
 /**
@@ -85,5 +86,5 @@ export function camelCase (val) {
  * @returns
  */
 export function kebabCase (val) {
-  return _.kebabCase(val)
+  return lodashKebabCase(val)
 }
