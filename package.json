@@ -19,7 +19,7 @@
     "build:main": "node build/build.main.js",
     "build:logger": "rollup -c build/rollup.logger.config.js",
     "lint": "eslint src test",
-    "release": "bash build/release.sh",
+    "release": "npm publish",
     "test": "npm run lint && flow check"
   },
   "repository": {
