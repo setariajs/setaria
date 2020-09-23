@@ -51,20 +51,20 @@ let pid = 0
 app.get('/api/biz/user', function (req, res) {
   // 模拟服务返回时间
   setTimeout(() => {
-    // pid += 1
-    // res.json({
-    //   code: '00000',
-    //   data: {
-    //     'userId': 'setaria',
-    //     'sex': 'gender',
-    //     'name': 'Ray',
-    //     'pid': pid
-    //   }
-    // })
-    res.status(500).json({
-      code: 'PLN00069',
-      message: '用户信息无法取得！'
+    pid += 1
+    res.json({
+      code: '00000',
+      data: {
+        'userId': 'setaria',
+        'sex': 'gender',
+        'name': 'Ray',
+        'pid': pid
+      }
     })
+    // res.status(500).json({
+    //   code: 'PLN00069',
+    //   message: '用户信息无法取得！'
+    // })
   }, 2000)
 })
 app.post('/api/biz/business-error', function (req, res) {

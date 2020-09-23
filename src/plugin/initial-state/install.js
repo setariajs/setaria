@@ -36,10 +36,8 @@ export default function install (Setaria, Vue, options) {
           }
         )
       )
-      entry.sdk = {}
-      new Vue({
+      createRootVue(Vue, {
         el: entry.el,
-        sdk: {},
         render: h => {
           return h('async-app')
         }
@@ -48,8 +46,17 @@ export default function install (Setaria, Vue, options) {
       if (entry.el) {
         delete entry.el
       }
+    } else {
+      createRootVue(Vue, entry)
     }
   }
+}
+
+function createRootVue (Vue, options) {
+  if (isEmpty(options.sdk)) {
+    options.sdk = {}
+  }
+  new Vue(options)
 }
 
 function getInitialState (entry, http, router, store) {
