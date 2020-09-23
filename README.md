@@ -74,6 +74,9 @@ yarn install
 
 ## 特色功能
 
+[1. 初始化数据设置](https://github.com/bluejfox/setaria#1-%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE%E8%AE%BE%E7%BD%AE)
+[2. 统一错误处理]()
+
 ### 1. 初始化数据设置
 
 > 约定一个地方生产和消费初始化数据
@@ -178,6 +181,83 @@ this.$store.commit(constants.STORE_KEY.SET_INITIAL_STATE, {
   }
 })
 ```
+
+### 2. 统一错误处理
+
+> 前端页面中，基于vue的前端应用一般情况下需要捕获三个错误处理接口:
+
+* window.onerror
+* vue.config.errorHandler
+* Promise onunhandledrejection
+
+注: Vue从2.6.0版本之后，在vue实例内的 `生命周期函数(created等)` 和 `事件钩子函数(v-on DOM 监听器内部)` 抛出的普通 `error` 和 `promise error` 都可以捕获并统一从 `errorHandler` 接口抛出。
+
+> 因此，Setaria提供了一套统一的错误处理方案，将如上接口进行封装并触发 `Setaria.config.errorHandler` 配置的函数，并把不同类型的错误信息(字符串，promise等)通过 `ApplicationError(执行期异常)` 和 `ServiceError(服务调用异常)` 传递，方便对错误进行后续的操作（页面提示等）
+
+#### 2.1 运行时配置
+
+```javascript
+Setaria.config.errorHanlder = (error, type, origin) => {
+  const exception = {
+    // 错误code
+    code: error.errorCode,
+    // 错误消息
+    message: error.errorMessage,
+    // 后端request唯一ID
+    requestId: error.requestId,
+    // 后端业务单据号
+    oddNumber: error.oddNumber,
+    // 错误显示方式 0 silent; 1 message.warn; 2 message.error; 4 notification; 9 page
+    showType: error.showType
+  }
+  alert(exception.message)
+}
+```
+
+#### 2.2 API
+
+##### ApplicationError
+
+> 抛出普通异常信息，一般用于在处理中抛出指定业务异常
+
+```javascript
+import { ApplicationError } from 'setaria'
+
+// MCM006E为在Setaria.config.message中定义的消息ID
+throw new ApplicationError('MCM006E')
+```
+
+##### ServiceError
+
+> 抛出服务异常信息，当服务端返回异常时，异常信息会用此类型包装后抛出
+
+###### errorCode
+
+> 错误码
+
+* Type: String
+* Default: null
+
+###### errorMessage
+
+> 错误消息
+
+* Type: String
+* Default: null
+
+###### requestId
+
+> 后端请求唯一标识ID，一般用于辅助快速查找后端错误
+
+* Type: String
+* Default: null
+
+###### showType
+
+> 错误渲染方式(0 静默; 1 message.warn; 2 message.error; 4 notification; 9 page)
+
+* Type: Number
+* Default: 2
 
 ## 公共模块
 
