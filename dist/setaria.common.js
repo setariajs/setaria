@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.4
+ * Setaria v0.4.5
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -163,6 +163,25 @@ function camelCase (val) {
 function kebabCase (val) {
   return lodashKebabCase(val)
 }
+
+
+var lang = Object.freeze({
+	merge: merge$1,
+	mergeDeepRight: mergeDeepRight$1,
+	pathOr: pathOr$1,
+	propOr: propOr$1,
+	findIndex: findIndex$1,
+	keys: keys,
+	isNotEmpty: isNotEmpty,
+	isEmpty: isEmpty$1,
+	isArray: isArray,
+	clone: clone$1,
+	trim: trim$1,
+	startsWith: startsWith$1,
+	endsWith: endsWith$1,
+	camelCase: camelCase,
+	kebabCase: kebabCase
+});
 
 // Module
 // Common
@@ -503,7 +522,54 @@ var encode = function (str) { return encodeURIComponent(str)
   .replace(encodeReserveRE, encodeReserveReplacer)
   .replace(commaRE, ','); };
 
+var decode = decodeURIComponent;
 
+function resolveQuery (
+  query,
+  extraQuery,
+  _parseQuery
+) {
+  var parse = _parseQuery || parseQuery;
+  var parsedQuery;
+  try {
+    parsedQuery = parse(query || '');
+  } catch (e) {
+    process.env.NODE_ENV !== 'production' && console.warn(false, e.message);
+    parsedQuery = {};
+  }
+  for (var key in extraQuery) {
+    parsedQuery[key] = extraQuery[key];
+  }
+  return parsedQuery
+}
+
+function parseQuery (query) {
+  var res = {};
+
+  query = query.trim().replace(/^(\?|#|&)/, '');
+
+  if (!query) {
+    return res
+  }
+
+  query.split('&').forEach(function (param) {
+    var parts = param.replace(/\+/g, ' ').split('=');
+    var key = decode(parts.shift());
+    var val = parts.length > 0
+      ? decode(parts.join('='))
+      : null;
+
+    if (res[key] === undefined) {
+      res[key] = val;
+    } else if (Array.isArray(res[key])) {
+      res[key].push(val);
+    } else {
+      res[key] = [res[key], val];
+    }
+  });
+
+  return res
+}
 
 function stringifyQuery (obj) {
   var res = obj ? Object.keys(obj).map(function (key) {
@@ -536,6 +602,12 @@ function stringifyQuery (obj) {
   }).filter(function (x) { return x.length > 0; }).join('&') : null;
   return res ? ("?" + res) : ''
 }
+
+
+var query = Object.freeze({
+	resolveQuery: resolveQuery,
+	stringifyQuery: stringifyQuery
+});
 
 function push (router, originFunction) {
   return function (location, onComplete, onAbort) {
@@ -2944,8 +3016,7 @@ var getLocationOrigin = function () {
 };
 
 
-
-var index$1 = Object.freeze({
+var env = Object.freeze({
 	inBrowser: inBrowser$1,
 	UA: UA,
 	isIE: isIE,
@@ -2956,23 +3027,14 @@ var index$1 = Object.freeze({
 	isChrome: isChrome,
 	isPhantomJS: isPhantomJS,
 	isFF: isFF,
-	getLocationOrigin: getLocationOrigin,
-	merge: merge$1,
-	mergeDeepRight: mergeDeepRight$1,
-	pathOr: pathOr$1,
-	propOr: propOr$1,
-	findIndex: findIndex$1,
-	keys: keys,
-	isNotEmpty: isNotEmpty,
-	isEmpty: isEmpty$1,
-	isArray: isArray,
-	clone: clone$1,
-	trim: trim$1,
-	startsWith: startsWith$1,
-	endsWith: endsWith$1,
-	camelCase: camelCase,
-	kebabCase: kebabCase
+	getLocationOrigin: getLocationOrigin
 });
+
+var index$1 = {
+  env: env,
+  lang: lang,
+  query: query
+};
 
 var Setaria = function Setaria (options) {
   if ( options === void 0 ) options = {};
@@ -3026,7 +3088,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.4';
+Setaria.version = '0.4.5';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
