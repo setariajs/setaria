@@ -13,7 +13,7 @@
 
 ## 使用环境及对象
 
-本规范适用于目前正在进行开发的中国移动供应链管理系统IV模块(无源采购、有源采购、框架合同等)的前台页面。
+本规范适用于基于Vue的前端页面。
 
 适用对象包括：
 
@@ -70,9 +70,8 @@ Vue文件的编码需遵循 [Vue官方风格指南](https://cn.vuejs.org/v2/styl
 ES5语法可参考 [ES5兼容性表格](https://kangax.github.io/es5-compat-table/)。
 ES6语法可参考 [ES6兼容性表格](https://kangax.github.io/es6-compat-table/)。
 
-工程内已内置如下工具函数库：
+建议使用的工具函数库：
 
-* 数组、对象、字符串处理函数库 [lodash](https://lodash.com/docs)
 * 数据处理函数库 [numeral](http://numeraljs.com/)
 * 日期处理函数库 [moment](https://momentjs.com/docs/)
 
