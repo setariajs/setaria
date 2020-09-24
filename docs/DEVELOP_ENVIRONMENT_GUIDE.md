@@ -8,7 +8,7 @@
 
 ### 2. NodeJS
 
-> 前端项目运行的基础环境。(使用8.x版本)
+> 前端项目运行的基础环境。
 
 #### 安装包下载地址
 
@@ -52,13 +52,7 @@ npm install -g yarn
   3. 此时插件开始自动进行下载（根据网络情况下载所需时间有所不同，大约需5 ～ 10分钟），在下载成功后自动弹出的对话框中依据提示重新启动VS Code。
   4. VS Code重新启动后，点击左侧扩展菜单项，可查看已启动扩展（Vetur等）
 
-### 5. Github App
-
-> 用于从公司内网Github上传和下载代码
-
-[安装说明](https://w3.ibm.com/help/#/article/github_ent_ibm/github_setup?requestedTopicId=github_ibm)
-
-### 6. Git连接设置
+### 5. Gitlab连接设置
 
 #### MacOS
 
@@ -69,8 +63,7 @@ npm install -g yarn
   
   ![avatar](./images/git-config-3.png)
   
-  3. 输入 `ssh-keygen -t rsa -C "your.mobile@139.com" -b 4096`，并回车，提示的输入项目可以不输入，一路回车。
-  > 邮箱建议使用139邮箱。
+  3. 输入 `ssh-keygen -t rsa -C "your.mobile@your.com" -b 4096`，并回车，提示的输入项目可以不输入，一路回车。
   
   ![avatar](./images/git-config-2.png)
   
@@ -86,7 +79,7 @@ npm install -g yarn
   # Git Lab Server 
   Host gitServerIp
     Hostname gitServerIp
-    Port 2267
+    Port 67
     AddKeysToAgent yes
     UseKeychain yes
     User git
@@ -132,7 +125,7 @@ npm install -g yarn
   # Git Lab Server
   Host gitServerIp
     Hostname gitServerIp
-    Port 2267
+    Port 67
     AddKeysToAgent yes
     User git
     IdentityFile ~/.ssh/id_rsa
