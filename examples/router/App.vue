@@ -4,13 +4,13 @@
   </div>
 </template>
 <script>
-import kebabCase from 'lodash.kebabcase'
+import { util } from 'setaria'
 
 export default {
   name: 'App',
   created() {
     console.log('App Created')
-    console.log(kebabCase('Foo Bar'))
+    console.log(util.query.resolveQuery(window.location.search))
   },
   beforeMount() {
     console.log('App beforeMount')

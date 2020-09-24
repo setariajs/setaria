@@ -12,7 +12,7 @@ import constants from './shared/constants'
 import defaultConfig from './shared/default-config'
 import { inBrowser } from './util/dom'
 import { isEmpty, isNotEmpty, merge } from './util/lang'
-import * as util from './util/index'
+import util from './util/index'
 
 class Setaria {
   constructor (options = {}) {
