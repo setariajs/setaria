@@ -125,10 +125,6 @@ export const ERROR_THROW_TYPES = {
 
 export const LAST_PAGE_NAME = '__last_page_name'
 
-export const API_RESPOSNE_CODE_TYPES = {
-  'SUCCESS': '00000'
-}
-
 export const ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX = 'ROUTER_SESSION_STORAGE'
 
 // 日志类型

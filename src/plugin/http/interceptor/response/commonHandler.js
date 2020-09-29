@@ -3,12 +3,12 @@ import { STORE_KEY } from '../../../../shared/constants'
 import { isNotEmpty } from '../../../../util/lang'
 
 export default function commonHandler (response) {
-  const { requestId, oddNumber } = response.data
+  const { traceId, oddNumber } = response.data
   if (isNotEmpty(oddNumber)) {
     getStore().commit(STORE_KEY.SET_ODD_NUMBER, oddNumber)
   }
-  if (isNotEmpty(requestId)) {
-    getStore().commit(STORE_KEY.SET_REQUEST_ID, requestId)
+  if (isNotEmpty(traceId)) {
+    getStore().commit(STORE_KEY.SET_REQUEST_ID, traceId)
   }
   //debug模式
   if(response.config.headers.clientDebugMode){

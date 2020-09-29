@@ -62,16 +62,17 @@ export default function errorHandler (error) {
     if (error.response.data) {
       let responseData = error.response.data
       // 调用服务时若指定responseType为arraybuffer, 则axios返回的response.data类型为arraybuffer
-      if (error.config.responseType === 'arraybuffer') {
+      if (error.config.responseType === 'arraybuffer' && typeof responseData.byteLength === 'number') {
         try {
           responseData = JSON.parse(Buffer.from(responseData).toString('utf8'))
         } catch (e) {
           throwDefaultError(messageId, messagePrefix, error)
         }
       }
-      const { code, message, requestId, oddNumber } = responseData
-      if (isNotEmpty(code)) {
-        throw new ServiceError(code, message, error, requestId, oddNumber)
+      const { code, message, traceId, oddNumber, success } = responseData
+      // status为500的场合，显示服务器返回的自定义消息
+      if (typeof success === 'boolean' && !success) {
+        throw new ServiceError(code, message, error, null, traceId, oddNumber)
       }
     }
     throwDefaultError(messageId, messagePrefix, error)

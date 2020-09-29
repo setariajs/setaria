@@ -70,7 +70,8 @@ app.get('/api/biz/user', function (req, res) {
 app.post('/api/biz/business-error', function (req, res) {
   res.status(500).json({
     code: 'PLN00069',
-    message: '参数不完整！'
+    message: '参数不完整！',
+    traceId: 'ksajdsakdj232320380dsdsd'
   })
 })
 app.post('/api/biz/download-business-error', function (req, res) {

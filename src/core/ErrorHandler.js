@@ -127,10 +127,10 @@ export default class ErrorHandler {
     type: ERROR_THROW_TYPES,
     error: string | Object | Error | PromiseRejectionEvent,
     source?: Object): void {
-    let requestId = null
+    let traceId = null
     let oddNumber = null
     if (type === ERROR_THROW_TYPES.PROMISE_UNREJECT_ERROR) {
-      requestId = error.reason.requestId
+      traceId = error.reason.traceId
       oddNumber = error.reason.oddNumber
     }
     // 取得异常内容
@@ -142,7 +142,7 @@ export default class ErrorHandler {
       error: errorObject,
       origin: error,
       type,
-      requestId,
+      traceId,
       oddNumber
     })
     if (typeof config.errorHanlder === 'function' && !isIgnoreErrorFlag) {
