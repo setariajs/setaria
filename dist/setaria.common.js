@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.6
+ * Setaria v0.4.7
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -2448,11 +2448,17 @@ function initInstance (httpConfig) {
         // set module showLoading varible by user default setting
         var showLoading = false;
         var defaultConfig = httpConfig[KEY_DEFAULTS_SETTING];
+        // 取得default http config中的showLoading定义
         if (defaultConfig &&
           typeof defaultConfig.showLoading === 'boolean') {
           showLoading = defaultConfig.showLoading;
         }
-        config$$1.showLoading = showLoading;
+        // 没有自定义默认显示加载状态的场合，使用default定义值
+        if (typeof httpConfig[key].showLoading !== 'boolean') {
+          config$$1.showLoading = showLoading;
+        } else {
+          config$$1.showLoading = httpConfig[key].showLoading;
+        }
         // create module baseURL
         config$$1.baseURL = createModuleDefaultBaseURL(defaultConfig.baseURL, key, config$$1.baseURL);
         config$$1.responseEncoding = 'UTF8';
@@ -3087,7 +3093,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.6';
+Setaria.version = '0.4.7';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
