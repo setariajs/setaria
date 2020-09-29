@@ -125,7 +125,10 @@ function initInstance (httpConfig) {
           typeof defaultConfig.showLoading === 'boolean') {
           showLoading = defaultConfig.showLoading
         }
-        config.showLoading = showLoading
+        // 没有自定义默认显示加载状态的场合
+        if (typeof httpConfig[key].showLoading !== 'boolean') {
+          config.showLoading = showLoading
+        }
         // create module baseURL
         config.baseURL = createModuleDefaultBaseURL(defaultConfig.baseURL, key, config.baseURL)
         config.responseEncoding = 'UTF8'
