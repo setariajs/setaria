@@ -121,13 +121,16 @@ function initInstance (httpConfig) {
         // set module showLoading varible by user default setting
         let showLoading = false
         const defaultConfig = httpConfig[KEY_DEFAULTS_SETTING]
+        // 取得default http config中的showLoading定义
         if (defaultConfig &&
           typeof defaultConfig.showLoading === 'boolean') {
           showLoading = defaultConfig.showLoading
         }
-        // 没有自定义默认显示加载状态的场合
+        // 没有自定义默认显示加载状态的场合，使用default定义值
         if (typeof httpConfig[key].showLoading !== 'boolean') {
           config.showLoading = showLoading
+        } else {
+          config.showLoading = httpConfig[key].showLoading
         }
         // create module baseURL
         config.baseURL = createModuleDefaultBaseURL(defaultConfig.baseURL, key, config.baseURL)

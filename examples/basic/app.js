@@ -40,7 +40,8 @@ const sdk = new Setaria({
       baseURL: 'https://jsonplaceholder.typicode.com/'
     },
     biz: {
-      baseURL: '/api/biz'
+      baseURL: '/api/biz',
+      showLoading: true
     }
   },
   message,
