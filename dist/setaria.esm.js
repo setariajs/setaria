@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.5
+ * Setaria v0.4.6
  * (c) 2020 Ray Han
  * @license MIT
  */
@@ -304,10 +304,6 @@ var ERROR_THROW_TYPES = {
 };
 
 var LAST_PAGE_NAME = '__last_page_name';
-
-var API_RESPOSNE_CODE_TYPES = {
-  'SUCCESS': '00000'
-};
 
 var ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX = 'ROUTER_SESSION_STORAGE';
 
@@ -1957,14 +1953,14 @@ var ServiceError = (function (AbstractError$$1) {
     errorMessage,
     reason,
     params,
-    requestId,
+    traceId,
     oddNumber,
     showType) {
     if ( errorCode === void 0 ) errorCode = '';
     if ( errorMessage === void 0 ) errorMessage = '';
     if ( reason === void 0 ) reason = {};
     if ( params === void 0 ) params = [];
-    if ( requestId === void 0 ) requestId = '';
+    if ( traceId === void 0 ) traceId = '';
     if ( oddNumber === void 0 ) oddNumber = '';
     if ( showType === void 0 ) showType = 2;
 
@@ -1974,7 +1970,7 @@ var ServiceError = (function (AbstractError$$1) {
         typeof errorCode === 'string' &&
         isEmpty$1(errorMessage) &&
         errorCode.indexOf('SYSMSG') === 0) {
-      msg = new Message(errorCode).getMessage();
+      msg = new Message(errorCode, params).getMessage();
       if (isEmpty$1(msg)) {
         errorCode = '';
         msg = new Message('SYSMSG-SERVICE-UNKNOWN-ERROR').getMessage();
@@ -1982,7 +1978,7 @@ var ServiceError = (function (AbstractError$$1) {
     }
     AbstractError$$1.call(this, errorCode, msg, 'ServiceError', showType);
     this.detail = reason;
-    this.requestId = requestId;
+    this.traceId = traceId;
     this.oddNumber = oddNumber;
     // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
     if (isFirefox() && pathOr$1(true, ['config', 'isShowError'], reason) !== false) {
@@ -2065,7 +2061,7 @@ function errorHandler (error) {
     if (error.response.data) {
       var responseData = error.response.data;
       // 调用服务时若指定responseType为arraybuffer, 则axios返回的response.data类型为arraybuffer
-      if (error.config.responseType === 'arraybuffer') {
+      if (error.config.responseType === 'arraybuffer' && typeof responseData.byteLength === 'number') {
         try {
           responseData = JSON.parse(Buffer.from(responseData).toString('utf8'));
         } catch (e) {
@@ -2074,10 +2070,12 @@ function errorHandler (error) {
       }
       var code = responseData.code;
       var message = responseData.message;
-      var requestId = responseData.requestId;
+      var traceId = responseData.traceId;
       var oddNumber = responseData.oddNumber;
-      if (isNotEmpty(code)) {
-        throw new ServiceError(code, message, error, requestId, oddNumber)
+      var success = responseData.success;
+      // status为500的场合，显示服务器返回的自定义消息
+      if (typeof success === 'boolean' && !success) {
+        throw new ServiceError(code, message, error, null, traceId, oddNumber)
       }
     }
     throwDefaultError(messageId, messagePrefix, error);
@@ -2298,11 +2296,12 @@ function businessErrorHandler (response) {
     var ref = response.data;
     var code = ref.code;
     var message = ref.message;
-    var requestId = ref.requestId;
+    var traceId = ref.traceId;
     var oddNumber = ref.oddNumber;
+    var success = ref.success;
     // when got business exception
-    if (code !== API_RESPOSNE_CODE_TYPES.SUCCESS) {
-      throw new ServiceError(code, message, null, requestId, oddNumber)
+    if (typeof success === 'boolean' && !success) {
+      throw new ServiceError(code, message, null, null, traceId, oddNumber)
     }
   }
   return response
@@ -2310,13 +2309,13 @@ function businessErrorHandler (response) {
 
 function commonHandler (response) {
   var ref = response.data;
-  var requestId = ref.requestId;
+  var traceId = ref.traceId;
   var oddNumber = ref.oddNumber;
   if (isNotEmpty(oddNumber)) {
     getStore().commit(STORE_KEY.SET_ODD_NUMBER, oddNumber);
   }
-  if (isNotEmpty(requestId)) {
-    getStore().commit(STORE_KEY.SET_REQUEST_ID, requestId);
+  if (isNotEmpty(traceId)) {
+    getStore().commit(STORE_KEY.SET_REQUEST_ID, traceId);
   }
   //debug模式
   if(response.config.headers.clientDebugMode){
@@ -2835,10 +2834,10 @@ ErrorHandler.handleError = function handleError (
   type,
   error,
   source) {
-  var requestId = null;
+  var traceId = null;
   var oddNumber = null;
   if (type === ERROR_THROW_TYPES.PROMISE_UNREJECT_ERROR) {
-    requestId = error.reason.requestId;
+    traceId = error.reason.traceId;
     oddNumber = error.reason.oddNumber;
   }
   // 取得异常内容
@@ -2850,7 +2849,7 @@ ErrorHandler.handleError = function handleError (
     error: errorObject,
     origin: error,
     type: type,
-    requestId: requestId,
+    traceId: traceId,
     oddNumber: oddNumber
   });
   if (typeof config.errorHanlder === 'function' && !isIgnoreErrorFlag) {
@@ -3083,7 +3082,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.5';
+Setaria.version = '0.4.6';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
