@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/bluejfox/setaria#readme",
   "dependencies": {
-    "axios": "^0.15.x",
+    "axios": "^0.21.x",
     "lodash.camelcase": "^4.3.0",
     "lodash.kebabcase": "^4.1.1",
     "ramda": "^0.25.0"
