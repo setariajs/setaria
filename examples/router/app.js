@@ -8,6 +8,11 @@ import ErrorComponent from './Error.vue'
 
 const entry = {
   el: '#app',
+  render: h => h(App)
+}
+
+new Setaria({
+  entry,
   getInitialState ({ http }) {
     return new Promise((resolve, reject) => {
       http.biz.get('user', { showLoading: true })
@@ -20,11 +25,6 @@ const entry = {
         })
     })
   },
-  render: h => h(App)
-}
-
-new Setaria({
-  entry,
   loading: LoadingComponent,
   error: ErrorComponent,
   http: {

@@ -91,21 +91,21 @@ new Setaria({
     // 原new Vue构造函数参数
     el: '#app',
     // 原new Vue构造函数参数
-    render: h => h(App),
-    // 定义getInitialState函数，必须返回Promise对象
-    getInitialState ({ http }) {
-      return new Promise((resolve, reject) => {
-        http.biz.get('user', { showLoading: true })
-          .then((res) => {
-            const { data } = res.data
-            // 返回值会由Setaria存入Vuex中，请根据实际情况构建适合的initialState结构
-            resolve({ user: data })
-          })
-          .catch((error) => {
-            reject(error)
-          })
-      })
-    }
+    render: h => h(App)
+  },
+  // 定义getInitialState函数，必须返回Promise对象
+  getInitialState ({ http }) {
+    return new Promise((resolve, reject) => {
+      http.biz.get('user', { showLoading: true })
+        .then((res) => {
+          const { data } = res.data
+          // 返回值会由Setaria存入Vuex中，请根据实际情况构建适合的initialState结构
+          resolve({ user: data })
+        })
+        .catch((error) => {
+          reject(error)
+        })
+    })
   },
   loading: LoadingComponent,
   error: ErrorComponent,

@@ -1,5 +1,7 @@
-import install from './install'
+import install, { getInitialStateData, refreshInitialState } from './install'
 
 export {
-  install
+  install,
+  getInitialStateData,
+  refreshInitialState
 }

@@ -5,25 +5,41 @@ import { getStore } from '../store/index'
 import { STORE_KEY } from '../../shared/constants'
 import { isEmpty, isNotEmpty } from '../../util/lang'
 
+let getInitialStateFunction = null
+
+export function refreshInitialState () {
+  console.log('refreshInitialState')
+  if (isEmpty(getInitialStateFunction)) {
+    return null
+  }
+  return execInitialProcess(getInitialStateFunction, getHttp(), getRouter(), getStore())
+}
+export function getInitialStateData () {
+  const ret = getStore().getters[STORE_KEY.GET_INITIAL_STATE]
+  return isNotEmpty(ret) ? ret.data : null
+}
+
 export default function install (Setaria, Vue, options) {
   if (isEmpty(options)) {
     return
   }
-  const { entry, error, loading } = options
+  const { entry, getInitialState, error, loading } = options
   // 实例化Vue根组件
   if (isNotEmpty(entry)) {
     // 进行异步处理，getInitialState函数必须返回Promise
-    if (typeof entry.getInitialState === 'function') {
-      Setaria.refreshInitialState = Vue.prototype.$setaria.api.refreshInitialState = () => {
-        return getInitialState(entry, getHttp(), getRouter(), getStore())
-      }
+    if (typeof getInitialState === 'function') {
+      getInitialStateFunction = getInitialState
       Vue.component(
         'async-app',
         // 这个动态导入会返回一个 `Promise` 对象。
         () => (
           {
             // 需要加载的组件 (应该是一个 `Promise` 对象)
-            component: getInitialState(entry, getHttp(), getRouter(), getStore()),
+            component: new Promise((resolve, reject) => {
+              execInitialProcess(getInitialState, getHttp(), getRouter(), getStore()).then(() => {
+                resolve(entry)
+              })
+            }),
             // 异步组件加载时使用的组件
             loading,
             // 加载失败时使用的组件
@@ -59,9 +75,9 @@ function createRootVue (Vue, options) {
   new Vue(options)
 }
 
-function getInitialState (entry, http, router, store) {
+function execInitialProcess (getInitialState, http, router, store) {
   return new Promise((resolve, reject) => {
-    entry.getInitialState({
+    getInitialState({
       http,
       router,
       store
@@ -69,7 +85,7 @@ function getInitialState (entry, http, router, store) {
       store.commit(STORE_KEY.SET_INITIAL_STATE, {
         data: res
       })
-      resolve(entry)
+      resolve(res)
     }).catch((error) => {
       store.commit(STORE_KEY.SET_INITIAL_STATE, {
         error

@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 import { getStore } from '../store/index'
 import config from '../../core/config'
 import ApplicationError from '../../global-object/ApplicationError'
-import constants from '../../shared/constants'
+import constants, { ROUTER } from '../../shared/constants'
 import TrackDto from '../store/dto/TrackDto'
 import { findIndex, isNotEmpty, keys, isArray } from '../../util/lang'
 import pushFunction from './override/push'
@@ -18,6 +18,9 @@ import {
   generateStorageKeyByUrlQueryAttribute,
   setQueryValueByStorageKey
 } from './util'
+
+const DIRECTION_KEY = ROUTER.DIRECTION.KEY
+const BACK = ROUTER.DIRECTION.BACK
 
 let router
 
@@ -194,7 +197,7 @@ export function install (Vue, options) {
               query,
               params = {}
             } = originRouteObject
-            params._direction = 'back'
+            params[DIRECTION_KEY] = BACK
             getRouter().push({
               name,
               query,

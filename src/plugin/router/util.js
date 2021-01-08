@@ -123,3 +123,17 @@ export function supportsPushState () {
 
   return window.history && 'pushState' in window.history
 }
+
+export function addQueryParameter (url, key, value) {
+  let targetLocation = url
+  let char = ''
+  if (targetLocation.indexOf('?') !== -1) {
+    if (targetLocation.indexOf('?') !== targetLocation.length - 1) {
+      char = '&'
+    }
+  } else {
+    char = '?'
+  }
+  targetLocation = `${targetLocation}${char}${key}=${value}`
+  return targetLocation
+}

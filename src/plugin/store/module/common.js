@@ -1,6 +1,10 @@
-import { _GETTER, _MUTATION } from '../../../shared/constants'
+import { _GETTER, _MUTATION, ROUTER } from '../../../shared/constants'
 import { findIndex, isNotEmpty, trim, startsWith } from '../../../util/lang'
 import { getRouter } from '../../router/index'
+
+const FORWARD = ROUTER.DIRECTION.FORWARD
+const BACK = ROUTER.DIRECTION.BACK
+const REPLACE = ROUTER.DIRECTION.REPLACE
 
 // initial state
 const state = {
@@ -165,33 +169,33 @@ const mutations = {
   [_MUTATION._UPDATE_DIRECTION] (stateObj, { current, next }) {
     let direction = stateObj._setaria_direction
     const routeHistory = stateObj._setaria_routeHistory
-    if (direction !== 'forward' && direction !== 'back' && direction !== 'replace') {
+    if (direction !== FORWARD && direction !== BACK && direction !== REPLACE) {
       if (routeHistory.history.length > 0) {
         // 当前游标处于最末尾
         if (routeHistory.currentIndex === routeHistory.history.length - 1) {
-          direction = 'back'
+          direction = BACK
         } else {
           let path = null
           // 判断目标画面是否为前画面
           if (routeHistory.currentIndex !== 0) {
             path = routeHistory.history[routeHistory.currentIndex - 1].url
             if (path === next) {
-              direction = 'back'
+              direction = BACK
             }
           }
           // 判断目标画面是否为次画面
           if (direction === '') {
             path = routeHistory.history[routeHistory.currentIndex + 1].url
             if (path === next) {
-              direction = 'forward'
+              direction = FORWARD
             }
           }
         }
       } else {
-        direction = 'forward'
+        direction = FORWARD
       }
-      if (direction !== 'forward' && direction !== 'back') {
-        direction = 'forward'
+      if (direction !== FORWARD && direction !== BACK) {
+        direction = FORWARD
       }
       // 保存跳转方向
       stateObj._setaria_direction = direction
@@ -201,14 +205,14 @@ const mutations = {
     const direction = stateObj._setaria_direction
     const routeHistory = stateObj._setaria_routeHistory
     // 更新浏览历史
-    if (direction === 'back') {
+    if (direction === BACK) {
       if (routeHistory.currentIndex === 0) {
         routeHistory.currentIndex = null
       } else {
         routeHistory.history[routeHistory.currentIndex] = current
         routeHistory.currentIndex -= 1
       }
-    } else if (direction === 'forward') {
+    } else if (direction === FORWARD) {
       // if (!isExistForwardPage) {
       //   if (routeHistory.currentIndex < history.length - 1) {
       //     let index = history.length - 1
@@ -231,7 +235,7 @@ const mutations = {
       }
       routeHistory.history.push(next)
     // 替换当前路由信息
-    } else if (direction === 'replace') {
+    } else if (direction === REPLACE) {
       const originRouteHistory = routeHistory
       originRouteHistory.history[routeHistory.currentIndex] = next
       stateObj._setaria_routeHistory = {}

@@ -1,8 +1,9 @@
 <template>
   <div>
     PageA {{ loadingInitialState ? 'initialState取得中' : initialState }} <input type="button" @click="handleRefreshInitialState" value="刷新initialState">
+    <input type="button" @click="handleGetInitialStateData" value="取得initialState数据">
     <div>
-      <input type="button" @click="$router.push({name:'pageB'})" value="Go to PageB">
+      <input type="button" @click="$router.push('b?foo=bar')" value="Go to PageB">
       <input type="button" @click="c2Click" value="Go to PageC2">
       <input type="button" @click="$router.push({name:'pageC1', params:{ 'id':2 }, query: { 'foo': 'bar' }})" value="Go to PageC">
       <input type="button" @click="$router.replace({name:'pageC1', params:{ 'id':2 }, query: { 'foo': 'bar' }})" value="Replace to PageC">
@@ -88,11 +89,13 @@
     methods: {
       handleRefreshInitialState () {
         this.loadingInitialState = true
-        console.log(Setaria.refreshInitialState())
-        this.$setaria.api.refreshInitialState()
+        Setaria.refreshInitialState()
           .then(() => {
             this.loadingInitialState = false
           })
+      },
+      handleGetInitialStateData() {
+        console.log(Setaria.getInitialStateData())
       },
       handleAddTrack () {
         this.$store.commit(constants.STORE_KEY.ADD_TRACK, {

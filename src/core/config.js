@@ -11,7 +11,11 @@ export type Config = {
   excludeRecordPageLoadTimeComponentName: Array<string>,
   logHandler: Function,
   log: boolean,
-  moduleUrlRules: Object
+  moduleUrlRules: Object,
+  entry: Object,
+  getInitialState: Function,
+  loading: Object,
+  error: Object
 }
 
 export default ({
@@ -67,5 +71,23 @@ export default ({
   /**
    * 模块URL映射规则，用于配置工程子模块url与模块属性的映射关系
    */
-  moduleUrlRules: null
+  moduleUrlRules: null,
+
+  /**
+   * 初始化VUE实例设置(el, render等)
+   */
+  entry: null,
+  /**
+   * 自定义初始化逻辑
+   */
+  getInitialState: null,
+  /**
+   * 执行初始化逻辑时的loading组件
+   */
+  loading: null,
+
+  /**
+   * 执行初始化逻辑出错的场合，显示的error组件
+   */
+  error: null
 }: Config)

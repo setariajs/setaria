@@ -149,6 +149,15 @@ export const LOG_TYPE = {
   PAGE_LOAD: '8'
 }
 
+export const ROUTER = {
+  DIRECTION: {
+    KEY: '_direction',
+    FORWARD: 'forward',
+    BACK: 'back',
+    REPLACE: 'replace'
+  }
+}
+
 export default {
   ERROR_THROW_TYPES,
   ERROR_PREFIX,

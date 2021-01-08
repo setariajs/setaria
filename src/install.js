@@ -78,9 +78,6 @@ export function install (Setaria, Vue, options) {
       })
     }
 
-    // add alias for http usage
-    Setaria.api = Setaria.getHttp()
-
     // 系统信息处理
     // 保存工程子模块url与模块属性的映射关系
     const { moduleUrlRules } = config
