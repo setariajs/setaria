@@ -1,6 +1,6 @@
 /**
- * Setaria v0.4.7
- * (c) 2020 Ray Han
+ * Setaria v0.4.9
+ * (c) 2021 Ray Han
  * @license MIT
  */
 import Vue from 'vue';
@@ -69,7 +69,25 @@ var config = ({
   /**
    * 模块URL映射规则，用于配置工程子模块url与模块属性的映射关系
    */
-  moduleUrlRules: null
+  moduleUrlRules: null,
+
+  /**
+   * 初始化VUE实例设置(el, render等)
+   */
+  entry: null,
+  /**
+   * 自定义初始化逻辑
+   */
+  getInitialState: null,
+  /**
+   * 执行初始化逻辑时的loading组件
+   */
+  loading: null,
+
+  /**
+   * 执行初始化逻辑出错的场合，显示的error组件
+   */
+  error: null
 });
 
 function merge$1 (obj1, obj2) {
@@ -327,6 +345,15 @@ var LOG_TYPE = {
   TRANSFER: '7',
   // 页面加载
   PAGE_LOAD: '8'
+};
+
+var ROUTER = {
+  DIRECTION: {
+    KEY: '_direction',
+    FORWARD: 'forward',
+    BACK: 'back',
+    REPLACE: 'replace'
+  }
 };
 
 var constants = {
@@ -600,106 +627,6 @@ var query = Object.freeze({
 	stringifyQuery: stringifyQuery
 });
 
-function push (router, originFunction) {
-  return function (location, onComplete, onAbort) {
-    if ( location === void 0 ) location = {};
-
-    // 因设置了path的场合，params会被无视，所以通过url query string传递跳转方向(前进/后退)
-    if (typeof location.path === 'string') {
-      if (typeof location.query === 'object') {
-        location.query._direction = 'forward';
-      } else {
-        location.query = {
-          _direction: 'forward'
-        };
-      }
-    } else if (typeof location.params === 'object') {
-      // 设置了_direction的场合，使用设置的值
-      if (!isNotEmpty(location.params._direction)) {
-        location.params._direction = 'forward';
-      }
-    } else {
-      location.params = {
-        _direction: 'forward'
-      };
-    }
-    // 跨模块跳转支持 query 参数内复杂参数的传递
-    if (location.global) {
-      router.generateModuleParams(location);
-      // vue-router的push函数在iframe下跳转有问题，因此需要使用原生api进行iframe下的页面跳转
-      // 根据路由信息取得目标跳转URL
-      var path =
-        location.path.indexOf('/') !== 0 ? ("/" + (location.path)) : location.path;
-      var query = location.query ? stringifyQuery(location.query) : '';
-      var baseUrl = router.options.base;
-      var href = "" + baseUrl + path + query;
-      window.location.href = href;
-    } else {
-      originFunction.call(router, location, onComplete, onAbort);
-    }
-  }
-}
-
-function push$1 (router, originFunction) {
-  return function (location, onComplete, onAbort) {
-    // 用于记录路由历史
-    if (typeof location.params === 'object') {
-      location.params._direction = 'replace';
-    } else {
-      location.params = {
-        _direction: 'replace'
-      };
-    }
-    originFunction.call(router, location, onComplete, onAbort);
-  }
-}
-
-var updateDirection = function (to, from, next) {
-  var store = getStore();
-  var params = to.params;
-  var query = to.query;
-  var currentPageFullPath = from.fullPath;
-  var direction = '';
-  var nextPageFullPath = to.fullPath;
-  // 设置了path的场合，params会被无视
-  if (query && typeof query._direction === 'string') {
-    direction = query._direction;
-  } else if (params && params._direction) {
-    direction = params._direction;
-  }
-  // 保存跳转方向
-  store.commit(STORE_KEY.SET_DIRECTION, direction);
-  // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
-  store.commit(STORE_KEY.UPDATE_DIRECTION, {
-    current: currentPageFullPath,
-    next: nextPageFullPath
-  });
-  // if (direction === '') {
-  //   direction = 'forward'
-  //   // 保存跳转方向
-  //   store.commit('common/direction', direction)
-  // }
-  next();
-};
-
-var updateHistory = function (to, from, next) {
-  var store = getStore();
-  var payload = {
-    current: {
-      url: from.fullPath,
-      meta: from.meta,
-      originRouteObject: from
-    },
-    next: {
-      url: to.fullPath,
-      meta: to.meta,
-      originRouteObject: to
-    }
-  };
-  store.commit(STORE_KEY.UPDATE_ROUTE_HISTORY, payload);
-  next();
-};
-
 /*  */
 var STORAGE_KEY = '__Setaria_SDK_Storage_';
 
@@ -945,7 +872,150 @@ function supportsPushState () {
   return window.history && 'pushState' in window.history
 }
 
+function addQueryParameter (url, key, value) {
+  var targetLocation = url;
+  var char = '';
+  if (targetLocation.indexOf('?') !== -1) {
+    if (targetLocation.indexOf('?') !== targetLocation.length - 1) {
+      char = '&';
+    }
+  } else {
+    char = '?';
+  }
+  targetLocation = "" + targetLocation + char + key + "=" + value;
+  return targetLocation
+}
+
+var DIRECTION_KEY$1 = ROUTER.DIRECTION.KEY;
+var FORWARD$1 = ROUTER.DIRECTION.FORWARD;
+
+function push (router, originFunction) {
+  return function (location, onComplete, onAbort) {
+    if ( location === void 0 ) location = {};
+
+    var targetLocation = location;
+    if (typeof targetLocation === 'object') {
+      // 因设置了path的场合，params会被无视，所以通过url query string传递跳转方向(前进/后退)
+      if (typeof targetLocation.path === 'string') {
+        if (typeof targetLocation.query === 'object') {
+          targetLocation.query[DIRECTION_KEY$1] = FORWARD$1;
+        } else {
+          targetLocation.query = {
+          };
+          targetLocation.query[DIRECTION_KEY$1] = FORWARD$1;
+        }
+      } else if (typeof targetLocation.params === 'object') {
+        // 设置了_direction的场合，使用设置的值
+        if (!isNotEmpty(targetLocation.params[DIRECTION_KEY$1])) {
+          targetLocation.params[DIRECTION_KEY$1] = FORWARD$1;
+        }
+      } else if (typeof targetLocation === 'string') {
+        targetLocation = {
+          path: targetLocation,
+          query: {
+          }
+        };
+        targetLocation.query[DIRECTION_KEY$1] = FORWARD$1;
+      } else {
+        targetLocation.params = {
+        };
+        targetLocation.params[DIRECTION_KEY$1] = FORWARD$1;
+      }
+    // push函数的targetLocation支持两种参数类型
+    } else if (typeof targetLocation === 'string') {
+      targetLocation = addQueryParameter(targetLocation, DIRECTION_KEY$1, FORWARD$1);
+    }
+    // 跨模块跳转支持 query 参数内复杂参数的传递
+    if (targetLocation.global) {
+      router.generateModuleParams(targetLocation);
+      // vue-router的push函数在iframe下跳转有问题，因此需要使用原生api进行iframe下的页面跳转
+      // 根据路由信息取得目标跳转URL
+      var path =
+        targetLocation.path.indexOf('/') !== 0 ? ("/" + (targetLocation.path)) : targetLocation.path;
+      var query = targetLocation.query ? stringifyQuery(targetLocation.query) : '';
+      var baseUrl = router.options.base;
+      var href = "" + baseUrl + path + query;
+      window.location.href = href;
+    } else {
+      originFunction.call(router, targetLocation, onComplete, onAbort);
+    }
+  }
+}
+
+var DIRECTION_KEY$2 = ROUTER.DIRECTION.KEY;
+var REPLACE$1 = ROUTER.DIRECTION.REPLACE;
+
+function push$1 (router, originFunction) {
+  return function (location, onComplete, onAbort) {
+    var targetLocation = location;
+    if (typeof targetLocation === 'object') {
+      // 用于记录路由历史
+      if (typeof targetLocation.params === 'object') {
+        targetLocation.params[DIRECTION_KEY$2] = REPLACE$1;
+      } else {
+        targetLocation.params = {
+        };
+        targetLocation.params[DIRECTION_KEY$2] = REPLACE$1;
+      }
+    } else if (typeof targetLocation === 'string') {
+      targetLocation = addQueryParameter(targetLocation, DIRECTION_KEY$2, REPLACE$1);
+    }
+    originFunction.call(router, targetLocation, onComplete, onAbort);
+  }
+}
+
+var DIRECTION_KEY$3 = ROUTER.DIRECTION.KEY;
+
+var updateDirection = function (to, from, next) {
+  var store = getStore();
+  var params = to.params;
+  var query = to.query;
+  var currentPageFullPath = from.fullPath;
+  var direction = '';
+  var nextPageFullPath = to.fullPath;
+  // 设置了path的场合，params会被无视
+  if (query && typeof query[DIRECTION_KEY$3] === 'string') {
+    direction = query[DIRECTION_KEY$3];
+  } else if (params && params[DIRECTION_KEY$3]) {
+    direction = params[DIRECTION_KEY$3];
+  }
+  // 保存跳转方向
+  store.commit(STORE_KEY.SET_DIRECTION, direction);
+  // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
+  store.commit(STORE_KEY.UPDATE_DIRECTION, {
+    current: currentPageFullPath,
+    next: nextPageFullPath
+  });
+  // if (direction === '') {
+  //   direction = 'forward'
+  //   // 保存跳转方向
+  //   store.commit('common/direction', direction)
+  // }
+  next();
+};
+
+var updateHistory = function (to, from, next) {
+  var store = getStore();
+  var payload = {
+    current: {
+      url: from.fullPath,
+      meta: from.meta,
+      originRouteObject: from
+    },
+    next: {
+      url: to.fullPath,
+      meta: to.meta,
+      originRouteObject: to
+    }
+  };
+  store.commit(STORE_KEY.UPDATE_ROUTE_HISTORY, payload);
+  next();
+};
+
 /*  */
+var DIRECTION_KEY = ROUTER.DIRECTION.KEY;
+var BACK$1 = ROUTER.DIRECTION.BACK;
+
 var router;
 
 // scrollBehavior:
@@ -1121,7 +1191,7 @@ function install$3 (Vue$$1, options) {
             var name = originRouteObject.name;
             var query = originRouteObject.query;
             var params = originRouteObject.params; if ( params === void 0 ) params = {};
-            params._direction = 'back';
+            params[DIRECTION_KEY] = BACK$1;
             getRouter().push({
               name: name,
               query: query,
@@ -1162,6 +1232,10 @@ function install$3 (Vue$$1, options) {
 function getRouter () {
   return router
 }
+
+var FORWARD = ROUTER.DIRECTION.FORWARD;
+var BACK = ROUTER.DIRECTION.BACK;
+var REPLACE = ROUTER.DIRECTION.REPLACE;
 
 // initial state
 var state = {
@@ -1309,33 +1383,33 @@ mutations[_MUTATION._UPDATE_DIRECTION] = function (stateObj, ref) {
 
     var direction = stateObj._setaria_direction;
     var routeHistory = stateObj._setaria_routeHistory;
-    if (direction !== 'forward' && direction !== 'back' && direction !== 'replace') {
+    if (direction !== FORWARD && direction !== BACK && direction !== REPLACE) {
       if (routeHistory.history.length > 0) {
         // 当前游标处于最末尾
         if (routeHistory.currentIndex === routeHistory.history.length - 1) {
-          direction = 'back';
+          direction = BACK;
         } else {
           var path = null;
           // 判断目标画面是否为前画面
           if (routeHistory.currentIndex !== 0) {
             path = routeHistory.history[routeHistory.currentIndex - 1].url;
             if (path === next) {
-              direction = 'back';
+              direction = BACK;
             }
           }
           // 判断目标画面是否为次画面
           if (direction === '') {
             path = routeHistory.history[routeHistory.currentIndex + 1].url;
             if (path === next) {
-              direction = 'forward';
+              direction = FORWARD;
             }
           }
         }
       } else {
-        direction = 'forward';
+        direction = FORWARD;
       }
-      if (direction !== 'forward' && direction !== 'back') {
-        direction = 'forward';
+      if (direction !== FORWARD && direction !== BACK) {
+        direction = FORWARD;
       }
       // 保存跳转方向
       stateObj._setaria_direction = direction;
@@ -1348,14 +1422,14 @@ mutations[_MUTATION._UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
     var direction = stateObj._setaria_direction;
     var routeHistory = stateObj._setaria_routeHistory;
     // 更新浏览历史
-    if (direction === 'back') {
+    if (direction === BACK) {
       if (routeHistory.currentIndex === 0) {
         routeHistory.currentIndex = null;
       } else {
         routeHistory.history[routeHistory.currentIndex] = current;
         routeHistory.currentIndex -= 1;
       }
-    } else if (direction === 'forward') {
+    } else if (direction === FORWARD) {
       // if (!isExistForwardPage) {
       //   if (routeHistory.currentIndex < history.length - 1) {
       //     let index = history.length - 1
@@ -1378,7 +1452,7 @@ mutations[_MUTATION._UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
       }
       routeHistory.history.push(next);
     // 替换当前路由信息
-    } else if (direction === 'replace') {
+    } else if (direction === REPLACE) {
       var originRouteHistory = routeHistory;
       originRouteHistory.history[routeHistory.currentIndex] = next;
       stateObj._setaria_routeHistory = {};
@@ -2555,27 +2629,44 @@ function initInterceptor (key, http) {
 }
 
 // import Vue from 'vue'
+var getInitialStateFunction = null;
+
+function refreshInitialState () {
+  console.log('refreshInitialState');
+  if (isEmpty$1(getInitialStateFunction)) {
+    return null
+  }
+  return execInitialProcess(getInitialStateFunction, getHttp(), getRouter(), getStore())
+}
+function getInitialStateData () {
+  var ret = getStore().getters[STORE_KEY.GET_INITIAL_STATE];
+  return isNotEmpty(ret) ? ret.data : null
+}
+
 function install$4 (Setaria, Vue$$1, options) {
   if (isEmpty$1(options)) {
     return
   }
   var entry = options.entry;
+  var getInitialState = options.getInitialState;
   var error = options.error;
   var loading = options.loading;
   // 实例化Vue根组件
   if (isNotEmpty(entry)) {
     // 进行异步处理，getInitialState函数必须返回Promise
-    if (typeof entry.getInitialState === 'function') {
-      Setaria.refreshInitialState = Vue$$1.prototype.$setaria.api.refreshInitialState = function () {
-        return getInitialState(entry, getHttp(), getRouter(), getStore())
-      };
+    if (typeof getInitialState === 'function') {
+      getInitialStateFunction = getInitialState;
       Vue$$1.component(
         'async-app',
         // 这个动态导入会返回一个 `Promise` 对象。
         function () { return (
           {
             // 需要加载的组件 (应该是一个 `Promise` 对象)
-            component: getInitialState(entry, getHttp(), getRouter(), getStore()),
+            component: new Promise(function (resolve, reject) {
+              execInitialProcess(getInitialState, getHttp(), getRouter(), getStore()).then(function () {
+                resolve(entry);
+              });
+            }),
             // 异步组件加载时使用的组件
             loading: loading,
             // 加载失败时使用的组件
@@ -2611,9 +2702,9 @@ function createRootVue (Vue$$1, options) {
   new Vue$$1(options);
 }
 
-function getInitialState (entry, http, router, store) {
+function execInitialProcess (getInitialState, http, router, store) {
   return new Promise(function (resolve, reject) {
-    entry.getInitialState({
+    getInitialState({
       http: http,
       router: router,
       store: store
@@ -2621,7 +2712,7 @@ function getInitialState (entry, http, router, store) {
       store.commit(STORE_KEY.SET_INITIAL_STATE, {
         data: res
       });
-      resolve(entry);
+      resolve(res);
     }).catch(function (error) {
       store.commit(STORE_KEY.SET_INITIAL_STATE, {
         error: error
@@ -2702,9 +2793,6 @@ function install$$1 (Setaria, Vue$$1, options) {
         get: function get () { return Setaria.getHttp() }
       });
     }
-
-    // add alias for http usage
-    Setaria.api = Setaria.getHttp();
 
     // 系统信息处理
     // 保存工程子模块url与模块属性的映射关系
@@ -2913,6 +3001,8 @@ function initGlobalAPI (SDK, instance) {
   SDK.createModuleDefaultBaseURL = createModuleDefaultBaseURL;
   SDK.getRouter = getRouter;
   SDK.getStore = getStore;
+  SDK.getInitialStateData = getInitialStateData;
+  SDK.refreshInitialState = refreshInitialState;
 }
 
 // M[Message Catagory]XXX[Message Type]
@@ -3088,7 +3178,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.7';
+Setaria.version = '0.4.9';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
