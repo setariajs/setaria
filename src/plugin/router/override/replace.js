@@ -13,8 +13,8 @@ export default function push (router, originFunction) {
         targetLocation.params[DIRECTION_KEY] = REPLACE
       } else {
         targetLocation.params = {
-          [DIRECTION_KEY]: REPLACE
         }
+        targetLocation.params[DIRECTION_KEY] = REPLACE
       }
     } else if (typeof targetLocation === 'string') {
       targetLocation = addQueryParameter(targetLocation, DIRECTION_KEY, REPLACE)

@@ -16,8 +16,8 @@ export default function push (router, originFunction) {
           targetLocation.query[DIRECTION_KEY] = FORWARD
         } else {
           targetLocation.query = {
-            [DIRECTION_KEY]: FORWARD
           }
+          targetLocation.query[DIRECTION_KEY] = FORWARD
         }
       } else if (typeof targetLocation.params === 'object') {
         // 设置了_direction的场合，使用设置的值
@@ -28,13 +28,13 @@ export default function push (router, originFunction) {
         targetLocation = {
           path: targetLocation,
           query: {
-            [DIRECTION_KEY]: FORWARD
           }
         }
+        targetLocation.query[DIRECTION_KEY] = FORWARD
       } else {
         targetLocation.params = {
-          [DIRECTION_KEY]: FORWARD
         }
+        targetLocation.params[DIRECTION_KEY] = FORWARD
       }
     // push函数的targetLocation支持两种参数类型
     } else if (typeof targetLocation === 'string') {
