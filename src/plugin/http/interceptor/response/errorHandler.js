@@ -1,4 +1,3 @@
-import { isNotEmpty } from '../../../../util/lang'
 import ServiceError from '../../../../global-object/ServiceError'
 import subLoading from './subLoading'
 
@@ -8,18 +7,6 @@ function throwDefaultError (messageId, messagePrefix, error) {
     errorCode = `${messagePrefix}${messageId}`
   }
   throw new ServiceError(errorCode, null, error)
-}
-// 处理401 无权操作的信息
-function process401 () {
-  let windowObj = window
-  // 不是顶层窗口的场合，顶层窗口进行重定向跳转至登陆页面
-  if (window.top !== window) {
-    windowObj = window.top
-  }
-  if (windowObj) {
-    // 跳转至登陆页面
-    windowObj.location.href = `${windowObj.location.protocol}//${windowObj.location.host}/index.html`
-  }
 }
 
 // error handler
@@ -39,7 +26,6 @@ export default function errorHandler (error) {
         break
       case 401:
         messageId = '401'
-        process401()
         return
       case 403:
         messageId = '403'
