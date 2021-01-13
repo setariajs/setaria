@@ -26,7 +26,7 @@ export default function errorHandler (error) {
         break
       case 401:
         messageId = '401'
-        return
+        break
       case 403:
         messageId = '403'
         break

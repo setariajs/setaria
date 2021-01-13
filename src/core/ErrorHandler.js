@@ -145,7 +145,6 @@ export default class ErrorHandler {
       traceId,
       oddNumber
     })
-    console.log(config)
     if (typeof config.errorHandler === 'function' && !isIgnoreErrorFlag) {
       config.errorHandler(errorObject, type, error, source)
     }
