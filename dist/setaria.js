@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.9
+ * Setaria v0.4.10
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -2083,18 +2083,6 @@ function throwDefaultError (messageId, messagePrefix, error) {
   }
   throw new ServiceError(errorCode, null, error)
 }
-// 处理401 无权操作的信息
-function process401 () {
-  var windowObj = window;
-  // 不是顶层窗口的场合，顶层窗口进行重定向跳转至登陆页面
-  if (window.top !== window) {
-    windowObj = window.top;
-  }
-  if (windowObj) {
-    // 跳转至登陆页面
-    windowObj.location.href = (windowObj.location.protocol) + "//" + (windowObj.location.host) + "/index.html";
-  }
-}
 
 // error handler
 function errorHandler (error) {
@@ -2113,7 +2101,6 @@ function errorHandler (error) {
         break
       case 401:
         messageId = '401';
-        process401();
         return
       case 403:
         messageId = '403';
@@ -3179,7 +3166,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.9';
+Setaria.version = '0.4.10';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
