@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.10
+ * Setaria v0.4.11
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -2933,8 +2933,9 @@ ErrorHandler.handleError = function handleError (
     traceId: traceId,
     oddNumber: oddNumber
   });
-  if (typeof config.errorHanlder === 'function' && !isIgnoreErrorFlag) {
-    config.errorHanlder(errorObject, type, error, source);
+  console.log(config);
+  if (typeof config.errorHandler === 'function' && !isIgnoreErrorFlag) {
+    config.errorHandler(errorObject, type, error, source);
   }
 };
 
@@ -3131,6 +3132,7 @@ var Setaria = function Setaria (options) {
  * 初始化设置，增加新设置项的场合，需要在此处进行merge
  */
 Setaria.prototype.initConfig = function initConfig (ref) {
+    var errorHandler = ref.errorHandler;
     var message = ref.message; if ( message === void 0 ) message = {};
     var http = ref.http; if ( http === void 0 ) http = {};
     var routes = ref.routes; if ( routes === void 0 ) routes = {};
@@ -3145,6 +3147,9 @@ Setaria.prototype.initConfig = function initConfig (ref) {
   config.http = http || {};
   config.routes = routes || {};
   config.store = store || {};
+  if (typeof errorHandler === 'function') {
+    config.errorHandler = errorHandler;
+  }
   // Vuex Store Scope Key
   if (isNotEmpty(storeScopeKey)) {
     config.storeScopeKey = storeScopeKey;
@@ -3165,7 +3170,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.10';
+Setaria.version = '0.4.11';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
