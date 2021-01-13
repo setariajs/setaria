@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.11
+ * Setaria v0.4.12
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -2105,7 +2105,7 @@ function errorHandler (error) {
         break
       case 401:
         messageId = '401';
-        return
+        break
       case 403:
         messageId = '403';
         break
@@ -2938,7 +2938,6 @@ ErrorHandler.handleError = function handleError (
     traceId: traceId,
     oddNumber: oddNumber
   });
-  console.log(config);
   if (typeof config.errorHandler === 'function' && !isIgnoreErrorFlag) {
     config.errorHandler(errorObject, type, error, source);
   }
@@ -3175,7 +3174,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.11';
+Setaria.version = '0.4.12';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
