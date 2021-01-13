@@ -192,26 +192,38 @@ this.$store.commit(constants.STORE_KEY.SET_INITIAL_STATE, {
 
 注: Vue从2.6.0版本之后，在vue实例内的 `生命周期函数(created等)` 和 `事件钩子函数(v-on DOM 监听器内部)` 抛出的普通 `error` 和 `promise error` 都可以捕获并统一从 `errorHandler` 接口抛出。
 
-> 因此，Setaria提供了一套统一的错误处理方案，将如上接口进行封装并触发 `Setaria.config.errorHandler` 配置的函数，并把不同类型的错误信息(字符串，promise等)通过 `ApplicationError(执行期异常)` 和 `ServiceError(服务调用异常)` 传递，方便对错误进行后续的操作（页面提示等）
+> 因此，Setaria提供了一套统一的错误处理方案，将如上接口进行封装并触发 `config.errorHandler` 配置的函数，并把不同类型的错误信息(字符串，promise等)通过 `ApplicationError(执行期异常)` 和 `ServiceError(服务调用异常)` 传递，方便对错误进行后续的操作（页面提示等）
 
 #### 2.1 运行时配置
 
 ```javascript
-Setaria.config.errorHanlder = (error, type, origin) => {
-  const exception = {
-    // 错误code
-    code: error.errorCode,
-    // 错误消息
-    message: error.errorMessage,
-    // 后端request唯一ID
-    requestId: error.requestId,
-    // 后端业务单据号
-    oddNumber: error.oddNumber,
-    // 错误显示方式 0 silent; 1 message.warn; 2 message.error; 4 notification; 9 page
-    showType: error.showType
+new Setaria({
+  /**
+   * @param {ApplicationError} error 封装的错误对象
+   * @param {string} type
+   * 'NORMAL_ERROR': 0, 非Vue组件的常规错误
+   * 'PROMISE_UNREJECT_ERROR': 1, Promise回调函数中的错误
+   * 'VUE_ERROR': 2 从 Vue 2.2.0 起，Vue组件生命周期钩子里的错误可以被捕获。从 Vue 2.4.0 起，Vue组件自定义事件句柄内部的错误可以被捕获。
+   * @param {object} origin 原始错误对象
+   **/
+  errorHandler(error, type, origin) => {
+    const exception = {
+      // 错误code
+      code: error.errorCode,
+      // 错误消息
+      message: error.errorMessage,
+      // 后端request唯一ID
+      requestId: error.requestId,
+      // 后端业务单据号
+      oddNumber: error.oddNumber,
+      // 错误显示方式 0 silent; 1 message.warn; 2 message.error; 4 notification; 9 page
+      showType: error.showType
+    }
+    alert(exception.message)
+  },
+  http: {
   }
-  alert(exception.message)
-}
+})
 ```
 
 #### 2.2 API

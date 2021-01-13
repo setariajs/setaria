@@ -2,6 +2,9 @@ import Setaria from 'setaria'
 
 export default {
   state: {
+    common: {
+      error: null
+    },
     form: {
       foo: ''
     }
@@ -9,6 +12,9 @@ export default {
   mutations: {
     set_foo (state, payload) {
       state.form.foo = payload
+    },
+    set_error (state, payload) {
+      state.common.error = payload
     }
   },
   actions: {

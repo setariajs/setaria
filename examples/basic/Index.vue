@@ -140,7 +140,6 @@ export default {
         main: '',
         qlty: ''
       },
-      exception: {},
       store: {
         // form: store.state.form,
         // module1Foo: store.getters['module1/get_foo']
@@ -148,6 +147,9 @@ export default {
     }
   },
   computed: {
+    exception () {
+      return this.$store.state.common.error
+    },
     storeFoo () {
       return this.$store.state.form.foo
     },
@@ -177,16 +179,6 @@ export default {
     }
   },
   created () {
-    Setaria.config.errorHanlder = (error, type, origin) => {
-      const config = error.detail && error.detail.config || {}
-      if (config.isShowError !== false) {
-        this.exception = {
-          code: error.errorCode,
-          message: error.errorMessage,
-          requestId: error.requestId
-        }
-      }
-    }
     this.handleThrowRuntimeException()
   },
   methods: {

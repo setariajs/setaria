@@ -31,6 +31,7 @@ class Setaria {
    * 初始化设置，增加新设置项的场合，需要在此处进行merge
    */
   initConfig ({
+    errorHandler,
     message = {},
     http = {},
     routes = {},
@@ -45,6 +46,9 @@ class Setaria {
     config.http = http || {}
     config.routes = routes || {}
     config.store = store || {}
+    if (typeof errorHandler === 'function') {
+      config.errorHandler = errorHandler
+    }
     // Vuex Store Scope Key
     if (isNotEmpty(storeScopeKey)) {
       config.storeScopeKey = storeScopeKey

@@ -7,7 +7,19 @@ import store from './store'
 
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 
+const errorHandler = (error, type, origin) => {
+  const config = error.detail && error.detail.config || {}
+  if (config.isShowError !== false) {
+    Setaria.getStore().commit('set_error', {
+      code: error.errorCode,
+      message: error.errorMessage,
+      requestId: error.requestId
+    })
+  }
+}
+
 const sdk = new Setaria({
+  errorHandler,
   http: {
     defaults: {
       timeout: 60000,
