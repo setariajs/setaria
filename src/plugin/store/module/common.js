@@ -6,6 +6,13 @@ const FORWARD = ROUTER.DIRECTION.FORWARD
 const BACK = ROUTER.DIRECTION.BACK
 const REPLACE = ROUTER.DIRECTION.REPLACE
 
+function getDefaultRouteHistory() {
+  return {
+    currentIndex: null,
+    history: []
+  }
+}
+
 // initial state
 const state = {
   // 自定义初始化数据
@@ -15,10 +22,7 @@ const state = {
   },
   _setaria_direction: '',
   _setaria_loading: 0,
-  _setaria_routeHistory: {
-    currentIndex: null,
-    history: []
-  },
+  _setaria_routeHistory: getDefaultRouteHistory(),
   _setaria_from_page_type: '',
   _setaria_from_page_name: '',
   _setaria_track_history: [],
@@ -241,6 +245,9 @@ const mutations = {
       stateObj._setaria_routeHistory = {}
       stateObj._setaria_routeHistory = originRouteHistory
     }
+  },
+  [_MUTATION._CLEAR_ROUTE_HISTORY] (stateObj) {
+    stateObj._setaria_routeHistory = getDefaultRouteHistory()
   },
   /**
    * 设置页面打开方式
