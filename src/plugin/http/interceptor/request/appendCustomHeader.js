@@ -62,17 +62,6 @@ export default function appendCustomHeader (config) {
   const headers = config.headers
   const storeInstance = getStore()
   if (storeInstance) {
-    // 用户信息
-    const user = storeInstance.getters['systemConfig/user']
-    if (user) {
-      headers['loginUserId'] = user.userId
-      headers['loginAddrCode'] = user.addrCode
-    }
-    // 开发环境时，增加token信息
-    if (process.env.NODE_ENV === 'development') {
-      const devToken = storeInstance.getters['systemConfig/devToken']
-      devToken ? headers['AUTHSSOTGC'] = devToken : ''
-    }
     // 开发环境
     // 业务公共辅助信息
     const oddNumber = storeInstance.getters[STORE_KEY.GET_CURRENT_ODD_NUMBER]
