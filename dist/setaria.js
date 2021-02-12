@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.12
+ * Setaria v0.4.13
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -234,6 +234,7 @@ var _MUTATION = {
   '_SUB_LOADING_COUNT': '_setaria_sub_loading_count',
   '_UPDATE_DIRECTION': '_setaria_update_direction',
   '_UPDATE_ROUTE_HISTORY': '_setaria_update_route_history',
+  '_CLEAR_ROUTE_HISTORY': '_setaria_clear_route_history',
   '_SET_FROM_PAGE_TYPE': '_setaria_set_from_page_type',
   '_SET_FROM_PAGE_NAME': '_setaria_set_from_page_name',
   '_ADD_TRACK': '_setaria_add_track',
@@ -279,6 +280,7 @@ var STORE_KEY = {
   SUB_LOADING_COUNT: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._SUB_LOADING_COUNT)),
   UPDATE_DIRECTION: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._UPDATE_DIRECTION)),
   UPDATE_ROUTE_HISTORY: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._UPDATE_ROUTE_HISTORY)),
+  CLEAR_ROUTE_HISTORY: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._CLEAR_ROUTE_HISTORY)),
   SET_FROM_PAGE_TYPE: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._SET_FROM_PAGE_TYPE)),
   SET_FROM_PAGE_NAME: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._SET_FROM_PAGE_NAME)),
   ADD_TRACK: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._ADD_TRACK)),
@@ -1238,6 +1240,13 @@ var FORWARD = ROUTER.DIRECTION.FORWARD;
 var BACK = ROUTER.DIRECTION.BACK;
 var REPLACE = ROUTER.DIRECTION.REPLACE;
 
+function getDefaultRouteHistory() {
+  return {
+    currentIndex: null,
+    history: []
+  }
+}
+
 // initial state
 var state = {
   // 自定义初始化数据
@@ -1247,10 +1256,7 @@ var state = {
   },
   _setaria_direction: '',
   _setaria_loading: 0,
-  _setaria_routeHistory: {
-    currentIndex: null,
-    history: []
-  },
+  _setaria_routeHistory: getDefaultRouteHistory(),
   _setaria_from_page_type: '',
   _setaria_from_page_name: '',
   _setaria_track_history: [],
@@ -1459,6 +1465,9 @@ mutations[_MUTATION._UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
       stateObj._setaria_routeHistory = {};
       stateObj._setaria_routeHistory = originRouteHistory;
     }
+  };
+mutations[_MUTATION._CLEAR_ROUTE_HISTORY] = function (stateObj) {
+    stateObj._setaria_routeHistory = getDefaultRouteHistory();
   };
 mutations[_MUTATION._SET_FROM_PAGE_TYPE] = function (stateObj, val) {
     stateObj._setaria_from_page_type = val;
@@ -2238,17 +2247,6 @@ function appendCustomHeader (config$$1) {
   var headers = config$$1.headers;
   var storeInstance = getStore();
   if (storeInstance) {
-    // 用户信息
-    var user = storeInstance.getters['systemConfig/user'];
-    if (user) {
-      headers['loginUserId'] = user.userId;
-      headers['loginAddrCode'] = user.addrCode;
-    }
-    // 开发环境时，增加token信息
-    {
-      var devToken = storeInstance.getters['systemConfig/devToken'];
-      devToken ? headers['AUTHSSOTGC'] = devToken : '';
-    }
     // 开发环境
     // 业务公共辅助信息
     var oddNumber = storeInstance.getters[STORE_KEY.GET_CURRENT_ODD_NUMBER];
@@ -3170,7 +3168,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.12';
+Setaria.version = '0.4.13';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
