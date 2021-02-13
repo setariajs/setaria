@@ -2,10 +2,10 @@
 import VueRouter from 'vue-router'
 import { getStore } from '../store/index'
 import config from '../../core/config'
-import ApplicationError from '../../global-object/ApplicationError'
-import constants, { ROUTER } from '../../shared/constants'
+import constants from '../../shared/constants'
 import TrackDto from '../store/dto/TrackDto'
 import { findIndex, isNotEmpty, keys, isArray } from '../../util/lang'
+import backFunction from './override/back'
 import pushFunction from './override/push'
 import replaceFunction from './override/replace'
 import updateDirection from './guard/updateDirection'
@@ -14,13 +14,9 @@ import {
   getQueryValueByStorageKey,
   getQueryParameter,
   isStorageKeyExistInQueryParameter,
-  supportsPushState,
   generateStorageKeyByUrlQueryAttribute,
   setQueryValueByStorageKey
 } from './util'
-
-const DIRECTION_KEY = ROUTER.DIRECTION.KEY
-const BACK = ROUTER.DIRECTION.BACK
 
 let router
 
@@ -174,46 +170,15 @@ export function install (Vue, options) {
         }
       })
   })
+  const originBackFunction = router.back
   const originPushFunction = router.push
   const originReplaceFunction = router.replace
-  // 覆写push函数，实现路由历史记录，四期模块间和跳转至三期页面，通过tab页打开目标页面的功能
+  // 覆写replace函数，实现路由历史记录功能
+  router.back = backFunction(router, originBackFunction)
+  // 覆写push函数，实现路由历史记录
   router.push = pushFunction(router, originPushFunction)
   // 覆写replace函数，实现路由历史记录功能
   router.replace = replaceFunction(router, originReplaceFunction)
-  // 当页面被iframe加载且浏览器网页上存在多个iframe时，iframe内页面的跳转会被vue-router通过记录到
-  if (window.top !== window && supportsPushState()) {
-    window.history.pushState = (state, title, url) => {
-      // console.log(state, title, url)
-    }
-    window.history.go = (index) => {
-      try {
-        const targetRoute = getStore().getters[constants.STORE_KEY.GET_TARGET_ROUTE](index)
-        if (targetRoute) {
-          const originRouteObject = targetRoute.originRouteObject
-          if (originRouteObject) {
-            originRouteObject
-            const {
-              name,
-              query,
-              params = {}
-            } = originRouteObject
-            params[DIRECTION_KEY] = BACK
-            getRouter().push({
-              name,
-              query,
-              params
-            })
-          } else {
-            router.close()
-          }
-        } else {
-          router.close()
-        }
-      } catch (err) {
-        throw new ApplicationError('SYSMSG-ROUTE-NOT-EXIST')
-      }
-    }
-  }
 
   /**
    * 手动生产跨模块间的传参

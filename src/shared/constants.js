@@ -153,7 +153,6 @@ export const LOG_TYPE = {
 
 export const ROUTER = {
   DIRECTION: {
-    KEY: '_direction',
     FORWARD: 'forward',
     BACK: 'back',
     REPLACE: 'replace'

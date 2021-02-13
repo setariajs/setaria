@@ -2,6 +2,7 @@
   <div>
     PageB
     <input type="button" @click="onReplace" value="replace(c)">
+    <input type="button" @click="onPush" value="push(c)">
     <input type="button" @click="onBack" value="back">
     <input type="button" @click="onGoBack" value="go(-1)">
   </div>
@@ -36,6 +37,14 @@
       onReplace () {
         this.$router.replace({
           name: 'pageC',
+          params: {
+            id: 'B'
+          }
+        })
+      },
+      onPush() {
+        this.$router.push({
+          name: 'pageC1',
           params: {
             id: 'B'
           }

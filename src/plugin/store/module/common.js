@@ -6,7 +6,7 @@ const FORWARD = ROUTER.DIRECTION.FORWARD
 const BACK = ROUTER.DIRECTION.BACK
 const REPLACE = ROUTER.DIRECTION.REPLACE
 
-function getDefaultRouteHistory() {
+function getDefaultRouteHistory () {
   return {
     currentIndex: null,
     history: []
@@ -245,6 +245,8 @@ const mutations = {
       stateObj._setaria_routeHistory = {}
       stateObj._setaria_routeHistory = originRouteHistory
     }
+    // 清空跳转方向
+    stateObj._setaria_direction = ''
   },
   [_MUTATION._CLEAR_ROUTE_HISTORY] (stateObj) {
     stateObj._setaria_routeHistory = getDefaultRouteHistory()
