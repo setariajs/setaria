@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.13
+ * Setaria v0.4.15
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -355,7 +355,6 @@ var LOG_TYPE = {
 
 var ROUTER = {
   DIRECTION: {
-    KEY: '_direction',
     FORWARD: 'forward',
     BACK: 'back',
     REPLACE: 'replace'
@@ -372,6 +371,194 @@ var constants = {
   ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX: ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX,
   LOG_TYPE: LOG_TYPE,
   LAST_PAGE_NAME: LAST_PAGE_NAME
+};
+
+/**
+ * 埋点数据实体
+ */
+var TrackDto = function TrackDto (componentName, componentLabel, eventName, pageName, prevPageName, querys) {
+  // 页面名称（中文）
+  this.pageName = pageName;
+  // 组件名称（英文）
+  this.componentName = componentName;
+  // 组件名称（中文）
+  this.componentLabel = componentLabel;
+  // 事件名称（英文）
+  this.eventName = eventName;
+  // 前页面名称（中文）
+  this.prevPageName = prevPageName;
+  // 当前页面url中的queryparameter对象
+  this.querys = querys;
+};
+
+function back (router, originFunction) {
+  return function (location, onComplete, onAbort) {
+    var targetLocation = location;
+    getStore().commit(STORE_KEY.SET_DIRECTION, ROUTER.DIRECTION.BACK);
+    originFunction.call(router, targetLocation, onComplete, onAbort);
+  }
+}
+
+var encodeReserveRE = /[!'()*]/g;
+var encodeReserveReplacer = function (c) { return '%' + c.charCodeAt(0).toString(16); };
+var commaRE = /%2C/g;
+
+// fixed encodeURIComponent which is more conformant to RFC3986:
+// - escapes [!'()*]
+// - preserve commas
+var encode = function (str) { return encodeURIComponent(str)
+  .replace(encodeReserveRE, encodeReserveReplacer)
+  .replace(commaRE, ','); };
+
+var decode = decodeURIComponent;
+
+function resolveQuery (
+  query,
+  extraQuery,
+  _parseQuery
+) {
+  var parse = _parseQuery || parseQuery;
+  var parsedQuery;
+  try {
+    parsedQuery = parse(query || '');
+  } catch (e) {
+    "development" !== 'production' && console.warn(false, e.message);
+    parsedQuery = {};
+  }
+  for (var key in extraQuery) {
+    parsedQuery[key] = extraQuery[key];
+  }
+  return parsedQuery
+}
+
+function parseQuery (query) {
+  var res = {};
+
+  query = query.trim().replace(/^(\?|#|&)/, '');
+
+  if (!query) {
+    return res
+  }
+
+  query.split('&').forEach(function (param) {
+    var parts = param.replace(/\+/g, ' ').split('=');
+    var key = decode(parts.shift());
+    var val = parts.length > 0
+      ? decode(parts.join('='))
+      : null;
+
+    if (res[key] === undefined) {
+      res[key] = val;
+    } else if (Array.isArray(res[key])) {
+      res[key].push(val);
+    } else {
+      res[key] = [res[key], val];
+    }
+  });
+
+  return res
+}
+
+function stringifyQuery (obj) {
+  var res = obj ? Object.keys(obj).map(function (key) {
+    var val = obj[key];
+
+    if (val === undefined) {
+      return ''
+    }
+
+    if (val === null) {
+      return encode(key)
+    }
+
+    if (Array.isArray(val)) {
+      var result = [];
+      val.forEach(function (val2) {
+        if (val2 === undefined) {
+          return
+        }
+        if (val2 === null) {
+          result.push(encode(key));
+        } else {
+          result.push(encode(key) + '=' + encode(val2));
+        }
+      });
+      return result.join('&')
+    }
+
+    return encode(key) + '=' + encode(val)
+  }).filter(function (x) { return x.length > 0; }).join('&') : null;
+  return res ? ("?" + res) : ''
+}
+
+
+var query = Object.freeze({
+	resolveQuery: resolveQuery,
+	stringifyQuery: stringifyQuery
+});
+
+function push (router, originFunction) {
+  return function (location, onComplete, onAbort) {
+    if ( location === void 0 ) location = {};
+
+    getStore().commit(STORE_KEY.SET_DIRECTION, ROUTER.DIRECTION.FORWARD);
+    var targetLocation = location;
+    // 跨模块跳转支持 query 参数内复杂参数的传递
+    if (targetLocation.global) {
+      router.generateModuleParams(targetLocation);
+      // vue-router的push函数在iframe下跳转有问题，因此需要使用原生api进行iframe下的页面跳转
+      // 根据路由信息取得目标跳转URL
+      var path =
+        targetLocation.path.indexOf('/') !== 0 ? ("/" + (targetLocation.path)) : targetLocation.path;
+      var query = targetLocation.query ? stringifyQuery(targetLocation.query) : '';
+      var baseUrl = router.options.base;
+      var href = "" + baseUrl + path + query;
+      window.location.href = href;
+    } else {
+      originFunction.call(router, targetLocation, onComplete, onAbort);
+    }
+  }
+}
+
+function push$1 (router, originFunction) {
+  return function (location, onComplete, onAbort) {
+    var targetLocation = location;
+    // 记录跳转状态
+    getStore().commit(STORE_KEY.SET_DIRECTION, ROUTER.DIRECTION.REPLACE);
+    originFunction.call(router, targetLocation, onComplete, onAbort);
+  }
+}
+
+var updateDirection = function (to, from, next) {
+  var store = getStore();
+  // const { params, query } = to
+  var currentPageFullPath = from.fullPath;
+  // let direction = ''
+  var nextPageFullPath = to.fullPath;
+  // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
+  store.commit(STORE_KEY.UPDATE_DIRECTION, {
+    current: currentPageFullPath,
+    next: nextPageFullPath
+  });
+  next();
+};
+
+var updateHistory = function (to, from, next) {
+  var store = getStore();
+  var payload = {
+    current: {
+      url: from.fullPath,
+      meta: from.meta,
+      originRouteObject: from
+    },
+    next: {
+      url: to.fullPath,
+      meta: to.meta,
+      originRouteObject: to
+    }
+  };
+  store.commit(STORE_KEY.UPDATE_ROUTE_HISTORY, payload);
+  next();
 };
 
 function encodeErrorMessage (prefix, code, message, showType) {
@@ -516,122 +703,6 @@ var ApplicationError = (function (AbstractError$$1) {
 
   return ApplicationError;
 }(AbstractError));
-
-/**
- * 埋点数据实体
- */
-var TrackDto = function TrackDto (componentName, componentLabel, eventName, pageName, prevPageName, querys) {
-  // 页面名称（中文）
-  this.pageName = pageName;
-  // 组件名称（英文）
-  this.componentName = componentName;
-  // 组件名称（中文）
-  this.componentLabel = componentLabel;
-  // 事件名称（英文）
-  this.eventName = eventName;
-  // 前页面名称（中文）
-  this.prevPageName = prevPageName;
-  // 当前页面url中的queryparameter对象
-  this.querys = querys;
-};
-
-var encodeReserveRE = /[!'()*]/g;
-var encodeReserveReplacer = function (c) { return '%' + c.charCodeAt(0).toString(16); };
-var commaRE = /%2C/g;
-
-// fixed encodeURIComponent which is more conformant to RFC3986:
-// - escapes [!'()*]
-// - preserve commas
-var encode = function (str) { return encodeURIComponent(str)
-  .replace(encodeReserveRE, encodeReserveReplacer)
-  .replace(commaRE, ','); };
-
-var decode = decodeURIComponent;
-
-function resolveQuery (
-  query,
-  extraQuery,
-  _parseQuery
-) {
-  var parse = _parseQuery || parseQuery;
-  var parsedQuery;
-  try {
-    parsedQuery = parse(query || '');
-  } catch (e) {
-    "development" !== 'production' && console.warn(false, e.message);
-    parsedQuery = {};
-  }
-  for (var key in extraQuery) {
-    parsedQuery[key] = extraQuery[key];
-  }
-  return parsedQuery
-}
-
-function parseQuery (query) {
-  var res = {};
-
-  query = query.trim().replace(/^(\?|#|&)/, '');
-
-  if (!query) {
-    return res
-  }
-
-  query.split('&').forEach(function (param) {
-    var parts = param.replace(/\+/g, ' ').split('=');
-    var key = decode(parts.shift());
-    var val = parts.length > 0
-      ? decode(parts.join('='))
-      : null;
-
-    if (res[key] === undefined) {
-      res[key] = val;
-    } else if (Array.isArray(res[key])) {
-      res[key].push(val);
-    } else {
-      res[key] = [res[key], val];
-    }
-  });
-
-  return res
-}
-
-function stringifyQuery (obj) {
-  var res = obj ? Object.keys(obj).map(function (key) {
-    var val = obj[key];
-
-    if (val === undefined) {
-      return ''
-    }
-
-    if (val === null) {
-      return encode(key)
-    }
-
-    if (Array.isArray(val)) {
-      var result = [];
-      val.forEach(function (val2) {
-        if (val2 === undefined) {
-          return
-        }
-        if (val2 === null) {
-          result.push(encode(key));
-        } else {
-          result.push(encode(key) + '=' + encode(val2));
-        }
-      });
-      return result.join('&')
-    }
-
-    return encode(key) + '=' + encode(val)
-  }).filter(function (x) { return x.length > 0; }).join('&') : null;
-  return res ? ("?" + res) : ''
-}
-
-
-var query = Object.freeze({
-	resolveQuery: resolveQuery,
-	stringifyQuery: stringifyQuery
-});
 
 /*  */
 var STORAGE_KEY = '__Setaria_SDK_Storage_';
@@ -863,165 +934,8 @@ function getQueryValueByStorageKey (key) {
 /**
  * 当前环境是否支持history.state
  */
-function supportsPushState () {
-  var ua = window.navigator.userAgent;
-
-  if (
-    (ua.indexOf('Android 2.') !== -1 || ua.indexOf('Android 4.0') !== -1) &&
-    ua.indexOf('Mobile Safari') !== -1 &&
-    ua.indexOf('Chrome') === -1 &&
-    ua.indexOf('Windows Phone') === -1
-  ) {
-    return false
-  }
-
-  return window.history && 'pushState' in window.history
-}
-
-function addQueryParameter (url, key, value) {
-  var targetLocation = url;
-  var char = '';
-  if (targetLocation.indexOf('?') !== -1) {
-    if (targetLocation.indexOf('?') !== targetLocation.length - 1) {
-      char = '&';
-    }
-  } else {
-    char = '?';
-  }
-  targetLocation = "" + targetLocation + char + key + "=" + value;
-  return targetLocation
-}
-
-var DIRECTION_KEY$1 = ROUTER.DIRECTION.KEY;
-var FORWARD$1 = ROUTER.DIRECTION.FORWARD;
-
-function push (router, originFunction) {
-  return function (location, onComplete, onAbort) {
-    if ( location === void 0 ) location = {};
-
-    var targetLocation = location;
-    if (typeof targetLocation === 'object') {
-      // 因设置了path的场合，params会被无视，所以通过url query string传递跳转方向(前进/后退)
-      if (typeof targetLocation.path === 'string') {
-        if (typeof targetLocation.query === 'object') {
-          targetLocation.query[DIRECTION_KEY$1] = FORWARD$1;
-        } else {
-          targetLocation.query = {
-          };
-          targetLocation.query[DIRECTION_KEY$1] = FORWARD$1;
-        }
-      } else if (typeof targetLocation.params === 'object') {
-        // 设置了_direction的场合，使用设置的值
-        if (!isNotEmpty(targetLocation.params[DIRECTION_KEY$1])) {
-          targetLocation.params[DIRECTION_KEY$1] = FORWARD$1;
-        }
-      } else if (typeof targetLocation === 'string') {
-        targetLocation = {
-          path: targetLocation,
-          query: {
-          }
-        };
-        targetLocation.query[DIRECTION_KEY$1] = FORWARD$1;
-      } else {
-        targetLocation.params = {
-        };
-        targetLocation.params[DIRECTION_KEY$1] = FORWARD$1;
-      }
-    // push函数的targetLocation支持两种参数类型
-    } else if (typeof targetLocation === 'string') {
-      targetLocation = addQueryParameter(targetLocation, DIRECTION_KEY$1, FORWARD$1);
-    }
-    // 跨模块跳转支持 query 参数内复杂参数的传递
-    if (targetLocation.global) {
-      router.generateModuleParams(targetLocation);
-      // vue-router的push函数在iframe下跳转有问题，因此需要使用原生api进行iframe下的页面跳转
-      // 根据路由信息取得目标跳转URL
-      var path =
-        targetLocation.path.indexOf('/') !== 0 ? ("/" + (targetLocation.path)) : targetLocation.path;
-      var query = targetLocation.query ? stringifyQuery(targetLocation.query) : '';
-      var baseUrl = router.options.base;
-      var href = "" + baseUrl + path + query;
-      window.location.href = href;
-    } else {
-      originFunction.call(router, targetLocation, onComplete, onAbort);
-    }
-  }
-}
-
-var DIRECTION_KEY$2 = ROUTER.DIRECTION.KEY;
-var REPLACE$1 = ROUTER.DIRECTION.REPLACE;
-
-function push$1 (router, originFunction) {
-  return function (location, onComplete, onAbort) {
-    var targetLocation = location;
-    if (typeof targetLocation === 'object') {
-      // 用于记录路由历史
-      if (typeof targetLocation.params === 'object') {
-        targetLocation.params[DIRECTION_KEY$2] = REPLACE$1;
-      } else {
-        targetLocation.params = {
-        };
-        targetLocation.params[DIRECTION_KEY$2] = REPLACE$1;
-      }
-    } else if (typeof targetLocation === 'string') {
-      targetLocation = addQueryParameter(targetLocation, DIRECTION_KEY$2, REPLACE$1);
-    }
-    originFunction.call(router, targetLocation, onComplete, onAbort);
-  }
-}
-
-var DIRECTION_KEY$3 = ROUTER.DIRECTION.KEY;
-
-var updateDirection = function (to, from, next) {
-  var store = getStore();
-  var params = to.params;
-  var query = to.query;
-  var currentPageFullPath = from.fullPath;
-  var direction = '';
-  var nextPageFullPath = to.fullPath;
-  // 设置了path的场合，params会被无视
-  if (query && typeof query[DIRECTION_KEY$3] === 'string') {
-    direction = query[DIRECTION_KEY$3];
-  } else if (params && params[DIRECTION_KEY$3]) {
-    direction = params[DIRECTION_KEY$3];
-  }
-  // 保存跳转方向
-  store.commit(STORE_KEY.SET_DIRECTION, direction);
-  // 浏览器前进／后退按钮点击 或 点击了页面链接 的场合
-  store.commit(STORE_KEY.UPDATE_DIRECTION, {
-    current: currentPageFullPath,
-    next: nextPageFullPath
-  });
-  // if (direction === '') {
-  //   direction = 'forward'
-  //   // 保存跳转方向
-  //   store.commit('common/direction', direction)
-  // }
-  next();
-};
-
-var updateHistory = function (to, from, next) {
-  var store = getStore();
-  var payload = {
-    current: {
-      url: from.fullPath,
-      meta: from.meta,
-      originRouteObject: from
-    },
-    next: {
-      url: to.fullPath,
-      meta: to.meta,
-      originRouteObject: to
-    }
-  };
-  store.commit(STORE_KEY.UPDATE_ROUTE_HISTORY, payload);
-  next();
-};
 
 /*  */
-var DIRECTION_KEY = ROUTER.DIRECTION.KEY;
-var BACK$1 = ROUTER.DIRECTION.BACK;
-
 var router;
 
 // scrollBehavior:
@@ -1173,44 +1087,15 @@ function install$3 (Vue$$1, options) {
         }
       });
   });
+  var originBackFunction = router.back;
   var originPushFunction = router.push;
   var originReplaceFunction = router.replace;
-  // 覆写push函数，实现路由历史记录，四期模块间和跳转至三期页面，通过tab页打开目标页面的功能
+  // 覆写replace函数，实现路由历史记录功能
+  router.back = back(router, originBackFunction);
+  // 覆写push函数，实现路由历史记录
   router.push = push(router, originPushFunction);
   // 覆写replace函数，实现路由历史记录功能
   router.replace = push$1(router, originReplaceFunction);
-  // 当页面被iframe加载且浏览器网页上存在多个iframe时，iframe内页面的跳转会被vue-router通过记录到
-  if (window.top !== window && supportsPushState()) {
-    window.history.pushState = function (state, title, url) {
-      // console.log(state, title, url)
-    };
-    window.history.go = function (index) {
-      try {
-        var targetRoute = getStore().getters[constants.STORE_KEY.GET_TARGET_ROUTE](index);
-        if (targetRoute) {
-          var originRouteObject = targetRoute.originRouteObject;
-          if (originRouteObject) {
-            originRouteObject;
-            var name = originRouteObject.name;
-            var query = originRouteObject.query;
-            var params = originRouteObject.params; if ( params === void 0 ) params = {};
-            params[DIRECTION_KEY] = BACK$1;
-            getRouter().push({
-              name: name,
-              query: query,
-              params: params
-            });
-          } else {
-            router.close();
-          }
-        } else {
-          router.close();
-        }
-      } catch (err) {
-        throw new ApplicationError('SYSMSG-ROUTE-NOT-EXIST')
-      }
-    };
-  }
 
   /**
    * 手动生产跨模块间的传参
@@ -1240,7 +1125,7 @@ var FORWARD = ROUTER.DIRECTION.FORWARD;
 var BACK = ROUTER.DIRECTION.BACK;
 var REPLACE = ROUTER.DIRECTION.REPLACE;
 
-function getDefaultRouteHistory() {
+function getDefaultRouteHistory () {
   return {
     currentIndex: null,
     history: []
@@ -1465,6 +1350,8 @@ mutations[_MUTATION._UPDATE_ROUTE_HISTORY] = function (stateObj, ref) {
       stateObj._setaria_routeHistory = {};
       stateObj._setaria_routeHistory = originRouteHistory;
     }
+    // 清空跳转方向
+    stateObj._setaria_direction = '';
   };
 mutations[_MUTATION._CLEAR_ROUTE_HISTORY] = function (stateObj) {
     stateObj._setaria_routeHistory = getDefaultRouteHistory();
@@ -3168,7 +3055,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.13';
+Setaria.version = '0.4.15';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
