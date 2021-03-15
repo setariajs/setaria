@@ -220,8 +220,8 @@ var _GETTER = {
   '_GET_CURRENT_PAGE_MODULE': 'setaria_get_current_page_module',
   '_GET_CURRENT_REQUEST_ID': 'setaria_get_current_request_id',
   '_GET_CURRENT_ODD_NUMBER': 'setaria_get_current_odd_number',
-  '_GET_DEBUG_REQUEST_LIST': 'setaria_get_debug_request_list'
-
+  '_GET_DEBUG_REQUEST_LIST': 'setaria_get_debug_request_list',
+  '_GET_XSRF': '_setaria_get_xsrf'
 };
 // Mutation
 var _MUTATION = {
@@ -241,7 +241,8 @@ var _MUTATION = {
   '_SET_REQUEST_ID': '_setaria_request_id',
   '_SET_ODD_NUMBER': '_setaria_odd_number',
   '_SET_DEBUG_REQUEST_LIST': '_setaria_set_debug_request_list',
-  '_CLEAR_DEBUG_REQUEST_LIST': '_setaria_clear_debug_request_list'
+  '_CLEAR_DEBUG_REQUEST_LIST': '_setaria_clear_debug_request_list',
+  '_SET_XSRF': '_setaria_set_xsrf'
 };
 
 var STORE_KEY = {
@@ -267,6 +268,7 @@ var STORE_KEY = {
   GET_CURRENT_REQUEST_ID: (SETARIA_SDK_STORE_MODULE + "/" + (_GETTER._GET_CURRENT_REQUEST_ID)),
   GET_CURRENT_PAGE_MODULE: (SETARIA_SDK_STORE_MODULE + "/" + (_GETTER._GET_CURRENT_PAGE_MODULE)),
   GET_DEBUG_REQUEST_LIST: (SETARIA_SDK_STORE_MODULE + "/" + (_GETTER._GET_DEBUG_REQUEST_LIST)),
+  GET_XSRF: (SETARIA_SDK_STORE_MODULE + "/" + (_GETTER._GET_XSRF)),
   // Getters - SytemConfig
   GET_TODO_REDIRECT_URL: (SETARIA_SDK_STORE_MODULE_SYSTEM_CONFIG + "/" + (_GETTER._GET_TODO_REDIRECT_URL)),
   // Mutations
@@ -287,6 +289,7 @@ var STORE_KEY = {
   UPDATE_CURRENT_PAGE_MODULE: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._UPDATE_CURRENT_PAGE_MODULE)),
   SET_DEBUG_REQUEST_LIST: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._SET_DEBUG_REQUEST_LIST)),
   CLEAR_DEBUG_REQUEST_LIST: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._CLEAR_DEBUG_REQUEST_LIST)),
+  SET_XSRF: (SETARIA_SDK_STORE_MODULE + "/" + (_MUTATION._SET_XSRF)),
   // Mutations - SytemConfig
   LOGOUT_URL: (SETARIA_SDK_STORE_MODULE_SYSTEM_CONFIG + "/logoutUrl"),
   // Actions
@@ -357,6 +360,11 @@ var ROUTER = {
   }
 };
 
+var HTTP = {
+  ADD_XSRF: 'addXsrf',
+  GET_XSRF: 'getXsrf'
+};
+
 var constants = {
   ERROR_THROW_TYPES: ERROR_THROW_TYPES,
   ERROR_PREFIX: ERROR_PREFIX,
@@ -366,7 +374,8 @@ var constants = {
   STORAGE_TYPE: STORAGE_TYPE,
   ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX: ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX,
   LOG_TYPE: LOG_TYPE,
-  LAST_PAGE_NAME: LAST_PAGE_NAME
+  LAST_PAGE_NAME: LAST_PAGE_NAME,
+  HTTP: HTTP
 };
 
 /**
@@ -1149,7 +1158,8 @@ var state = {
   _setaria_current_page_module: [],
   _setaria_request_id: '',
   _setaria_odd_number: '',
-  _setaria_debug_request_list: []
+  _setaria_debug_request_list: [],
+  _setaria_xsrf: ''
 };
 
 function getRouteHistory (state) {
@@ -1238,6 +1248,9 @@ getters[_GETTER._GET_CURRENT_ODD_NUMBER] = function (state) {
   };
 getters[_GETTER._GET_DEBUG_REQUEST_LIST] = function (state) {
     return state._setaria_debug_request_list
+  };
+getters[_GETTER._GET_XSRF] = function (state) {
+    return state._setaria_xsrf
   };
 
 // actions
@@ -1423,6 +1436,9 @@ mutations[_MUTATION._SET_DEBUG_REQUEST_LIST] = function (stateObj, val) {
   };
 mutations[_MUTATION._CLEAR_DEBUG_REQUEST_LIST] = function (stateObj, val) {
     stateObj._setaria_debug_request_list = [];
+  };
+mutations[_MUTATION._SET_XSRF] = function (stateObj, val) {
+    stateObj._setaria_xsrf = val;
   };
 
 var modules = {
@@ -2070,6 +2086,18 @@ var defaultInterceptor = {
   }
 };
 
+function addXsrf (config) {
+  var storeInstance = getStore();
+  if (storeInstance && config) {
+    if (config[HTTP.GET_XSRF] === true) {
+      config.headers[config.xsrfHeaderName] = 'fetch';
+    } else if (config[HTTP.ADD_XSRF] === true) {
+      config.headers[config.xsrfHeaderName] = storeInstance.getters[STORE_KEY.GET_XSRF];
+    }
+  }
+  return config
+}
+
 function getLogControlType (componentLabel, pageName, prevPageName, prevPageComponentLabel, querys, eventName, tracingList) {
   if ( prevPageName === void 0 ) prevPageName = '';
   if ( prevPageComponentLabel === void 0 ) prevPageComponentLabel = '';
@@ -2254,6 +2282,12 @@ function businessErrorHandler (response) {
 }
 
 function commonHandler (response) {
+  var config = response.config;
+  var headers = response.headers;
+  // 设置取得xsrf token的场合，将服务端返回的xsrf写入缓存
+  if (config[HTTP.GET_XSRF] && headers[config.xsrfHeaderName]) {
+    getStore().commit(STORE_KEY.SET_XSRF, headers[config.xsrfHeaderName]);
+  }
   var ref = response.data;
   var traceId = ref.traceId;
   var oddNumber = ref.oddNumber;
@@ -2263,13 +2297,13 @@ function commonHandler (response) {
   if (isNotEmpty(traceId)) {
     getStore().commit(STORE_KEY.SET_REQUEST_ID, traceId);
   }
-  //debug模式
-  if(response.config.headers.clientDebugMode){
+  // debug模式
+  if (response.config.headers.clientDebugMode){
     getStore().commit(STORE_KEY.SET_DEBUG_REQUEST_LIST, {
-      responseData:response.data,
-      url:response.config.url,
-      requestData:response.config.data,
-      method:response.config.method
+      responseData: response.data,
+      url: response.config.url,
+      requestData: response.config.data,
+      method: response.config.method
     });
   }
   return response
@@ -2446,6 +2480,9 @@ function initInterceptor (key, http) {
   var requestInterceptors = [
     [
       addLoading
+    ],
+    [
+      addXsrf
     ],
     [
       appendCustomHeader
