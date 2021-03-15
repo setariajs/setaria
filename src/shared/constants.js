@@ -22,8 +22,8 @@ export const _GETTER = {
   '_GET_CURRENT_PAGE_MODULE': 'setaria_get_current_page_module',
   '_GET_CURRENT_REQUEST_ID': 'setaria_get_current_request_id',
   '_GET_CURRENT_ODD_NUMBER': 'setaria_get_current_odd_number',
-  '_GET_DEBUG_REQUEST_LIST': 'setaria_get_debug_request_list'
-
+  '_GET_DEBUG_REQUEST_LIST': 'setaria_get_debug_request_list',
+  '_GET_XSRF': '_setaria_get_xsrf'
 }
 // Mutation
 export const _MUTATION = {
@@ -43,7 +43,8 @@ export const _MUTATION = {
   '_SET_REQUEST_ID': '_setaria_request_id',
   '_SET_ODD_NUMBER': '_setaria_odd_number',
   '_SET_DEBUG_REQUEST_LIST': '_setaria_set_debug_request_list',
-  '_CLEAR_DEBUG_REQUEST_LIST': '_setaria_clear_debug_request_list'
+  '_CLEAR_DEBUG_REQUEST_LIST': '_setaria_clear_debug_request_list',
+  '_SET_XSRF': '_setaria_set_xsrf'
 }
 
 export const STORE_KEY = {
@@ -69,6 +70,7 @@ export const STORE_KEY = {
   GET_CURRENT_REQUEST_ID: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_CURRENT_REQUEST_ID}`,
   GET_CURRENT_PAGE_MODULE: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_CURRENT_PAGE_MODULE}`,
   GET_DEBUG_REQUEST_LIST: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_DEBUG_REQUEST_LIST}`,
+  GET_XSRF: `${SETARIA_SDK_STORE_MODULE}/${_GETTER._GET_XSRF}`,
   // Getters - SytemConfig
   GET_TODO_REDIRECT_URL: `${SETARIA_SDK_STORE_MODULE_SYSTEM_CONFIG}/${_GETTER._GET_TODO_REDIRECT_URL}`,
   // Mutations
@@ -89,6 +91,7 @@ export const STORE_KEY = {
   UPDATE_CURRENT_PAGE_MODULE: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._UPDATE_CURRENT_PAGE_MODULE}`,
   SET_DEBUG_REQUEST_LIST: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._SET_DEBUG_REQUEST_LIST}`,
   CLEAR_DEBUG_REQUEST_LIST: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._CLEAR_DEBUG_REQUEST_LIST}`,
+  SET_XSRF: `${SETARIA_SDK_STORE_MODULE}/${_MUTATION._SET_XSRF}`,
   // Mutations - SytemConfig
   LOGOUT_URL: `${SETARIA_SDK_STORE_MODULE_SYSTEM_CONFIG}/logoutUrl`,
   // Actions
@@ -159,6 +162,11 @@ export const ROUTER = {
   }
 }
 
+export const HTTP = {
+  ADD_XSRF: 'addXsrf',
+  GET_XSRF: 'getXsrf'
+}
+
 export default {
   ERROR_THROW_TYPES,
   ERROR_PREFIX,
@@ -168,5 +176,6 @@ export default {
   STORAGE_TYPE,
   ROUTER_SESSION_STORAGE_QUERY_KEY_PREFIX,
   LOG_TYPE,
-  LAST_PAGE_NAME
+  LAST_PAGE_NAME,
+  HTTP
 }

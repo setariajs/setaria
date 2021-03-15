@@ -31,7 +31,8 @@ const state = {
   _setaria_current_page_module: [],
   _setaria_request_id: '',
   _setaria_odd_number: '',
-  _setaria_debug_request_list: []
+  _setaria_debug_request_list: [],
+  _setaria_xsrf: ''
 }
 
 function getRouteHistory (state) {
@@ -137,6 +138,9 @@ const getters = {
   },
   [_GETTER._GET_DEBUG_REQUEST_LIST]: (state) => {
     return state._setaria_debug_request_list
+  },
+  [_GETTER._GET_XSRF]: (state) => {
+    return state._setaria_xsrf
   }
 }
 
@@ -325,6 +329,9 @@ const mutations = {
   },
   [_MUTATION._CLEAR_DEBUG_REQUEST_LIST] (stateObj, val) {
     stateObj._setaria_debug_request_list = []
+  },
+  [_MUTATION._SET_XSRF] (stateObj, val) {
+    stateObj._setaria_xsrf = val
   }
 }
 

@@ -52,6 +52,7 @@ app.get('/api/biz/user', function (req, res) {
   // 模拟服务返回时间
   setTimeout(() => {
     pid += 1
+    res.set('x-csrf-token', '_12*kd')
     res.json({
       code: '00000',
       data: {
@@ -65,7 +66,7 @@ app.get('/api/biz/user', function (req, res) {
     //   code: 'PLN00069',
     //   message: '用户信息无法取得！'
     // })
-  }, 2000)
+  }, 1000)
 })
 app.post('/api/biz/business-error', function (req, res) {
   res.status(500).json({

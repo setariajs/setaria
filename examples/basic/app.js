@@ -23,6 +23,7 @@ const sdk = new Setaria({
   http: {
     defaults: {
       timeout: 60000,
+      xsrfHeaderName: 'x-csrf-token',
       transformResponse: [
         function (data, response) {
           let res = data

@@ -183,7 +183,7 @@ export default {
   },
   methods: {
     async handlerCallBizApi () {
-      const res = await this.$api.biz.get('user')
+      const res = await this.$api.biz.get('user', { [constants.HTTP.GET_XSRF]: true })
       const { data } = res.data
       alert(`返回数据：${JSON.stringify(data)}`)
     },
@@ -233,7 +233,9 @@ export default {
       throw new ApplicationError('MCM006E', null, null, 4)
     },
     handleThrowPromiseExceptionByCallHttp () {
-      this.$api.biz.post('business-error', {})
+      this.$api.biz.post('business-error', {}, {
+        [constants.HTTP.ADD_XSRF]: true
+      })
     },
     handleBusinessException () {
       this.$api.typicode.get('standard/business-exception', {})
@@ -252,4 +254,3 @@ export default {
   }
 }
 </script>
- 

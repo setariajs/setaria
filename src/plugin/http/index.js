@@ -10,6 +10,7 @@ import config from '../../core/config'
 import { findIndex, isEmpty, kebabCase, merge } from '../../util/lang'
 import defaultInterceptor from './interceptor/default-interceptor'
 import addLoading from './interceptor/request/addLoading'
+import addXsrf from './interceptor/request/addXsrf'
 import appendCustomHeader from './interceptor/request/appendCustomHeader'
 import fileDownload from './interceptor/response/fileDownload'
 import subLoading from './interceptor/response/subLoading'
@@ -178,6 +179,9 @@ function initInterceptor (key, http) {
   let requestInterceptors = [
     [
       addLoading
+    ],
+    [
+      addXsrf
     ],
     [
       appendCustomHeader
