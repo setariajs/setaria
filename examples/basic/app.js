@@ -54,7 +54,26 @@ const sdk = new Setaria({
     },
     biz: {
       baseURL: '/api/biz',
-      showLoading: true
+      showLoading: true,
+      interceptor: {
+        request: [
+          [
+            function testCustomInterceptor (config) {
+              console.log('testCustomInterceptor request', config)
+              config.url = config.url + '?foo=bar'
+              return config
+            }
+          ]
+        ],
+        response: [
+          [
+            function testCustomInterceptor (response) {
+              console.log('testCustomInterceptor response', response)
+              return response
+            }
+          ]
+        ]
+      }
     }
   },
   message,

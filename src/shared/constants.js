@@ -164,7 +164,10 @@ export const ROUTER = {
 
 export const HTTP = {
   ADD_XSRF: 'addXsrf',
-  GET_XSRF: 'getXsrf'
+  GET_XSRF: 'getXsrf',
+  INTERCEPTOR: 'interceptor',
+  REQUEST: 'request',
+  RESPONSE: 'response'
 }
 
 export default {

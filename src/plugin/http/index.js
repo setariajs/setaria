@@ -7,8 +7,8 @@
  */
 import axios from 'axios'
 import config from '../../core/config'
-import { findIndex, isEmpty, kebabCase, merge } from '../../util/lang'
-import defaultInterceptor from './interceptor/default-interceptor'
+import { HTTP } from '../../shared/constants'
+import { findIndex, pathOr, merge } from '../../util/lang'
 import addLoading from './interceptor/request/addLoading'
 import addXsrf from './interceptor/request/addXsrf'
 import appendCustomHeader from './interceptor/request/appendCustomHeader'
@@ -61,7 +61,7 @@ export function install (Vue, options) {
         http[key] = instance[key]
       }
       // Set Http Interceptor
-      initInterceptor(key, http[key])
+      initInterceptor(http[key], httpConfig[key])
     })
   }
 }
@@ -133,10 +133,6 @@ function initInstance (httpConfig) {
         } else {
           config.showLoading = httpConfig[key].showLoading
         }
-        // create module baseURL
-        config.baseURL = createModuleDefaultBaseURL(defaultConfig.baseURL, key, config.baseURL)
-        config.responseEncoding = 'UTF8'
-        config.timeout = 0 // nginx已经设置了请求的超时时间
         ret[key] = {}
         ret[key] = axios.create(config)
         // add non-exist function to axios instance
@@ -151,32 +147,12 @@ function initInstance (httpConfig) {
 }
 
 /**
- * 生成模块API的baseURL
- *
- * @export
- * @param {string} baseURL
- * @param {string} moduleKey
- * @param {string} moduleBaseUrl
- * @returns
- */
-export function createModuleDefaultBaseURL (baseURL: string, moduleKey: string, moduleBaseUrl?: string) {
-  let ret = moduleBaseUrl
-  const modulePath = kebabCase(moduleKey)
-  // 模块api没有定义baseURL的场合
-  if (!isEmpty(baseURL) && isEmpty(ret)) {
-    // 使用key自动生成baseURL
-    ret = `${baseURL}/api-${modulePath}/api/${modulePath}/`
-  }
-  return ret
-}
-
-/**
  * Set Http Interceptor
  *
  * @param {*} http
  */
-function initInterceptor (key, http) {
-  let requestInterceptors = [
+function initInterceptor (http, config) {
+  const requestInterceptors = [
     [
       addLoading
     ],
@@ -185,9 +161,10 @@ function initInterceptor (key, http) {
     ],
     [
       appendCustomHeader
-    ]
+    ],
+    ...pathOr([], [HTTP.INTERCEPTOR, HTTP.REQUEST], config)
   ]
-  let responseInterceptors = [
+  const responseInterceptors = [
     [
       commonHandler
     ],
@@ -199,18 +176,9 @@ function initInterceptor (key, http) {
     ],
     [
       fileDownload
-    ]
+    ],
+    ...pathOr([], [HTTP.INTERCEPTOR, HTTP.RESPONSE], config)
   ]
-  // 自定义拦截器
-  const httpInterceptorConfig = defaultInterceptor[key]
-  // 定义了自定义请求处理拦截器的场合
-  if (httpInterceptorConfig && httpInterceptorConfig.request) {
-    requestInterceptors = httpInterceptorConfig.request
-  }
-  // 定义了自定义返回处理拦截器的场合
-  if (httpInterceptorConfig && httpInterceptorConfig.response) {
-    responseInterceptors = httpInterceptorConfig.response
-  }
   // add interceptor to instance
   if (typeof http === 'function') {
     requestInterceptors.forEach((interceptor) => {
