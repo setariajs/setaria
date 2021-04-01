@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.15
+ * Setaria v0.4.16
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -88,112 +88,6 @@ var config = ({
    * 执行初始化逻辑出错的场合，显示的error组件
    */
   error: null
-});
-
-function merge$1 (obj1, obj2) {
-  return merge(obj1, obj2)
-}
-
-function mergeDeepRight$1 (obj1, obj2) {
-  return mergeDeepRight(obj1, obj2)
-}
-
-function pathOr$1 (defaultValue, path, obj) {
-  return pathOr(defaultValue, path, obj)
-}
-
-function propOr$1 (defaultValue, key, obj) {
-  return propOr(defaultValue, key, obj)
-}
-
-function findIndex$1 (list, fn) {
-  return findIndex(fn)(list)
-}
-
-function keys (val) {
-  return Object.keys(val)
-}
-
-function isNotEmpty (val) {
-  if (typeof val === 'number') {
-    return true
-  }
-  if (val === null || val === undefined) {
-    return false
-  }
-  return !isEmpty(val)
-}
-
-function isEmpty$1 (val) {
-  return !isNotEmpty(val)
-}
-
-function isArray (val) {
-  return Array.isArray(val)
-}
-
-function clone$1 (val) {
-  return clone(val)
-}
-
-function trim$1 (val) {
-  return trim(val)
-}
-
-/**
- * 检查列表/字符串是否以给定的值开头。
- */
-function startsWith$1 (char, val) {
-  return startsWith(char, val)
-}
-
-/**
- * 检查列表是否以指定的子列表结尾。
- * 同样的，检查字符串是否以指定的子字符串结尾。
- */
-function endsWith$1 (char, val) {
-  return endsWith(char, val)
-}
-
-/**
- * 转换成驼峰命名
- *
- * @export
- * @param {*} val
- * @returns
- */
-function camelCase (val) {
-  return lodashCamelCase(val)
-}
-
-/**
- * 将字符转换成kebab命名
- *
- * @export
- * @param {*} val
- * @returns
- */
-function kebabCase (val) {
-  return lodashKebabCase(val)
-}
-
-
-var lang = Object.freeze({
-	merge: merge$1,
-	mergeDeepRight: mergeDeepRight$1,
-	pathOr: pathOr$1,
-	propOr: propOr$1,
-	findIndex: findIndex$1,
-	keys: keys,
-	isNotEmpty: isNotEmpty,
-	isEmpty: isEmpty$1,
-	isArray: isArray,
-	clone: clone$1,
-	trim: trim$1,
-	startsWith: startsWith$1,
-	endsWith: endsWith$1,
-	camelCase: camelCase,
-	kebabCase: kebabCase
 });
 
 // Module
@@ -362,7 +256,10 @@ var ROUTER = {
 
 var HTTP = {
   ADD_XSRF: 'addXsrf',
-  GET_XSRF: 'getXsrf'
+  GET_XSRF: 'getXsrf',
+  INTERCEPTOR: 'interceptor',
+  REQUEST: 'request',
+  RESPONSE: 'response'
 };
 
 var constants = {
@@ -377,6 +274,112 @@ var constants = {
   LAST_PAGE_NAME: LAST_PAGE_NAME,
   HTTP: HTTP
 };
+
+function merge$1 (obj1, obj2) {
+  return merge(obj1, obj2)
+}
+
+function mergeDeepRight$1 (obj1, obj2) {
+  return mergeDeepRight(obj1, obj2)
+}
+
+function pathOr$1 (defaultValue, path, obj) {
+  return pathOr(defaultValue, path, obj)
+}
+
+function propOr$1 (defaultValue, key, obj) {
+  return propOr(defaultValue, key, obj)
+}
+
+function findIndex$1 (list, fn) {
+  return findIndex(fn)(list)
+}
+
+function keys (val) {
+  return Object.keys(val)
+}
+
+function isNotEmpty (val) {
+  if (typeof val === 'number') {
+    return true
+  }
+  if (val === null || val === undefined) {
+    return false
+  }
+  return !isEmpty(val)
+}
+
+function isEmpty$1 (val) {
+  return !isNotEmpty(val)
+}
+
+function isArray (val) {
+  return Array.isArray(val)
+}
+
+function clone$1 (val) {
+  return clone(val)
+}
+
+function trim$1 (val) {
+  return trim(val)
+}
+
+/**
+ * 检查列表/字符串是否以给定的值开头。
+ */
+function startsWith$1 (char, val) {
+  return startsWith(char, val)
+}
+
+/**
+ * 检查列表是否以指定的子列表结尾。
+ * 同样的，检查字符串是否以指定的子字符串结尾。
+ */
+function endsWith$1 (char, val) {
+  return endsWith(char, val)
+}
+
+/**
+ * 转换成驼峰命名
+ *
+ * @export
+ * @param {*} val
+ * @returns
+ */
+function camelCase (val) {
+  return lodashCamelCase(val)
+}
+
+/**
+ * 将字符转换成kebab命名
+ *
+ * @export
+ * @param {*} val
+ * @returns
+ */
+function kebabCase (val) {
+  return lodashKebabCase(val)
+}
+
+
+var lang = Object.freeze({
+	merge: merge$1,
+	mergeDeepRight: mergeDeepRight$1,
+	pathOr: pathOr$1,
+	propOr: propOr$1,
+	findIndex: findIndex$1,
+	keys: keys,
+	isNotEmpty: isNotEmpty,
+	isEmpty: isEmpty$1,
+	isArray: isArray,
+	clone: clone$1,
+	trim: trim$1,
+	startsWith: startsWith$1,
+	endsWith: endsWith$1,
+	camelCase: camelCase,
+	kebabCase: kebabCase
+});
 
 /**
  * 埋点数据实体
@@ -1904,188 +1907,6 @@ function addLoading (config) {
   return config
 }
 
-var inBrowser = typeof window !== 'undefined';
-
-var isFirefox = function () {
-  var agent = window.navigator.userAgent.toLowerCase();
-  return (typeof window !== 'undefined' && agent) &&
-    /firefox\/\d+/.test(agent)
-};
-
-/*  */
-function dispatchUnHandlerRejectEvent (reason) {
-  var event = document.createEvent('Event');
-  event.initEvent(
-    'unhandledrejection', // Define that the event name is 'unhandledrejection'
-    false, // PromiseRejectionEvent is not bubbleable
-    true // PromiseRejectionEvent is cancelable
-  );
-  /**
-   * Note: these properties should not be enumerable, which is the default setting
-   */
-  var properties = {
-    reason: {
-      value: reason,
-      writable: false
-    }
-  };
-  Object.defineProperties(event, properties);
-  window.dispatchEvent(event);
-}
-
-var ServiceError = (function (AbstractError$$1) {
-  function ServiceError (
-    errorCode,
-    errorMessage,
-    reason,
-    params,
-    traceId,
-    oddNumber,
-    showType) {
-    if ( errorCode === void 0 ) errorCode = '';
-    if ( errorMessage === void 0 ) errorMessage = '';
-    if ( reason === void 0 ) reason = {};
-    if ( params === void 0 ) params = [];
-    if ( traceId === void 0 ) traceId = '';
-    if ( oddNumber === void 0 ) oddNumber = '';
-    if ( showType === void 0 ) showType = 2;
-
-    var msg = errorMessage;
-    // 系统自定义消息
-    if (errorCode &&
-        typeof errorCode === 'string' &&
-        isEmpty$1(errorMessage) &&
-        errorCode.indexOf('SYSMSG') === 0) {
-      msg = new Message(errorCode, params).getMessage();
-      if (isEmpty$1(msg)) {
-        errorCode = '';
-        msg = new Message('SYSMSG-SERVICE-UNKNOWN-ERROR').getMessage();
-      }
-    }
-    AbstractError$$1.call(this, errorCode, msg, 'ServiceError', showType);
-    this.detail = reason;
-    this.traceId = traceId;
-    this.oddNumber = oddNumber;
-    // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
-    if (isFirefox() && pathOr$1(true, ['config', 'isShowError'], reason) !== false) {
-      dispatchUnHandlerRejectEvent(this);
-    }
-  }
-
-  if ( AbstractError$$1 ) ServiceError.__proto__ = AbstractError$$1;
-  ServiceError.prototype = Object.create( AbstractError$$1 && AbstractError$$1.prototype );
-  ServiceError.prototype.constructor = ServiceError;
-
-  return ServiceError;
-}(AbstractError));
-
-function subLoading (response) {
-  var storeInstance = getStore();
-  if (storeInstance && response.config && response.config.showLoading !== false) {
-    storeInstance.commit(STORE_KEY.SUB_LOADING_COUNT);
-  }
-  return response
-}
-
-function throwDefaultError (messageId, messagePrefix, error) {
-  var errorCode = 'SYSMSG-SERVICE-UNKNOWN-ERROR';
-  if (messageId !== '') {
-    errorCode = "" + messagePrefix + messageId;
-  }
-  throw new ServiceError(errorCode, null, error)
-}
-
-// error handler
-function errorHandler (error) {
-  // sub loading state count
-  subLoading({
-    config: error.config
-  });
-  // server have response
-  if (error.response) {
-    console.error('server have response', error, error.response);
-    var messagePrefix = 'SYSMSG-SERVICE-STATUS-';
-    var messageId = '';
-    switch (error.response.status) {
-      case 400:
-        messageId = '400';
-        break
-      case 401:
-        messageId = '401';
-        break
-      case 403:
-        messageId = '403';
-        break
-      case 404:
-        messageId = '404';
-        break
-      case 405:
-        messageId = '405';
-        break
-      case 502:
-        messageId = '502';
-        break
-      case 504:
-        messageId = '504';
-        break
-      default:
-        messageId = '';
-    }
-    if (error.response.data) {
-      var responseData = error.response.data;
-      // 调用服务时若指定responseType为arraybuffer, 则axios返回的response.data类型为arraybuffer
-      if (error.config.responseType === 'arraybuffer' && typeof responseData.byteLength === 'number') {
-        try {
-          responseData = JSON.parse(Buffer.from(responseData).toString('utf8'));
-        } catch (e) {
-          throwDefaultError(messageId, messagePrefix, error);
-        }
-      }
-      var code = responseData.code;
-      var message = responseData.message;
-      var traceId = responseData.traceId;
-      var oddNumber = responseData.oddNumber;
-      var success = responseData.success;
-      // status为500的场合，显示服务器返回的自定义消息
-      if (typeof success === 'boolean' && !success) {
-        throw new ServiceError(code, message, error, null, traceId, oddNumber)
-      }
-    }
-    throwDefaultError(messageId, messagePrefix, error);
-  // The request was made but no response was received
-  } else if (error.request) {
-    console.error('The request was made but no response was received', error);
-  // Something happened in setting up the request that triggered an Error
-  } else {
-    console.error('Something happened in setting up the request that triggered an Error', error);
-    // timeout
-    if (error.message.indexOf('timeout of ') === 0) {
-      throw new ServiceError('SYSMSG-SERVICE-TIMEOUT', null, error, [error.config.timeout / 1000])
-    // server unavaliable
-    } else if (error.message.indexOf('Network Error') === 0) {
-      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', null, error)
-    } else {
-      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', null, error)
-    }
-  }
-  return Promise.reject(error)
-}
-
-var defaultInterceptor = {
-  homepage: {
-    request: [
-      [
-        addLoading
-      ]
-    ],
-    response: [
-      [
-        subLoading, errorHandler
-      ]
-    ]
-  }
-};
-
 function addXsrf (config) {
   var storeInstance = getStore();
   if (storeInstance && config) {
@@ -2263,6 +2084,173 @@ function fileDownload (response) {
   return response
 }
 
+function subLoading (response) {
+  var storeInstance = getStore();
+  if (storeInstance && response.config && response.config.showLoading !== false) {
+    storeInstance.commit(STORE_KEY.SUB_LOADING_COUNT);
+  }
+  return response
+}
+
+var inBrowser = typeof window !== 'undefined';
+
+var isFirefox = function () {
+  var agent = window.navigator.userAgent.toLowerCase();
+  return (typeof window !== 'undefined' && agent) &&
+    /firefox\/\d+/.test(agent)
+};
+
+/*  */
+function dispatchUnHandlerRejectEvent (reason) {
+  var event = document.createEvent('Event');
+  event.initEvent(
+    'unhandledrejection', // Define that the event name is 'unhandledrejection'
+    false, // PromiseRejectionEvent is not bubbleable
+    true // PromiseRejectionEvent is cancelable
+  );
+  /**
+   * Note: these properties should not be enumerable, which is the default setting
+   */
+  var properties = {
+    reason: {
+      value: reason,
+      writable: false
+    }
+  };
+  Object.defineProperties(event, properties);
+  window.dispatchEvent(event);
+}
+
+var ServiceError = (function (AbstractError$$1) {
+  function ServiceError (
+    errorCode,
+    errorMessage,
+    reason,
+    params,
+    traceId,
+    oddNumber,
+    showType) {
+    if ( errorCode === void 0 ) errorCode = '';
+    if ( errorMessage === void 0 ) errorMessage = '';
+    if ( reason === void 0 ) reason = {};
+    if ( params === void 0 ) params = [];
+    if ( traceId === void 0 ) traceId = '';
+    if ( oddNumber === void 0 ) oddNumber = '';
+    if ( showType === void 0 ) showType = 2;
+
+    var msg = errorMessage;
+    // 系统自定义消息
+    if (errorCode &&
+        typeof errorCode === 'string' &&
+        isEmpty$1(errorMessage) &&
+        errorCode.indexOf('SYSMSG') === 0) {
+      msg = new Message(errorCode, params).getMessage();
+      if (isEmpty$1(msg)) {
+        errorCode = '';
+        msg = new Message('SYSMSG-SERVICE-UNKNOWN-ERROR').getMessage();
+      }
+    }
+    AbstractError$$1.call(this, errorCode, msg, 'ServiceError', showType);
+    this.detail = reason;
+    this.traceId = traceId;
+    this.oddNumber = oddNumber;
+    // 在Firefox下只要不是已经明确设置不显示异常，否则抛出'unhandledrejection'事件
+    if (isFirefox() && pathOr$1(true, ['config', 'isShowError'], reason) !== false) {
+      dispatchUnHandlerRejectEvent(this);
+    }
+  }
+
+  if ( AbstractError$$1 ) ServiceError.__proto__ = AbstractError$$1;
+  ServiceError.prototype = Object.create( AbstractError$$1 && AbstractError$$1.prototype );
+  ServiceError.prototype.constructor = ServiceError;
+
+  return ServiceError;
+}(AbstractError));
+
+function throwDefaultError (messageId, messagePrefix, error) {
+  var errorCode = 'SYSMSG-SERVICE-UNKNOWN-ERROR';
+  if (messageId !== '') {
+    errorCode = "" + messagePrefix + messageId;
+  }
+  throw new ServiceError(errorCode, null, error)
+}
+
+// error handler
+function errorHandler (error) {
+  // sub loading state count
+  subLoading({
+    config: error.config
+  });
+  // server have response
+  if (error.response) {
+    console.error('server have response', error, error.response);
+    var messagePrefix = 'SYSMSG-SERVICE-STATUS-';
+    var messageId = '';
+    switch (error.response.status) {
+      case 400:
+        messageId = '400';
+        break
+      case 401:
+        messageId = '401';
+        break
+      case 403:
+        messageId = '403';
+        break
+      case 404:
+        messageId = '404';
+        break
+      case 405:
+        messageId = '405';
+        break
+      case 502:
+        messageId = '502';
+        break
+      case 504:
+        messageId = '504';
+        break
+      default:
+        messageId = '';
+    }
+    if (error.response.data) {
+      var responseData = error.response.data;
+      // 调用服务时若指定responseType为arraybuffer, 则axios返回的response.data类型为arraybuffer
+      if (error.config.responseType === 'arraybuffer' && typeof responseData.byteLength === 'number') {
+        try {
+          responseData = JSON.parse(Buffer.from(responseData).toString('utf8'));
+        } catch (e) {
+          throwDefaultError(messageId, messagePrefix, error);
+        }
+      }
+      var code = responseData.code;
+      var message = responseData.message;
+      var traceId = responseData.traceId;
+      var oddNumber = responseData.oddNumber;
+      var success = responseData.success;
+      // status为500的场合，显示服务器返回的自定义消息
+      if (typeof success === 'boolean' && !success) {
+        throw new ServiceError(code, message, error, null, traceId, oddNumber)
+      }
+    }
+    throwDefaultError(messageId, messagePrefix, error);
+  // The request was made but no response was received
+  } else if (error.request) {
+    console.error('The request was made but no response was received', error);
+  // Something happened in setting up the request that triggered an Error
+  } else {
+    console.error('Something happened in setting up the request that triggered an Error', error);
+    // timeout
+    if (error.message.indexOf('timeout of ') === 0) {
+      throw new ServiceError('SYSMSG-SERVICE-TIMEOUT', null, error, [error.config.timeout / 1000])
+    // server unavaliable
+    } else if (error.message.indexOf('Network Error') === 0) {
+      throw new ServiceError('SYSMSG-SERVICE-NETWORK-ERROR', null, error)
+    } else {
+      throw new ServiceError('SYSMSG-SERVICE-UNKNOWN-ERROR', null, error)
+    }
+  }
+  return Promise.reject(error)
+}
+
 function businessErrorHandler (response) {
   // ContentType为application/json的场合
   if (response && response.headers &&
@@ -2360,7 +2348,7 @@ function install$1 (Vue$$1, options) {
         http[key] = instance[key];
       }
       // Set Http Interceptor
-      initInterceptor(key, http[key]);
+      initInterceptor(http[key], httpConfig[key]);
     });
   }
 }
@@ -2434,10 +2422,6 @@ function initInstance (httpConfig) {
         } else {
           config$$1.showLoading = httpConfig[key].showLoading;
         }
-        // create module baseURL
-        config$$1.baseURL = createModuleDefaultBaseURL(defaultConfig.baseURL, key, config$$1.baseURL);
-        config$$1.responseEncoding = 'UTF8';
-        config$$1.timeout = 0; // nginx已经设置了请求的超时时间
         ret[key] = {};
         ret[key] = axios.create(config$$1);
         // add non-exist function to axios instance
@@ -2452,31 +2436,11 @@ function initInstance (httpConfig) {
 }
 
 /**
- * 生成模块API的baseURL
- *
- * @export
- * @param {string} baseURL
- * @param {string} moduleKey
- * @param {string} moduleBaseUrl
- * @returns
- */
-function createModuleDefaultBaseURL (baseURL, moduleKey, moduleBaseUrl) {
-  var ret = moduleBaseUrl;
-  var modulePath = kebabCase(moduleKey);
-  // 模块api没有定义baseURL的场合
-  if (!isEmpty$1(baseURL) && isEmpty$1(ret)) {
-    // 使用key自动生成baseURL
-    ret = baseURL + "/api-" + modulePath + "/api/" + modulePath + "/";
-  }
-  return ret
-}
-
-/**
  * Set Http Interceptor
  *
  * @param {*} http
  */
-function initInterceptor (key, http) {
+function initInterceptor (http, config$$1) {
   var requestInterceptors = [
     [
       addLoading
@@ -2486,8 +2450,8 @@ function initInterceptor (key, http) {
     ],
     [
       appendCustomHeader
-    ]
-  ];
+    ] ].concat( pathOr$1([], [HTTP.INTERCEPTOR, HTTP.REQUEST], config$$1)
+  );
   var responseInterceptors = [
     [
       commonHandler
@@ -2500,18 +2464,8 @@ function initInterceptor (key, http) {
     ],
     [
       fileDownload
-    ]
-  ];
-  // 自定义拦截器
-  var httpInterceptorConfig = defaultInterceptor[key];
-  // 定义了自定义请求处理拦截器的场合
-  if (httpInterceptorConfig && httpInterceptorConfig.request) {
-    requestInterceptors = httpInterceptorConfig.request;
-  }
-  // 定义了自定义返回处理拦截器的场合
-  if (httpInterceptorConfig && httpInterceptorConfig.response) {
-    responseInterceptors = httpInterceptorConfig.response;
-  }
+    ] ].concat( pathOr$1([], [HTTP.INTERCEPTOR, HTTP.RESPONSE], config$$1)
+  );
   // add interceptor to instance
   if (typeof http === 'function') {
     requestInterceptors.forEach(function (interceptor) {
@@ -2907,11 +2861,11 @@ function initGlobalAPI (SDK, instance) {
   Object.defineProperty(SDK, 'config', configDef);
 
   SDK.getHttp = getHttp;
-  SDK.createModuleDefaultBaseURL = createModuleDefaultBaseURL;
   SDK.getRouter = getRouter;
   SDK.getStore = getStore;
   SDK.getInitialStateData = getInitialStateData;
   SDK.refreshInitialState = refreshInitialState;
+  SDK.storage = Storage;
 }
 
 // M[Message Catagory]XXX[Message Type]
@@ -3091,7 +3045,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.15';
+Setaria.version = '0.4.16';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
