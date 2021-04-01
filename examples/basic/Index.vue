@@ -179,10 +179,12 @@ export default {
     }
   },
   created () {
+    Setaria.storage.setSessionItem('foo', 'bar')
     this.handleThrowRuntimeException()
   },
   methods: {
     async handlerCallBizApi () {
+      console.log(Setaria.storage.getSessionItem('foo'))
       const res = await this.$api.biz.get('user', { [constants.HTTP.GET_XSRF]: true })
       const { data } = res.data
       alert(`返回数据：${JSON.stringify(data)}`)

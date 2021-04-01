@@ -3,6 +3,7 @@ import { getHttp, createModuleDefaultBaseURL } from '../plugin/http/index'
 import { getStore } from '../plugin/store/index'
 import { getRouter } from '../plugin/router/index'
 import { getInitialStateData, refreshInitialState } from '../plugin/initial-state/index'
+import Storage from './Storage'
 
 export function initGlobalAPI (SDK, instance) {
   // config
@@ -23,4 +24,5 @@ export function initGlobalAPI (SDK, instance) {
   SDK.getStore = getStore
   SDK.getInitialStateData = getInitialStateData
   SDK.refreshInitialState = refreshInitialState
+  SDK.storage = Storage
 }
