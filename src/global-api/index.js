@@ -1,5 +1,5 @@
 import config from '../core/config'
-import { getHttp, createModuleDefaultBaseURL } from '../plugin/http/index'
+import { getHttp } from '../plugin/http/index'
 import { getStore } from '../plugin/store/index'
 import { getRouter } from '../plugin/router/index'
 import { getInitialStateData, refreshInitialState } from '../plugin/initial-state/index'
@@ -19,7 +19,6 @@ export function initGlobalAPI (SDK, instance) {
   Object.defineProperty(SDK, 'config', configDef)
 
   SDK.getHttp = getHttp
-  SDK.createModuleDefaultBaseURL = createModuleDefaultBaseURL
   SDK.getRouter = getRouter
   SDK.getStore = getStore
   SDK.getInitialStateData = getInitialStateData
