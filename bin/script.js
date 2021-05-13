@@ -14,7 +14,9 @@ if (argv.script) {
       branch: argv.branch,
       commit: argv.commit,
       init: argv.init,
-      reset: argv.reset
+      reset: argv.reset,
+      folder: argv.folder,
+      gitUrl: argv.gitUrl
     })
     // 执行脚本
     scriptInstance.run()

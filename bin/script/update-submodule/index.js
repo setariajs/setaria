@@ -10,10 +10,6 @@ const SUBMODULE_DIR = {
     folder: 'src/component/common',
     gitUrl: 'git@xxx.git',
   },
-  model: {
-    folder: 'src/model/common',
-    gitUrl: 'git@xxx.git',
-  },
 };
 
 const MAIN_BRANCH = [
@@ -45,12 +41,14 @@ module.exports = class UpdateSubModule {
    * @param {Boolean} init 是否创建公共代码引用
    * @param {Boolean} reset  是否清除公共代码的本地变更
    */
-  constructor (context, { branch, commit, init, reset } = {}) {
+  constructor (context, { branch, commit, init, reset, folder, gitUrl } = {}) {
     this.context = context;
     this.branch = branch;
     this.commit = commit;
     this.init = init;
     this.reset = reset;
+    this.folder = folder;
+    this.gitUrl = gitUrl;
   }
 
   update (dir, currentGitBranch) {
@@ -82,8 +80,9 @@ module.exports = class UpdateSubModule {
       }
     }
   }
-
+  
   run () {
+    const { folder, gitUrl } = this;
     // 取得欲使用的公共代码分支
     let currentGitBranch = ''
     if (this.branch === undefined || this.branch === null || this.branch === '') {
@@ -105,12 +104,13 @@ module.exports = class UpdateSubModule {
     if (this.init) {
       log.label('Start Create Submodule Reference: ');
       // 按定义顺序处理Submodule
-      Object.keys(SUBMODULE_DIR).forEach(module => {
-        const { folder, gitUrl } = SUBMODULE_DIR[module];
-        // TODO 删除common目录
-        // 执行前提：需要删除common目录
-        exec.cmd(`cd ${folder.replace('/common', '')} && ${getInitialSubmoduleScript(gitUrl, currentGitBranch)}`);
-      });
+      // Object.keys(SUBMODULE_DIR).forEach(module => {
+      //   const { folder, gitUrl } = SUBMODULE_DIR[module];
+      //   // TODO 删除common目录
+      //   // 执行前提：需要删除common目录
+      //   exec.cmd(`cd ${folder.replace('/common', '')} && ${getInitialSubmoduleScript(gitUrl, currentGitBranch)}`);
+      // });
+      exec.cmd(`cd ${folder.replace('/common', '')} && ${getInitialSubmoduleScript(gitUrl, currentGitBranch)}`);
       log.label('End Create Submodule Reference: ');
       return;
     }
@@ -118,24 +118,39 @@ module.exports = class UpdateSubModule {
     log.label('Start Update Submodule: ');
 
     // 按定义顺序处理Submodule
-    Object.keys(SUBMODULE_DIR).forEach(module => {
-      const { folder, gitUrl } = SUBMODULE_DIR[module];
-      log.label(`Submodule: ${folder}`);
-      const currentDir = path.join(this.context, folder);
-      // 判断子仓库目录是否已初始化
-      const isSubmoduleInitialed = fs.existsSync(path.join(`${currentDir}`, 'README.md'));
-      // 子仓库目录存在的场合
-      if (isSubmoduleInitialed) {
-        this.update(folder, currentGitBranch, false);
-      } else {
-        log.label(`--- (Start) ---> Initial Submodule Source: ./${folder}`);
-        // 初始化子仓库
-        exec.cmd(`cd ${folder} && ${INITIAL_SUBMODULE_SCRIPT} && ${SWICTH_TO_CURRENT_GIT_BRANCH}`);
-        log.label(`---  (End)  ---> Initial Submodule Source: ./${folder}`);
-        // 更新子仓库
-        this.update(folder, currentGitBranch, false);
-      }
-    });
+    // Object.keys(SUBMODULE_DIR).forEach(module => {
+    //   const { folder, gitUrl } = SUBMODULE_DIR[module];
+    //   log.label(`Submodule: ${folder}`);
+    //   const currentDir = path.join(this.context, folder);
+    //   // 判断子仓库目录是否已初始化
+    //   const isSubmoduleInitialed = fs.existsSync(path.join(`${currentDir}`, 'README.md'));
+    //   // 子仓库目录存在的场合
+    //   if (isSubmoduleInitialed) {
+    //     this.update(folder, currentGitBranch, false);
+    //   } else {
+    //     log.label(`--- (Start) ---> Initial Submodule Source: ./${folder}`);
+    //     // 初始化子仓库
+    //     exec.cmd(`cd ${folder} && ${INITIAL_SUBMODULE_SCRIPT} && ${SWICTH_TO_CURRENT_GIT_BRANCH}`);
+    //     log.label(`---  (End)  ---> Initial Submodule Source: ./${folder}`);
+    //     // 更新子仓库
+    //     this.update(folder, currentGitBranch, false);
+    //   }
+    // });
+    log.label(`Submodule: ${folder}`);
+    const currentDir = path.join(this.context, folder);
+    // 判断子仓库目录是否已初始化
+    const isSubmoduleInitialed = fs.existsSync(path.join(`${currentDir}`, 'README.md'));
+    // 子仓库目录存在的场合
+    if (isSubmoduleInitialed) {
+      this.update(folder, currentGitBranch, false);
+    } else {
+      log.label(`--- (Start) ---> Initial Submodule Source: ./${folder}`);
+      // 初始化子仓库
+      exec.cmd(`cd ${folder} && ${INITIAL_SUBMODULE_SCRIPT} && ${SWICTH_TO_CURRENT_GIT_BRANCH}`);
+      log.label(`---  (End)  ---> Initial Submodule Source: ./${folder}`);
+      // 更新子仓库
+      this.update(folder, currentGitBranch, false);
+    }
     console.log('');
     log.success('Update Successful!');
   }
