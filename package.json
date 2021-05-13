@@ -6,7 +6,8 @@
   "module": "dist/setaria.esm.js",
   "unpkg": "dist/setaria.js",
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "bin": {
     "setaria": "bin/script.js"
