@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.16
+ * Setaria v0.4.20
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -695,12 +695,6 @@ var ApplicationError = (function (AbstractError$$1) {
     if ( showType === void 0 ) showType = 2;
 
     var msg = message;
-    // 生产环境屏蔽javascript执行期错误
-    if (isEmpty$1(messageCode) && process.env.NODE_ENV === 'production') {
-      console.error(msg);
-      messageCode = 'SYSMSG-CLIENT-UNKNOWN-ERROR';
-      msg = '';
-    }
     if (!isEmpty$1(messageCode) && isEmpty$1(msg)) {
       msg = new Message(messageCode, params, msg).getMessage() || new Message('SYSMSG-CLIENT-UNKNOWN-ERROR').getMessage();
     }
@@ -2774,6 +2768,12 @@ ErrorHandler.init = function init () {
   };
   // JavaScript执行期异常
   window.onerror = function (err) {
+    // This error means that ResizeObserver was not able to deliver all observations
+    // within a single animation frame. It is benign (your site will not break)
+    // https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
+    if (err.indexOf('ResizeObserver') !== -1) {
+      return
+    }
     console.error('The Exception from window.onerror');
     ErrorHandler.handleError(ERROR_THROW_TYPES.NORMAL_ERROR, err, {});
   };
@@ -3050,7 +3050,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.16';
+Setaria.version = '0.4.20';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
