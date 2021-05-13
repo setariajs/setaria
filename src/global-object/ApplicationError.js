@@ -13,12 +13,6 @@ export default class ApplicationError extends AbstractError {
   params: Array<string | number>;
   constructor (messageCode?: string = '', params?: Array<string | number> = [], message?: string = '', showType?: number = 2) {
     let msg: string = message
-    // 生产环境屏蔽javascript执行期错误
-    if (isEmpty(messageCode) && process.env.NODE_ENV === 'production') {
-      console.error(msg)
-      messageCode = 'SYSMSG-CLIENT-UNKNOWN-ERROR'
-      msg = ''
-    }
     if (!isEmpty(messageCode) && isEmpty(msg)) {
       msg = new Message(messageCode, params, msg).getMessage() || new Message('SYSMSG-CLIENT-UNKNOWN-ERROR').getMessage()
     }

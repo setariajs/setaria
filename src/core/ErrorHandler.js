@@ -105,6 +105,12 @@ export default class ErrorHandler {
     }
     // JavaScript执行期异常
     window.onerror = (err: Error) => {
+      // This error means that ResizeObserver was not able to deliver all observations
+      // within a single animation frame. It is benign (your site will not break)
+      // https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded
+      if (err.indexOf('ResizeObserver') !== -1) {
+        return
+      }
       console.error('The Exception from window.onerror')
       ErrorHandler.handleError(ERROR_THROW_TYPES.NORMAL_ERROR, err, {})
     }
