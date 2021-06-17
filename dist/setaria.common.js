@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.20
+ * Setaria v0.4.21
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -2050,7 +2050,13 @@ function fileDownload (response) {
     var disposition = response.headers['content-disposition'] || response.headers['CONTENT-DISPOSITION'];
     var filename = 'unknown-file';
     if (disposition) {
-      filename = decodeURI(disposition.match(/filename="(.*)"/)[1]);
+      var dispositionFileRegexResult = disposition.match(/filename="(.*)"/);
+      if (dispositionFileRegexResult === null) {
+        dispositionFileRegexResult = disposition.match(/filename=(.*)/);
+      }
+      if (dispositionFileRegexResult) {
+        filename = decodeURI(dispositionFileRegexResult[1]);
+      }
     }
     var blob = new window.Blob([response.data], { type: mime || 'application/octet-stream' });
     if (typeof window.navigator.msSaveBlob !== 'undefined') {
@@ -3050,7 +3056,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.20';
+Setaria.version = '0.4.21';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
