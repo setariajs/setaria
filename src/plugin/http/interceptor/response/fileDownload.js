@@ -22,7 +22,13 @@ export default function fileDownload (response) {
     const disposition = response.headers['content-disposition'] || response.headers['CONTENT-DISPOSITION']
     let filename = 'unknown-file'
     if (disposition) {
-      filename = decodeURI(disposition.match(/filename="(.*)"/)[1])
+      let dispositionFileRegexResult = disposition.match(/filename="(.*)"/)
+      if (dispositionFileRegexResult === null) {
+        dispositionFileRegexResult = disposition.match(/filename=(.*)/)
+      }
+      if (dispositionFileRegexResult) {
+        filename = decodeURI(dispositionFileRegexResult[1])
+      }
     }
     var blob = new window.Blob([response.data], { type: mime || 'application/octet-stream' })
     if (typeof window.navigator.msSaveBlob !== 'undefined') {
