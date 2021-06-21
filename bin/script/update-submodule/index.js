@@ -1,22 +1,15 @@
 /* eslint-disable */
-const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const exec = require('../exec-util');
 const log = require('../log-util');
 
-const SUBMODULE_DIR = {
-  component: {
-    folder: 'src/component/common',
-    gitUrl: 'git@xxx.git',
-  },
-};
-
-const MAIN_BRANCH = [
-  'master',
-  'dev',
-  'sit',
-];
+// const SUBMODULE_DIR = {
+//   component: {
+//     folder: 'src/component/common',
+//     gitUrl: 'git@xxx.git',
+//   },
+// };
 
 const DEFAULT_BRANCH = 'master';
 
@@ -80,7 +73,7 @@ module.exports = class UpdateSubModule {
       }
     }
   }
-  
+
   run () {
     const { folder, gitUrl } = this;
     // 取得欲使用的公共代码分支
@@ -88,19 +81,19 @@ module.exports = class UpdateSubModule {
     if (this.branch === undefined || this.branch === null || this.branch === '') {
       // 取得当前代码所使用的Git分支
       currentGitBranch = exec.getOutput('git symbolic-ref --short -q HEAD');
-      // 如果当前分支不属于主分支，使用默认分支
-      if (MAIN_BRANCH.indexOf(currentGitBranch) === -1) {
-        log.warning(`Cannot use other branch except [${MAIN_BRANCH.join(',')}]!`)
-        log.warning(`Use [${DEFAULT_BRANCH}] branch default!`)
-        currentGitBranch = DEFAULT_BRANCH
-      }
+      // // 如果当前分支不属于主分支，使用默认分支
+      // if (MAIN_BRANCH.indexOf(currentGitBranch) === -1) {
+      //   log.warning(`Cannot use other branch except [${MAIN_BRANCH.join(',')}]!`)
+      //   log.warning(`Use [${DEFAULT_BRANCH}] branch default!`)
+      //   currentGitBranch = DEFAULT_BRANCH
+      // }
     } else {
       currentGitBranch = this.branch;
     }
     log.label(`Current Git Branch: ${currentGitBranch}`);
 
     const SWICTH_TO_CURRENT_GIT_BRANCH = `git checkout ${currentGitBranch}`;
-    
+
     if (this.init) {
       log.label('Start Create Submodule Reference: ');
       // 按定义顺序处理Submodule

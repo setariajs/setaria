@@ -26,6 +26,8 @@ yarn upgrade:all-common
 | commit         |  更新后是否将最新子模块版本的信息提交到当前git仓库  | - | false |
 | init         |  是否为第一次引入子模块  | - | false |
 | reset         |  是否重置本地子模块的代码文件  | - | false |
+| folder         |  子模块对应的本地目录路径  | - | - |
+| gitUrl         |  子模块对应的git仓库url  | - | - |
 
 ## Mock文件自动生成脚本
 
