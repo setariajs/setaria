@@ -1,26 +1,17 @@
 const fs = require('fs')
 const path = require('path')
-const rimraf = require('rimraf')
 const exec = require('../exec-util')
 
-const FILE_NAME = 'report.json'
-
 module.exports = class EslintReport {
-  constructor (context) {
+  constructor (context, outputFolder, outputFile) {
     this.context = context || process.cwd()
-    this.eslintReportFolderPath = path.join(this.context, '.eslint-report')
-    this.eslintReportFileFullPath = path.join(this.eslintReportFolderPath, FILE_NAME)
-  }
-
-  getEslintReportFilePath () {
-    return this.eslintReportFileFullPath
+    this.outputFolder = outputFolder
+    this.eslintReportFileFullPath = path.join(outputFolder, outputFile)
   }
 
   create () {
-    if (!fs.existsSync(this.eslintReportFolderPath)) {
-      fs.mkdirSync(this.eslintReportFolderPath)
-    }
     try {
+      // 开始生成eslint报告
       exec.cmd(`yarn lint --no-fix --format json > ${this.eslintReportFileFullPath}`)
     } catch (err) {
       // do nothing
@@ -35,9 +26,5 @@ module.exports = class EslintReport {
     fileAsString = fileAsString.replace('info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.', '')
 
     fs.writeFileSync(this.eslintReportFileFullPath, fileAsString, 'utf-8')
-  }
-
-  clear () {
-    rimraf.sync(this.eslintReportFolderPath)
   }
 }

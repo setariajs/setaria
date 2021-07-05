@@ -1,0 +1,6 @@
+{
+  "serverUrl": "http://172.42.0.13:9000/",
+  "serverToken": "feac7632cee08e2defb2fd753e5e70cb81448a9c",
+  "projectKey": "web-skyrunner-po",
+  "sources": "src/page"
+}

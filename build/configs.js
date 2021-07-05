@@ -2,6 +2,7 @@ const path = require('path')
 const buble = require('rollup-plugin-buble')
 const replace = require('rollup-plugin-replace')
 const rollResolve = require('rollup-plugin-node-resolve')
+const rollJson = require('rollup-plugin-json')
 const rollCommonjs = require('rollup-plugin-commonjs')
 const flow = require('rollup-plugin-flow-no-whitespace')
 const version = process.env.VERSION || require('../package.json').version
@@ -47,13 +48,16 @@ function genConfig (opts) {
     banner,
     moduleName: 'Setaria',
     plugins: [
+      rollResolve({ jsnext: true, preferBuiltins: true, browser: true }),
+      rollJson(),
+      rollCommonjs({
+        exclude: ['*axios/\lib/\helpers/\package.json']
+      }),
       flow(),
-      // rollCommonjs(),
       replace({
         __VERSION__: version
       }),
       buble()
-      // rollResolve()
     ]
   }
 
