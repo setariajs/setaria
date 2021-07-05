@@ -102,7 +102,18 @@ yarn dev:mock
 }
 ```
 
-(2) 参考 `bin\script\analyse\.sonar-scanner.config.json` 文件，配置sonar信息
+(2) 安装如下依赖
+
+```json
+"devDependencies": {
+  "gulp": "^4.0.2",
+  "rimraf": "^3.0.2",
+  "sonarqube-scanner": "^2.8.1",
+  "yargs": "^17.0.1"
+}
+```
+
+(3) 参考 `bin\script\analyse\.sonar-scanner.config.json` 文件，配置sonar信息
 
 ```json
 {
@@ -117,7 +128,7 @@ yarn dev:mock
 }
 ```
 
-(3) 在命令行使用 yarn 或 npm run 命令执行定义的脚本
+(4) 在命令行使用 yarn 或 npm run 命令执行定义的脚本
 
 ```batch
 yarn analyse
