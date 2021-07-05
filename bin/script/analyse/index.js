@@ -52,6 +52,10 @@ module.exports = class Analyse {
     })
     const outputPath = this.getExecGulpfilePath()
     fs.writeFileSync(outputPath, content)
+    console.log('gulpfile.js')
+    console.log('----------------------------------')
+    console.log(content)
+    console.log('----------------------------------')
   }
 
   run () {
@@ -71,6 +75,7 @@ module.exports = class Analyse {
     } finally {
       // 清除Eslint检查结果临时文件
       rimraf.sync(this.outputPath)
+      rimraf.sync(path.join(this.context, '.scannerwork'))
     }
   }
 }
