@@ -16,8 +16,8 @@ function isExecuteFileDownload (response) {
 }
 
 export default function fileDownload (response) {
-  if (isExecuteFileDownload(response)) {
-    const mime = response.headers['content-type']
+  const mime = response.headers['content-type']
+  if (isExecuteFileDownload(response) && mime.indexOf('application/json') !== 0) {
     // 修复某些场合下response header key为大写字母时，无法取得文件信息的问题
     const disposition = response.headers['content-disposition'] || response.headers['CONTENT-DISPOSITION']
     let filename = 'unknown-file'
