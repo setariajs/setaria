@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.21
+ * Setaria v0.4.25
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -2044,8 +2044,8 @@ function isExecuteFileDownload (response) {
 }
 
 function fileDownload (response) {
-  if (isExecuteFileDownload(response)) {
-    var mime = response.headers['content-type'];
+  var mime = response.headers['content-type'];
+  if (isExecuteFileDownload(response) && mime.indexOf('application/json') !== 0) {
     // 修复某些场合下response header key为大写字母时，无法取得文件信息的问题
     var disposition = response.headers['content-disposition'] || response.headers['CONTENT-DISPOSITION'];
     var filename = 'unknown-file';
@@ -3056,7 +3056,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.21';
+Setaria.version = '0.4.25';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
