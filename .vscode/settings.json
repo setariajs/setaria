@@ -1,3 +1,4 @@
 {
+  "flow.useLSP": false,
   "javascript.validate.enable": false
 }
