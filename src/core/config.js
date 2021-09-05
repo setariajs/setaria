@@ -7,7 +7,6 @@ export type Config = {
   routes: Object,
   store: Object,
   storeScopeKey: string,
-  vpnKey: string,
   excludeRecordPageLoadTimeComponentName: Array<string>,
   logHandler: Function,
   log: boolean,
@@ -49,8 +48,6 @@ export default ({
    * The key which be used for define module sync scope(session or local)
    */
   storeScopeKey: 'scope',
-
-  vpnKey: '/prx/000',
 
   excludeRecordPageLoadTimeComponentName: ['app'],
 

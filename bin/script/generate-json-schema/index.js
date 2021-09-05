@@ -33,6 +33,17 @@ function createJsonSchemaBySwagger (definitions) {
   Object.keys(definitions).forEach((key) => {
     const isExcludeKeyExist = EXCLUDE_KEY_CHAR.some((ek) => key.indexOf(ek) !== -1)
     if (!isExcludeKeyExist) {
+      if (definitions[key].properties) {
+        Object.keys(definitions[key].properties).forEach((propertyKey) => {
+          let property = definitions[key].properties[propertyKey]
+          property = {
+            ...property,
+            title: property.description,
+            description: ''
+          }
+          definitions[key].properties[propertyKey] = property
+        })
+      }
       result[key] = definitions[key]
     }
   })
