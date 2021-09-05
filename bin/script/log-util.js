@@ -6,7 +6,7 @@ const warning = function (message) {
 exports.warning = warning
 
 const info = function (message) {
-  console.log(chalk.bold.gray(message))
+  console.log(chalk.bold.white(message))
 }
 exports.info = info
 

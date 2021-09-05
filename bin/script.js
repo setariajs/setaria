@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 const minimist = require('minimist')
+const path = require('path')
+const log = require('./script/log-util')
 const UpdateSubmodule = require('./script/update-submodule')
 const GenerateMockFile = require('./script/generate-mock-file')
+const GenerateJsonSchema = require('./script/generate-json-schema')
 const Analyse = require('./script/analyse')
 
 // 取得命令参数
@@ -26,6 +29,18 @@ if (argv.script) {
       moduleName: argv.module,
       output: argv.output,
       url: argv.url
+    })
+    // 执行脚本
+    scriptInstance.run()
+  // [脚本]根据配置调用Swagger API生成JsonSchema
+  } else if (argv.script === 'generate-json-schema') {
+    const configFilePath = path.join(process.cwd(), 'setaria.config.js')
+    // get config
+    const config = require(configFilePath)
+    log.label('当前配置信息:')
+    log.info(configFilePath)
+    const scriptInstance = new GenerateJsonSchema(process.cwd(), {
+      config
     })
     // 执行脚本
     scriptInstance.run()

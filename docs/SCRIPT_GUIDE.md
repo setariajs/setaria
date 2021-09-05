@@ -133,3 +133,51 @@ yarn dev:mock
 ```batch
 yarn analyse
 ```
+
+## 5.Json Schema自动生成脚本
+
+### 使用方式
+
+(1) 在根目录下定义 `setaria.config.js` 文件
+
+```javascript
+const config = {
+  jsonSchema: {
+    input: {
+      // swagger api列表
+      swaggerUrls: {
+        'u2-sample': 'http://localhost:8080/v2/api-docs'
+      }
+    },
+    // 生成目录，根目录为当前工程路径
+    output: './config'
+  }
+}
+module.exports = config
+```
+
+(2) 安装如下依赖
+
+```json
+"devDependencies": {
+  "gulp": "^4.0.2",
+  "prettier": "^2.3.2",
+  "rimraf": "^3.0.2",
+  "sonarqube-scanner": "^2.8.1",
+  "yargs": "^17.0.1"
+}
+```
+
+(3) 在 package.json 文件的scripts处定义如下脚本
+
+```json
+{
+  "generate-json-schema": "setaria --script generate-json-schema",
+}
+```
+
+(4) 在命令行使用 yarn 或 npm run 命令执行定义的脚本
+
+```batch
+yarn generate-json-schema
+```
