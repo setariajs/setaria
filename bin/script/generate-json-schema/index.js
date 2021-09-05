@@ -106,9 +106,10 @@ module.exports = class GenerateJsonSchema {
         return false
       }
       const description = definitions[key]
-      const fullFilePath = join(outputPath, `${key}.json`)
+      const fileName = `${_.kebabCase(key)}.json`
+      const fullFilePath = join(outputPath, fileName)
       this.generate(fullFilePath, key, description, definitions[key].properties)
-      this.outputJsonSchemaPaths[key] = fullFilePath
+      this.outputJsonSchemaPaths[key] = fileName
     })
   }
 
