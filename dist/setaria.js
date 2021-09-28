@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.25
+ * Setaria v0.4.29
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -51,8 +51,6 @@ var config = ({
    * The key which be used for define module sync scope(session or local)
    */
   storeScopeKey: 'scope',
-
-  vpnKey: '/prx/000',
 
   excludeRecordPageLoadTimeComponentName: ['app'],
 
@@ -3052,7 +3050,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.25';
+Setaria.version = '0.4.29';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
