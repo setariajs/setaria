@@ -64,9 +64,14 @@ async function getJsonSchemaBySwagger (swaggerConfig) {
       const { data } = apiResult
       // 客户端使用的key
       const apiKey = createApiKey(apiArray[index])
-      const { definitions } = data
+      let schemas = null
+      if (data.swagger === '2.0') {
+        schemas = data.definitions
+      } else if (data.openapi) {
+        schemas = data.components.schemas
+      }
       // 获得JsonSchema结构
-      const jsonSchema = createJsonSchemaBySwagger(definitions)
+      const jsonSchema = createJsonSchemaBySwagger(schemas)
       result[apiKey] = jsonSchema
     })
   }
