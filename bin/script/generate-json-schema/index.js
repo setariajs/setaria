@@ -14,12 +14,13 @@ const request = axios.create({
 })
 
 /**
- * 将key转换为驼峰命名法
+ * 将key转换为驼峰命名法，首字母大写
  * @param {string} originKey
  * @returns
  */
 function createApiKey (originKey) {
   const str = _.camelCase(originKey)
+  // !FIXME 为何首字母要大写
   return `${str[0].toUpperCase()}${str.substr(1)}`
 }
 
@@ -50,16 +51,98 @@ function createJsonSchemaBySwagger (definitions) {
   return result
 }
 
-async function getJsonSchemaBySwagger (swaggerConfig) {
-  const result = {}
+function getDefaultApiManagementFileTemplate ({ info }) {
+  return _.assign({}, {
+    openapi: '',
+    info: {
+      title: '',
+      description: '',
+      version: '1.0'
+    },
+    // 分类
+    tags: [],
+    // api服务列表
+    paths: {},
+    // 实体列表
+    components: {
+      schemas: {}
+    }
+  }, {
+    info
+  })
+}
+
+function createApiManagementFile (key, apiDoc, config) {
+  const ret = getDefaultApiManagementFileTemplate(config)
+  const excludeTagList = _.get(config, 'setting.excludeTagList', [])
+  const apiTag = _.get(apiDoc, 'info.description', `${key}接口定义`)
+  // 接口列表 Object
+  const { paths } = apiDoc
+  ret.openapi = apiDoc.openapi
+  ret.info = apiDoc.info
+  if (!_.isEmpty(paths)) {
+    ret.tags.push(apiTag)
+    Object.keys(paths).forEach((pathUrl) => {
+      const targetApiInfo = {}
+      const apiInfo = paths[pathUrl]
+      Object.keys(apiInfo).forEach((method) => {
+        const apiController = apiInfo[method]
+        const { summary, tags = [] } = apiController
+        if (!_.isEmpty(excludeTagList)) {
+          const isExcludeTagExist = excludeTagList.some((excludeKey) => _.includes(tags, excludeKey))
+          if (isExcludeTagExist) {
+            return
+          }
+        }
+        // 设置名称 tags[0]+description
+        const apiCategoryName = tags[tags.length - 1]
+        if (summary && summary.indexOf(apiCategoryName) !== 0) {
+          apiController.summary = `${apiCategoryName}_${apiController.summary}`
+        }
+        // 设置分类
+        if (apiController.tags === null) {
+          apiController.tags = []
+        }
+        // 移除同名的key
+        const index = tags.findIndex(item => item === apiTag)
+        if (index !== -1) {
+          tags.splice(tags, 1)
+        }
+        tags.unshift(apiTag)
+        targetApiInfo[method] = apiController
+      })
+      if (!_.isEmpty(ret.paths[pathUrl])) {
+        console.warn(`存在同路径的接口: ${pathUrl}`)
+      }
+      ret.paths[pathUrl] = targetApiInfo
+    })
+    // 实体列表 Object
+    const schemas = _.get(apiDoc, 'components.schemas')
+    // 合并实体列表
+    // !FIXME 需要提示同名Bean
+    _.assign(ret.components.schemas, schemas)
+  }
+  return ret
+}
+
+async function getJsonSchemaBySwagger (swaggerUrls, config) {
+  const result = {
+    jsonSchema: {},
+    apiManagement: {}
+  }
   const promiseArray = []
-  const apiArray = Object.keys(swaggerConfig)
+  const apiArray = Object.keys(swaggerUrls)
   apiArray.forEach((key) => {
-    const apiUrl = swaggerConfig[key]
+    let apiUrl = swaggerUrls[key]
+    if (apiUrl.url) {
+      apiUrl = apiUrl.url
+    }
+    // 请求获取api doc信息
     promiseArray.push(request(apiUrl))
   })
   const apiResultArray = await Promise.all(promiseArray)
   if (apiResultArray) {
+    // 生成JsonSchema
     apiResultArray.forEach((apiResult, index) => {
       const { data } = apiResult
       // 客户端使用的key
@@ -72,7 +155,11 @@ async function getJsonSchemaBySwagger (swaggerConfig) {
       }
       // 获得JsonSchema结构
       const jsonSchema = createJsonSchemaBySwagger(schemas)
-      result[apiKey] = jsonSchema
+      result.jsonSchema[apiKey] = jsonSchema
+      // 生成Yapi结构数据
+      if (config.setting.isOutputApiManagementFile === true) {
+        result.apiManagement[apiKey] = createApiManagementFile(apiArray[index], data, config)
+      }
     })
   }
   return result
@@ -85,7 +172,7 @@ function getInput (config) {
     const { swaggerUrls } = input
     // 处理Swagger格式数据(Open API)
     if (swaggerUrls) {
-      return getJsonSchemaBySwagger(swaggerUrls)
+      return getJsonSchemaBySwagger(swaggerUrls, config.jsonSchema)
     }
     return result
   }
@@ -114,18 +201,23 @@ module.exports = class GenerateJsonSchema {
 
   traverse (definitions) {
     log.label('生成JsonSchema文件：')
-    this.clear()
-    const outputPath = join(this.getOutputPath())
-    mkdirp.sync(outputPath)
-    Object.keys(definitions).some((key) => {
+    const outputPath = this.getOutputPath()
+    const { jsonSchema, apiManagement } = definitions
+    Object.keys(jsonSchema).some((key) => {
       if (key.indexOf('«') !== -1 || key.indexOf('»') !== -1) {
         return false
       }
-      const description = definitions[key]
+      const description = jsonSchema[key]
       const fileName = `${_.kebabCase(key)}.json`
       const fullFilePath = join(outputPath, fileName)
-      this.generate(fullFilePath, key, description, definitions[key].properties)
+      this.generate(fullFilePath, key, description, jsonSchema[key].properties)
       this.outputJsonSchemaPaths[key] = fileName
+    })
+    Object.keys(apiManagement).forEach((key) => {
+      const content = apiManagement[key]
+      const fileName = `${_.kebabCase(key)}.api.management.json`
+      const fullFilePath = join(outputPath, fileName)
+      this.generate(fullFilePath, key, content)
     })
   }
 
@@ -167,8 +259,8 @@ ${result}    ${key},
     return result
   }
 
-  generateJsonSchemaIndexFile (content) {
-    const filePath = join(this.getOutputPath(), 'index.js')
+  generateFile (content, fileName) {
+    const filePath = join(this.getOutputPath(), fileName)
     fs.writeFileSync(filePath, content, { flag: 'wx' })
     log.info(`JSONSchema索引文件已生成：${join(this.context, filePath)}`)
   }
@@ -200,11 +292,15 @@ ${result}    ${key},
   }
 
   async run () {
+    // 清理输出目录
+    this.clear()
+    const outputPath = this.getOutputPath()
+    mkdirp.sync(outputPath)
     const result = await getInput(this.config)
     if (result) {
       this.traverse(result)
       const indexFileContent = this.createJsonSchemaIndexContent(this.outputJsonSchemaPaths)
-      this.generateJsonSchemaIndexFile(indexFileContent)
+      this.generateFile(indexFileContent, 'index.js')
       this.format()
     }
     // console.log(result)
