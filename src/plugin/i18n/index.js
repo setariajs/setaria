@@ -48,13 +48,13 @@ export function loadLanguageAsync(lang) {
 //      //返回并且设置
 // });
   
-  return import( `${config.i18n.basePath}${lang}.js`).then(
-    messages => {
-      i18n.setLocaleMessage(lang, messages.default)
-      loadedLanguages.push(lang)
-      return setI18nLanguage(lang)
-    }
-  )
+  // return import( `${config.i18n.basePath}${lang}.js`).then(
+  //   messages => {
+  //     i18n.setLocaleMessage(lang, messages.default)
+  //     loadedLanguages.push(lang)
+  //     return setI18nLanguage(lang)
+  //   }
+  // )
 }
 
 

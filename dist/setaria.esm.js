@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.30
+ * Setaria v0.4.31
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -11,6 +11,7 @@ import lodashKebabCase from 'lodash.kebabcase';
 import lodashCamelCase from 'lodash.camelcase';
 import Vuex from 'vuex';
 import VueRouter from 'vue-router';
+import VueI18n from 'vue-i18n';
 
 /*  */
 
@@ -41,6 +42,10 @@ var config = ({
    * Vuex Store Option
    */
   store: null,
+  /**
+ * Ii8n Option
+ */
+  i18n: null,
 
   /**
    * Vuex Store Scope Key
@@ -2492,22 +2497,104 @@ function initInterceptor (http, config$$1) {
   }
 }
 
+/*  */
+// import { findIndex, isNotEmpty, keys, isArray } from '../../util/lang'
+
+var i18n = {};
+
+var loadedLanguages = [];
+
+
+function setI18nLanguage (lang) {
+  i18n.locale = lang;
+  // axios.defaults.headers.common['Accept-Language'] = lang
+  document.querySelector('html').setAttribute('lang', lang);
+  return lang
+}
+
+
+
+function loadLanguageAsync(lang) {
+  // 如果语言相同
+  if (i18n.locale === lang) {
+    return Promise.resolve(setI18nLanguage(lang))
+  }
+
+  // 如果语言已经加载
+  if (loadedLanguages.includes(lang)) {
+    return Promise.resolve(setI18nLanguage(lang))
+  }
+
+  // if(config){
+
+  // }
+
+  // 如果尚未加载语言
+  // return require(`${config.i18n.basePath}${lang}.js`).then(
+  //   messages => {
+  //     i18n.setLocaleMessage(lang, messages.default)
+  //     loadedLanguages.push(lang)
+  //     return setI18nLanguage(lang)
+  //   }
+  // )
+//   return ()=> import(`@/assets/language/${lang}`).then(msgs => { //去引入这个值
+//     i18n.setLocaleMessage(lang, msgs.default[lang]); 
+//     //设置i18n的语言message切换成这个
+//     loadedLanguages.push(lang); //本地已经加载的语言 加入 loadedLanguages
+//     return setI18nLanguage(lang);
+//      //返回并且设置
+// });
+  
+  // return import( `${config.i18n.basePath}${lang}.js`).then(
+  //   messages => {
+  //     i18n.setLocaleMessage(lang, messages.default)
+  //     loadedLanguages.push(lang)
+  //     return setI18nLanguage(lang)
+  //   }
+  // )
+}
+
+
+
+function install$4 (Vue$$1, options) {
+  console.debug('VueI18n install');
+  // 安装 VueI18n
+  Vue$$1.use(VueI18n);
+  var i18nConfig = config.i18n;
+
+  i18n = new VueI18n(i18nConfig);
+  i18n.loadLanguageAsync = loadLanguageAsync;
+  if(i18nConfig.locale){
+    loadedLanguages.push(i18nConfig.locale);
+  }
+  //   {
+  //   basePath:''
+  //   locale: 'en', // 设置语言环境
+  //   fallbackLocale: 'en',
+  //   messages // 设置语言环境信息
+  // })
+}
+
+function getI18n () {
+  return i18n
+}
+
 // import Vue from 'vue'
 var getInitialStateFunction = null;
 
-function refreshInitialState () {
+function refreshInitialState() {
   console.log('refreshInitialState');
   if (isEmpty$1(getInitialStateFunction)) {
     return null
   }
   return execInitialProcess(getInitialStateFunction, getHttp(), getRouter(), getStore())
 }
-function getInitialStateData () {
+function getInitialStateData() {
   var ret = getStore().getters[STORE_KEY.GET_INITIAL_STATE];
   return isNotEmpty(ret) ? ret.data : null
 }
 
-function install$4 (Setaria, Vue$$1, options) {
+function install$5(Setaria, Vue$$1, options) {
   if (isEmpty$1(options)) {
     return
   }
@@ -2527,7 +2614,7 @@ function install$4 (Setaria, Vue$$1, options) {
           {
             // 需要加载的组件 (应该是一个 `Promise` 对象)
             component: new Promise(function (resolve, reject) {
-              execInitialProcess(getInitialState, getHttp(), getRouter(), getStore()).then(function () {
+              execInitialProcess(getInitialState, getHttp(), getRouter(), getStore(), getI18n()).then(function () {
                 resolve(entry);
               });
             }),
@@ -2559,19 +2646,20 @@ function install$4 (Setaria, Vue$$1, options) {
   }
 }
 
-function createRootVue (Vue$$1, options) {
+function createRootVue(Vue$$1, options) {
   if (isEmpty$1(options.sdk)) {
     options.sdk = {};
   }
   new Vue$$1(options);
 }
 
-function execInitialProcess (getInitialState, http, router, store) {
+function execInitialProcess(getInitialState, http, router, store, i18n) {
   return new Promise(function (resolve, reject) {
     getInitialState({
       http: http,
       router: router,
-      store: store
+      store: store,
+      i18n: i18n
     }).then(function (res) {
       store.commit(STORE_KEY.SET_INITIAL_STATE, {
         data: res
@@ -2588,32 +2676,34 @@ function execInitialProcess (getInitialState, http, router, store) {
 
 var _Vue;
 
-function install$$1 (Setaria, Vue$$1, options) {
+function install$$1(Setaria, Vue$$1, options) {
   return function (Vue$$1, options) {
     if (install$$1.installed && _Vue === Vue$$1) { return }
     install$$1.installed = true;
     _Vue = Vue$$1;
     var isDef = function (v) { return v !== undefined; };
-
     if (!isDef(Vue$$1.prototype.$setaria)) {
       Vue$$1.prototype.$setaria = {
-        api: {}
+        api: {},
       };
     }
 
     Vue$$1.mixin({
-      beforeCreate: function beforeCreate () {
+      beforeCreate: function beforeCreate() {
         if (isDef(this.$options.sdk)) {
           this._sdk = this.$options.sdk;
           // set store instance on vue
           this.$options.store = Setaria.getStore();
           // set router instance on vue
           this.$options.router = Setaria.getRouter();
+
+          this.$options.i18n = Setaria.getI18n();
+
         } else {
           this._sdk = (this.$parent && this.$parent._sdk) || this;
         }
       },
-      destroyed: function destroyed () {
+      destroyed: function destroyed() {
         // console.error('destroyed', this.$options.sdk)
       }
     });
@@ -2624,11 +2714,13 @@ function install$$1 (Setaria, Vue$$1, options) {
     install$2(Vue$$1, options);
     // init router
     install$3(Vue$$1, options);
+    // init i18n
+    install$4(Vue$$1, options);
     // init vue app
-    install$4(Setaria, Vue$$1, options);
+    install$5(Setaria, Vue$$1, options);
 
     Vue$$1.mixin({
-      beforeRouteEnter: function beforeRouteEnter (to, from, next) {
+      beforeRouteEnter: function beforeRouteEnter(to, from, next) {
         var loadStartTime = new Date().getTime();
         next(function (vm) {
           if (vm && vm.$options) {
@@ -2654,7 +2746,7 @@ function install$$1 (Setaria, Vue$$1, options) {
     // set http instance on vue
     if (Vue$$1.prototype.$api === null || Vue$$1.prototype.$api === undefined) {
       Object.defineProperty(Vue$$1.prototype, '$api', {
-        get: function get () { return Setaria.getHttp() }
+        get: function get() { return Setaria.getHttp() }
       });
     }
 
@@ -2870,6 +2962,7 @@ function initGlobalAPI (SDK, instance) {
   SDK.getHttp = getHttp;
   SDK.getRouter = getRouter;
   SDK.getStore = getStore;
+  SDK.getI18n = getI18n;
   SDK.getInitialStateData = getInitialStateData;
   SDK.refreshInitialState = refreshInitialState;
   SDK.storage = Storage;
@@ -3020,6 +3113,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
     var http = ref.http; if ( http === void 0 ) http = {};
     var routes = ref.routes; if ( routes === void 0 ) routes = {};
     var store = ref.store; if ( store === void 0 ) store = {};
+    var i18n = ref.i18n; if ( i18n === void 0 ) i18n = {};
     var storeScopeKey = ref.storeScopeKey;
     var logHandler = ref.logHandler;
     var excludeRecordPageLoadTimeComponentName = ref.excludeRecordPageLoadTimeComponentName;
@@ -3030,6 +3124,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
   config.http = http || {};
   config.routes = routes || {};
   config.store = store || {};
+  config.i18n = i18n || {};
   if (typeof errorHandler === 'function') {
     config.errorHandler = errorHandler;
   }
@@ -3053,7 +3148,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.30';
+Setaria.version = '0.4.31';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);

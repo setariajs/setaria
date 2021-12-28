@@ -7,7 +7,7 @@
       </li>
       <li>
         <a @click="changeLang('en')">变更英语</a>
-        <a  @click="changeLang('zh')">变更中文</a>
+        <a @click="changeLang('zh')">变更中文</a>
       </li>
     </ul>
 
@@ -194,6 +194,7 @@ export default {
   created () {
     Setaria.storage.setSessionItem('foo', 'bar')
     this.handleThrowRuntimeException()
+    // this.$i18n.local = sessionStorage.getItem('lang') || 'en'
   },
   mounted () {
     // console.log(this,this.$i18n ,Setaria.getI18n())
@@ -201,9 +202,13 @@ export default {
   },
   methods: {
     changeLang(lang){
-     const i18n =  Setaria.getI18n()
-
-     i18n.loadLanguageAsync(lang)
+      // sessionStorage.setItem('lang',lang)
+      // window.location.reload()
+      this.$i18n.locale= lang
+    //  const i18n =  Setaria.getI18n()
+    //  debugger
+    //  i18n.locale = lang
+    //  i18n.loadLanguageAsync(lang)
 
     },
     async handlerCallBizApi () {

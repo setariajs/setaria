@@ -5,6 +5,7 @@ import Index from './Index.vue'
 import message from './message.json'
 import store from './store'
 import zh from '../lang/zh'
+import en from '../lang/en'
 
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 
@@ -84,7 +85,8 @@ const sdk = new Setaria({
     locale: 'zh', // 设置语言环境
     fallbackLocale: 'zh',
     messages: {
-      zh:zh
+      zh: zh,
+      en: en
     } // 设置语言环境信息
   }
 })
