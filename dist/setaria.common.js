@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.29
+ * Setaria v0.4.30
  * (c) 2021 Ray Han
  * @license MIT
  */
@@ -2208,6 +2208,9 @@ function errorHandler (error) {
       case 502:
         messageId = '502';
         break
+      case 503:
+        messageId = '503';
+        break
       case 504:
         messageId = '504';
         break
@@ -2893,8 +2896,9 @@ var sdkMessage = {
   'SYSMSG-SERVICE-STATUS-403': '远程服务拒绝执行。',
   'SYSMSG-SERVICE-STATUS-404': '后台服务不存在。',
   'SYSMSG-SERVICE-STATUS-405': '方法不支持。',
-  'SYSMSG-SERVICE-STATUS-502': '后台服务网关错误（Bad Gateway）。',
-  'SYSMSG-SERVICE-STATUS-504': '服务执行超时。',
+  'SYSMSG-SERVICE-STATUS-502': '后台服务网关错误(Bad Gateway)。',
+  'SYSMSG-SERVICE-STATUS-503': '后台服务暂时无法接受请求(Service Unavailable)。',
+  'SYSMSG-SERVICE-STATUS-504': '服务执行超时(Gateway Timeout)。',
   'SYSMSG-SERVICE-UNKNOWN-ERROR': '服务器内部错误，请联系管理员。',
   'SYSMSG-SERVICE-NETWORK-ERROR': '远程服务器无法连接，请联系管理员或稍后重试。',
   'SYSMSG-SERVICE-TIMEOUT': '服务未在预定时间（{0}秒）内返回结果，请联系管理员或稍后重试。',
@@ -3054,7 +3058,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.29';
+Setaria.version = '0.4.30';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);

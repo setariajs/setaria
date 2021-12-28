@@ -39,6 +39,9 @@ export default function errorHandler (error) {
       case 502:
         messageId = '502'
         break
+      case 503:
+        messageId = '503'
+        break
       case 504:
         messageId = '504'
         break
