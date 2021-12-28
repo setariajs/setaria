@@ -36,6 +36,7 @@ class Setaria {
     http = {},
     routes = {},
     store = {},
+    i18n = {},
     storeScopeKey,
     logHandler,
     excludeRecordPageLoadTimeComponentName,
@@ -46,6 +47,7 @@ class Setaria {
     config.http = http || {}
     config.routes = routes || {}
     config.store = store || {}
+    config.i18n = i18n || {}
     if (typeof errorHandler === 'function') {
       config.errorHandler = errorHandler
     }

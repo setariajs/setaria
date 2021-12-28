@@ -2,24 +2,25 @@
 import { getHttp } from '../http/index'
 import { getRouter } from '../router/index'
 import { getStore } from '../store/index'
+import { getI18n } from '../i18n/index'
 import { STORE_KEY } from '../../shared/constants'
 import { isEmpty, isNotEmpty } from '../../util/lang'
 
 let getInitialStateFunction = null
 
-export function refreshInitialState () {
+export function refreshInitialState() {
   console.log('refreshInitialState')
   if (isEmpty(getInitialStateFunction)) {
     return null
   }
   return execInitialProcess(getInitialStateFunction, getHttp(), getRouter(), getStore())
 }
-export function getInitialStateData () {
+export function getInitialStateData() {
   const ret = getStore().getters[STORE_KEY.GET_INITIAL_STATE]
   return isNotEmpty(ret) ? ret.data : null
 }
 
-export default function install (Setaria, Vue, options) {
+export default function install(Setaria, Vue, options) {
   if (isEmpty(options)) {
     return
   }
@@ -36,7 +37,7 @@ export default function install (Setaria, Vue, options) {
           {
             // 需要加载的组件 (应该是一个 `Promise` 对象)
             component: new Promise((resolve, reject) => {
-              execInitialProcess(getInitialState, getHttp(), getRouter(), getStore()).then(() => {
+              execInitialProcess(getInitialState, getHttp(), getRouter(), getStore(), getI18n()).then(() => {
                 resolve(entry)
               })
             }),
@@ -68,19 +69,20 @@ export default function install (Setaria, Vue, options) {
   }
 }
 
-function createRootVue (Vue, options) {
+function createRootVue(Vue, options) {
   if (isEmpty(options.sdk)) {
     options.sdk = {}
   }
   new Vue(options)
 }
 
-function execInitialProcess (getInitialState, http, router, store) {
+function execInitialProcess(getInitialState, http, router, store, i18n) {
   return new Promise((resolve, reject) => {
     getInitialState({
       http,
       router,
-      store
+      store,
+      i18n
     }).then((res) => {
       store.commit(STORE_KEY.SET_INITIAL_STATE, {
         data: res

@@ -6,6 +6,7 @@ export type Config = {
   message: Object,
   routes: Object,
   store: Object,
+  i18n: Object,
   storeScopeKey: string,
   excludeRecordPageLoadTimeComponentName: Array<string>,
   logHandler: Function,
@@ -42,6 +43,10 @@ export default ({
    * Vuex Store Option
    */
   store: null,
+  /**
+ * Ii8n Option
+ */
+  i18n: null,
 
   /**
    * Vuex Store Scope Key

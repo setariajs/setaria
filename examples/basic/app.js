@@ -4,6 +4,7 @@ import 'babel-polyfill'
 import Index from './Index.vue'
 import message from './message.json'
 import store from './store'
+import zh from '../lang/zh'
 
 Vue.config.devtools = process.env.NODE_ENV === 'development'
 
@@ -29,7 +30,7 @@ const sdk = new Setaria({
           let res = data
           // 处理JSON类型数据
           if (response['content-type'] &&
-                response['content-type'].indexOf('application/json') !== -1) {
+            response['content-type'].indexOf('application/json') !== -1) {
             try {
               // arraybuffer的场合
               if (typeof res !== 'string' && typeof data.byteLength === 'number') {
@@ -58,7 +59,7 @@ const sdk = new Setaria({
       interceptor: {
         request: [
           [
-            function testCustomInterceptor (config) {
+            function testCustomInterceptor(config) {
               console.log('testCustomInterceptor request', config)
               config.url = config.url + '?foo=bar'
               return config
@@ -67,7 +68,7 @@ const sdk = new Setaria({
         ],
         response: [
           [
-            function testCustomInterceptor (response) {
+            function testCustomInterceptor(response) {
               console.log('testCustomInterceptor response', response)
               return response
             }
@@ -77,7 +78,15 @@ const sdk = new Setaria({
     }
   },
   message,
-  store
+  store,
+  i18n: {
+    basePath: '/examples/lang/',
+    locale: 'zh', // 设置语言环境
+    fallbackLocale: 'zh',
+    messages: {
+      zh:zh
+    } // 设置语言环境信息
+  }
 })
 
 Vue.use(Setaria)

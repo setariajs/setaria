@@ -1,6 +1,7 @@
 import { install as httpInstall } from './plugin/http/index'
 import { install as routerInstall } from './plugin/router/index'
 import { install as storeInstall } from './plugin/store/index'
+import { install as i18nInstall } from './plugin/i18n/index'
 import { install as initialStateInstall } from './plugin/initial-state/index'
 import config from './core/config'
 import { LOG_TYPE, STORE_KEY } from './shared/constants'
@@ -8,32 +9,34 @@ import { findIndex, isNotEmpty } from './util/lang'
 
 export let _Vue
 
-export function install (Setaria, Vue, options) {
+export function install(Setaria, Vue, options) {
   return (Vue, options) => {
     if (install.installed && _Vue === Vue) return
     install.installed = true
     _Vue = Vue
     const isDef = v => v !== undefined
-
     if (!isDef(Vue.prototype.$setaria)) {
       Vue.prototype.$setaria = {
-        api: {}
+        api: {},
       }
     }
 
     Vue.mixin({
-      beforeCreate () {
+      beforeCreate() {
         if (isDef(this.$options.sdk)) {
           this._sdk = this.$options.sdk
           // set store instance on vue
           this.$options.store = Setaria.getStore()
           // set router instance on vue
           this.$options.router = Setaria.getRouter()
+
+          this.$options.i18n = Setaria.getI18n()
+
         } else {
           this._sdk = (this.$parent && this.$parent._sdk) || this
         }
       },
-      destroyed () {
+      destroyed() {
         // console.error('destroyed', this.$options.sdk)
       }
     })
@@ -44,11 +47,13 @@ export function install (Setaria, Vue, options) {
     storeInstall(Vue, options)
     // init router
     routerInstall(Vue, options)
+    // init i18n
+    i18nInstall(Vue, options)
     // init vue app
     initialStateInstall(Setaria, Vue, options)
 
     Vue.mixin({
-      beforeRouteEnter (to, from, next) {
+      beforeRouteEnter(to, from, next) {
         const loadStartTime = new Date().getTime()
         next((vm) => {
           if (vm && vm.$options) {
@@ -74,7 +79,7 @@ export function install (Setaria, Vue, options) {
     // set http instance on vue
     if (Vue.prototype.$api === null || Vue.prototype.$api === undefined) {
       Object.defineProperty(Vue.prototype, '$api', {
-        get () { return Setaria.getHttp() }
+        get() { return Setaria.getHttp() }
       })
     }
 

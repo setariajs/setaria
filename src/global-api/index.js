@@ -2,6 +2,7 @@ import config from '../core/config'
 import { getHttp } from '../plugin/http/index'
 import { getStore } from '../plugin/store/index'
 import { getRouter } from '../plugin/router/index'
+import { getI18n } from '../plugin/i18n/index'
 import { getInitialStateData, refreshInitialState } from '../plugin/initial-state/index'
 import Storage from './Storage'
 
@@ -21,6 +22,7 @@ export function initGlobalAPI (SDK, instance) {
   SDK.getHttp = getHttp
   SDK.getRouter = getRouter
   SDK.getStore = getStore
+  SDK.getI18n = getI18n
   SDK.getInitialStateData = getInitialStateData
   SDK.refreshInitialState = refreshInitialState
   SDK.storage = Storage

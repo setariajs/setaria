@@ -30,7 +30,7 @@ app.use(history({
     {
       from: /\/basic/,
       to: '/basic/index.html'
-    }
+    },
   ],
   logger: console.log.bind(console)
 }))

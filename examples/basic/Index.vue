@@ -1,5 +1,18 @@
 <template>
   <div>
+     <ul>
+      国际化内容
+      <li>
+       国际化内容：{{$t('hellowould')}}
+      </li>
+      <li>
+        <a @click="changeLang('en')">变更英语</a>
+        <a  @click="changeLang('zh')">变更中文</a>
+      </li>
+    </ul>
+
+
+
     <ul>
       消息文件测试
       <li>
@@ -182,7 +195,17 @@ export default {
     Setaria.storage.setSessionItem('foo', 'bar')
     this.handleThrowRuntimeException()
   },
+  mounted () {
+    // console.log(this,this.$i18n ,Setaria.getI18n())
+    // console.log(this.$t('hellowould'))
+  },
   methods: {
+    changeLang(lang){
+     const i18n =  Setaria.getI18n()
+
+     i18n.loadLanguageAsync(lang)
+
+    },
     async handlerCallBizApi () {
       console.log(Setaria.storage.getSessionItem('foo'))
       const res = await this.$api.biz.get('user', { [constants.HTTP.GET_XSRF]: true })
@@ -229,7 +252,7 @@ export default {
       this.$store.dispatch('global_dispatch_foo', 'global_async_foo')
     },
     handleThrowRuntimeException () {
-      Object.prototype.findIndex()
+      // Object.prototype.findIndex()
     },
     handleThrowException () {
       throw new ApplicationError('MCM006E', null, null, 4)
