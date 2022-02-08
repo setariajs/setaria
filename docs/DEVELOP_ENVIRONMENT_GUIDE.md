@@ -26,7 +26,8 @@
 
 ``` bash
 // 使用国内镜像
-npm config set registry https://registry.npm.taobao.org
+// https://registry.npm.taobao.org 将于 2022年5月30日 停用
+npm config set registry https://registry.npmmirror.com
 // 配置后可通过下面方式来验证是否设置成功
 npm config get registry
 ```
