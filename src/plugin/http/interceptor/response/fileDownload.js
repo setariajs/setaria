@@ -22,9 +22,9 @@ export default function fileDownload (response) {
     const disposition = response.headers['content-disposition'] || response.headers['CONTENT-DISPOSITION']
     let filename = 'unknown-file'
     if (disposition) {
-      let dispositionFileRegexResult = disposition.match(/filename="(.*)"/)
+      let dispositionFileRegexResult = disposition.match(/fileName="(.*)"/)
       if (dispositionFileRegexResult === null) {
-        dispositionFileRegexResult = disposition.match(/filename=(.*)/)
+        dispositionFileRegexResult = disposition.match(/fileName=(.*)/)
       }
       if (dispositionFileRegexResult) {
         filename = decodeURI(dispositionFileRegexResult[1])
