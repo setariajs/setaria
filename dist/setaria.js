@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.32
+ * Setaria v0.4.33
  * (c) 2022 Ray Han
  * @license MIT
  */
@@ -2583,22 +2583,23 @@ function getI18n () {
 // import Vue from 'vue'
 var getInitialStateFunction = null;
 
-function refreshInitialState() {
+function refreshInitialState () {
   console.log('refreshInitialState');
   if (isEmpty$1(getInitialStateFunction)) {
     return null
   }
   return execInitialProcess(getInitialStateFunction, getHttp(), getRouter(), getStore())
 }
-function getInitialStateData() {
+function getInitialStateData () {
   var ret = getStore().getters[STORE_KEY.GET_INITIAL_STATE];
   return isNotEmpty(ret) ? ret.data : null
 }
 
-function install$5(Setaria, Vue$$1, options) {
+function install$5 (Setaria, Vue$$1, options) {
   if (isEmpty$1(options)) {
     return
   }
+  debugger
   var entry = options.entry;
   var getInitialState = options.getInitialState;
   var error = options.error;
@@ -2631,7 +2632,7 @@ function install$5(Setaria, Vue$$1, options) {
           }
         ); }
       );
-      createRootVue(Vue$$1, {
+      Setaria.vm = createRootVue(Vue$$1, {
         el: entry.el,
         render: function (h) {
           return h('async-app')
@@ -2642,19 +2643,19 @@ function install$5(Setaria, Vue$$1, options) {
         delete entry.el;
       }
     } else {
-      createRootVue(Vue$$1, entry);
+      Setaria.vm = createRootVue(Vue$$1, entry);
     }
   }
 }
 
-function createRootVue(Vue$$1, options) {
+function createRootVue (Vue$$1, options) {
   if (isEmpty$1(options.sdk)) {
     options.sdk = {};
   }
-  new Vue$$1(options);
+  return new Vue$$1(options)
 }
 
-function execInitialProcess(getInitialState, http, router, store, i18n) {
+function execInitialProcess (getInitialState, http, router, store, i18n) {
   return new Promise(function (resolve, reject) {
     getInitialState({
       http: http,
@@ -2958,7 +2959,9 @@ function initGlobalAPI (SDK, instance) {
       );
     };
   }
-  Object.defineProperty(SDK, 'config', configDef);
+  if (!SDK.config) {
+    Object.defineProperty(SDK, 'config', configDef);
+  }
 
   SDK.getHttp = getHttp;
   SDK.getRouter = getRouter;
@@ -3149,7 +3152,7 @@ Setaria.prototype.initConfig = function initConfig (ref) {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.32';
+Setaria.version = '0.4.33';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
