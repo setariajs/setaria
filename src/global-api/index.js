@@ -17,7 +17,9 @@ export function initGlobalAPI (SDK, instance) {
       )
     }
   }
-  Object.defineProperty(SDK, 'config', configDef)
+  if (!SDK.config) {
+    Object.defineProperty(SDK, 'config', configDef)
+  }
 
   SDK.getHttp = getHttp
   SDK.getRouter = getRouter

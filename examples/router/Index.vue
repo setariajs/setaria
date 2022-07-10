@@ -12,7 +12,7 @@
   </div>
 </template>
 <script>
-  import { constants, util } from 'setaria'
+  import Setaria, { constants, util } from 'setaria'
 
   export default {
     data () {
@@ -28,6 +28,9 @@
 
 //       } }))
       console.log(util.isIE)
+      // setTimeout(() => {
+      //   Setaria.vm.$destroy()
+      // }, 3000)
     },
     computed: {
       isIFrame () {

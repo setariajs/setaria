@@ -11,7 +11,7 @@ const entry = {
   render: h => h(App)
 }
 
-new Setaria({
+const instance = new Setaria({
   entry,
   getInitialState ({ http }) {
     return new Promise((resolve, reject) => {
@@ -47,6 +47,8 @@ new Setaria({
     ]
   }
 })
+
+console.log('instance', instance)
 
 // 使用原始方式初始化Vue根组件
 // sdk为上面new Setaria后获得的实例

@@ -8,22 +8,23 @@ import { isEmpty, isNotEmpty } from '../../util/lang'
 
 let getInitialStateFunction = null
 
-export function refreshInitialState() {
+export function refreshInitialState () {
   console.log('refreshInitialState')
   if (isEmpty(getInitialStateFunction)) {
     return null
   }
   return execInitialProcess(getInitialStateFunction, getHttp(), getRouter(), getStore())
 }
-export function getInitialStateData() {
+export function getInitialStateData () {
   const ret = getStore().getters[STORE_KEY.GET_INITIAL_STATE]
   return isNotEmpty(ret) ? ret.data : null
 }
 
-export default function install(Setaria, Vue, options) {
+export default function install (Setaria, Vue, options) {
   if (isEmpty(options)) {
     return
   }
+  debugger
   const { entry, getInitialState, error, loading } = options
   // 实例化Vue根组件
   if (isNotEmpty(entry)) {
@@ -53,7 +54,7 @@ export default function install(Setaria, Vue, options) {
           }
         )
       )
-      createRootVue(Vue, {
+      Setaria.vm = createRootVue(Vue, {
         el: entry.el,
         render: h => {
           return h('async-app')
@@ -64,19 +65,19 @@ export default function install(Setaria, Vue, options) {
         delete entry.el
       }
     } else {
-      createRootVue(Vue, entry)
+      Setaria.vm = createRootVue(Vue, entry)
     }
   }
 }
 
-function createRootVue(Vue, options) {
+function createRootVue (Vue, options) {
   if (isEmpty(options.sdk)) {
     options.sdk = {}
   }
-  new Vue(options)
+  return new Vue(options)
 }
 
-function execInitialProcess(getInitialState, http, router, store, i18n) {
+function execInitialProcess (getInitialState, http, router, store, i18n) {
   return new Promise((resolve, reject) => {
     getInitialState({
       http,
