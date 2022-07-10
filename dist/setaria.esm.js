@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.33
+ * Setaria v0.4.34
  * (c) 2022 Ray Han
  * @license MIT
  */
@@ -2598,7 +2598,6 @@ function install$5 (Setaria, Vue$$1, options) {
   if (isEmpty$1(options)) {
     return
   }
-  debugger
   var entry = options.entry;
   var getInitialState = options.getInitialState;
   var error = options.error;
@@ -3105,24 +3104,26 @@ var Setaria = function Setaria (options) {
     return
   }
   Vue.use(Setaria, options);
+
+  return this
 };
 
 /**
  * 初始化设置，增加新设置项的场合，需要在此处进行merge
  */
-Setaria.prototype.initConfig = function initConfig (ref) {
-    var errorHandler = ref.errorHandler;
-    var message = ref.message; if ( message === void 0 ) message = {};
-    var http = ref.http; if ( http === void 0 ) http = {};
-    var routes = ref.routes; if ( routes === void 0 ) routes = {};
-    var store = ref.store; if ( store === void 0 ) store = {};
-    var i18n = ref.i18n; if ( i18n === void 0 ) i18n = {};
-    var storeScopeKey = ref.storeScopeKey;
-    var logHandler = ref.logHandler;
-    var excludeRecordPageLoadTimeComponentName = ref.excludeRecordPageLoadTimeComponentName;
-    var log = ref.log;
-    var moduleUrlRules = ref.moduleUrlRules;
-
+Setaria.prototype.initConfig = function initConfig (option) {
+  this.initOption = option;
+  var errorHandler = option.errorHandler;
+    var message = option.message; if ( message === void 0 ) message = {};
+    var http = option.http; if ( http === void 0 ) http = {};
+    var routes = option.routes; if ( routes === void 0 ) routes = {};
+    var store = option.store; if ( store === void 0 ) store = {};
+    var i18n = option.i18n; if ( i18n === void 0 ) i18n = {};
+    var storeScopeKey = option.storeScopeKey;
+    var logHandler = option.logHandler;
+    var excludeRecordPageLoadTimeComponentName = option.excludeRecordPageLoadTimeComponentName;
+    var log = option.log;
+    var moduleUrlRules = option.moduleUrlRules;
   config.message = merge$1(sdkMessage, message);
   config.http = http || {};
   config.routes = routes || {};
@@ -3150,8 +3151,12 @@ Setaria.prototype.initConfig = function initConfig (ref) {
   console.log('config init complete');
 };
 
+Setaria.prototype.reInitApp = function reInitApp () {
+  install$5(Setaria, Vue, this.initOption);
+};
+
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.33';
+Setaria.version = '0.4.34';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
