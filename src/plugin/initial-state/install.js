@@ -24,7 +24,6 @@ export default function install (Setaria, Vue, options) {
   if (isEmpty(options)) {
     return
   }
-  debugger
   const { entry, getInitialState, error, loading } = options
   // 实例化Vue根组件
   if (isNotEmpty(entry)) {

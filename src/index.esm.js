@@ -12,6 +12,7 @@ import constants from './shared/constants'
 import defaultConfig from './shared/default-config'
 import { inBrowser } from './util/dom'
 import { isEmpty, isNotEmpty, merge } from './util/lang'
+import { install as initialStateInstall } from './plugin/initial-state/index'
 import util from './util/index'
 
 class Setaria {
@@ -25,24 +26,28 @@ class Setaria {
       return
     }
     Vue.use(Setaria, options)
+
+    return this
   }
 
   /**
    * 初始化设置，增加新设置项的场合，需要在此处进行merge
    */
-  initConfig ({
-    errorHandler,
-    message = {},
-    http = {},
-    routes = {},
-    store = {},
-    i18n = {},
-    storeScopeKey,
-    logHandler,
-    excludeRecordPageLoadTimeComponentName,
-    log,
-    moduleUrlRules
-  }) {
+  initConfig (option) {
+    this.initOption = option
+    const {
+      errorHandler,
+      message = {},
+      http = {},
+      routes = {},
+      store = {},
+      i18n = {},
+      storeScopeKey,
+      logHandler,
+      excludeRecordPageLoadTimeComponentName,
+      log,
+      moduleUrlRules
+    } = option
     config.message = merge(sdkMessage, message)
     config.http = http || {}
     config.routes = routes || {}
@@ -69,6 +74,11 @@ class Setaria {
     }
     console.log('config init complete')
   }
+
+  reInitApp () {
+    initialStateInstall(Setaria, Vue, this.initOption)
+  }
+
 }
 
 Setaria.install = install(Setaria)
