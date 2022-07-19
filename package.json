@@ -20,7 +20,7 @@
     "build:main": "node build/build.main.js",
     "build:logger": "rollup -c build/rollup.logger.config.js",
     "lint": "eslint src test",
-    "build-version": "npm version patch --registry=http://registry.npmjs.org  && git push && npm publish --registry=http://registry.npmjs.org",
+    "build-version": "npm version patch --registry=https://registry.npmjs.org  && git push && npm publish --registry=https://registry.npmjs.org",
     "test": "npm run lint && flow check"
   },
   "repository": {
