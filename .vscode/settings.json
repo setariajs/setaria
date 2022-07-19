@@ -1,4 +1,8 @@
 {
   "flow.useLSP": false,
-  "javascript.validate.enable": false
+  "javascript.validate.enable": false,
+  "i18n-ally.localesPaths": [
+    "examples/lang",
+    "src/plugin/i18n"
+  ]
 }

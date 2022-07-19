@@ -48,7 +48,7 @@ const instance = new Setaria({
   }
 })
 
-console.log('instance', instance)
+console.log('instance', Setaria)
 
 // 使用原始方式初始化Vue根组件
 // sdk为上面new Setaria后获得的实例
