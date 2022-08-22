@@ -1,5 +1,8 @@
+/* eslint-disable no-undef */
+require('url')
 const axios = require('axios')
 const fs = require('fs')
+const https = require('https')
 const _ = require('lodash')
 const { join } = require('path')
 const mkdirp = require('mkdirp')
@@ -125,6 +128,39 @@ function createApiManagementFile (key, apiDoc, config) {
   return ret
 }
 
+function generateHttp (url) {
+  const urlInfo = new URL(url)
+  if (urlInfo.protocol === 'https:') {
+    return new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: urlInfo.hostname,
+        port: 443,
+        path: urlInfo.pathname,
+        method: 'GET',
+        rejectUnauthorized: false
+      }, (res) => {
+        let data = ''
+        res.on('data', (chunk) => {
+          data += chunk
+          res.on('end', () => {
+            if (res.statusCode === 200) {
+              resolve({
+                data: JSON.parse(data)
+              })
+            }
+          })
+        })
+      })
+      req.on('error', (error) => {
+        reject(error)
+      })
+      req.end()
+    })
+  }
+
+  return request(url)
+}
+
 async function getJsonSchemaBySwagger (swaggerUrls, config) {
   const result = {
     jsonSchema: {},
@@ -138,7 +174,7 @@ async function getJsonSchemaBySwagger (swaggerUrls, config) {
       apiUrl = apiUrl.url
     }
     // 请求获取api doc信息
-    promiseArray.push(request(apiUrl))
+    promiseArray.push(generateHttp(apiUrl))
   })
   const apiResultArray = await Promise.all(promiseArray)
   if (apiResultArray) {
@@ -240,7 +276,7 @@ module.exports = class GenerateJsonSchema {
     keys.forEach((key) => {
       const filePath = outputJsonSchemaPaths[key]
       result = `
-${result}import ${key} from './${filePath.replace(/\\/g, '/')}';
+${result}import ${key} from './${filePath.replace(/\\/g, '/')}'
 `
     })
     result = `
