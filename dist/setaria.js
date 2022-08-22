@@ -1,5 +1,5 @@
 /**
- * Setaria v0.4.34
+ * Setaria v0.4.36
  * (c) 2022 Ray Han
  * @license MIT
  */
@@ -3157,7 +3157,7 @@ Setaria.prototype.reInitApp = function reInitApp () {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.34';
+Setaria.version = '0.4.36';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
