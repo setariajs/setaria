@@ -1,6 +1,6 @@
 /**
- * Setaria v0.4.40
- * (c) 2022 Ray Han
+ * Setaria v0.4.41
+ * (c) 2023 Ray Han
  * @license MIT
  */
 import Vue from 'vue';
@@ -3158,7 +3158,7 @@ Setaria.prototype.reInitApp = function reInitApp () {
 };
 
 Setaria.install = install$$1(Setaria);
-Setaria.version = '0.4.40';
+Setaria.version = '0.4.41';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(Setaria);
