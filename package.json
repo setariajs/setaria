@@ -21,7 +21,8 @@
     "build:logger": "rollup -c build/rollup.logger.config.js",
     "lint": "eslint src test",
     "build-version": "npm version patch --registry=https://registry.npmjs.org  && git push && npm publish --registry=https://registry.npmjs.org",
-    "test": "npm run lint && flow check"
+    "test": "npm run lint && flow check",
+    "generate-i18n": "node bin/script.js --script generate-json-schema"
   },
   "repository": {
     "type": "git",

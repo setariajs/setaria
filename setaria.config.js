@@ -36,6 +36,7 @@ const config = {
     setting: {
       // 将api整理到一起，生成Yapi等工具所用，将同一实例内的api归类到一起，以用于yapi等工具不支持三级目录的情况
       isOutputApiManagementFile: true,
+      isTitleNullCompletionByPropKey: false,
       excludeTagList: ['测试API', '测试']
     }
   }

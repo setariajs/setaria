@@ -32,7 +32,7 @@ function createApiKey (originKey) {
  * @param {*} definitions
  * @returns
  */
-function createJsonSchemaBySwagger (definitions) {
+function createJsonSchemaBySwagger (definitions, config) {
   const result = {}
   Object.keys(definitions).forEach((key) => {
     const isExcludeKeyExist = EXCLUDE_KEY_CHAR.some((ek) => key.indexOf(ek) !== -1)
@@ -44,6 +44,9 @@ function createJsonSchemaBySwagger (definitions) {
             ...property,
             title: property.description,
             description: ''
+          }
+          if (!property.title && config.setting.isTitleNullCompletionByPropKey === true) {
+            property.title = propertyKey
           }
           definitions[key].properties[propertyKey] = property
         })
@@ -190,7 +193,7 @@ async function getJsonSchemaBySwagger (swaggerUrls, config) {
         schemas = data.components.schemas
       }
       // 获得JsonSchema结构
-      const jsonSchema = createJsonSchemaBySwagger(schemas)
+      const jsonSchema = createJsonSchemaBySwagger(schemas, config)
       result.jsonSchema[apiKey] = jsonSchema
       // 生成Yapi结构数据
       if (config.setting.isOutputApiManagementFile === true) {
