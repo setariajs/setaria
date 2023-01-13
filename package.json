@@ -79,7 +79,7 @@
     "jasmine-core": "2.5.2",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "nightwatch": "^0.9.12",
+    "nightwatch": "^2.6.10",
     "nightwatch-helpers": "^1.2.0",
     "prettier": "^2.3.2",
     "rimraf": "^2.6.3",
