@@ -64,6 +64,8 @@ yarn install
 * [vue-router](https://github.com/vuejs/vue-router)
 * [vuex](https://github.com/vuejs/vuex)
 
+> 📖 查看详细的[依赖功能说明文档](./docs/DEPENDENCIES.md)了解每个依赖在Setaria框架中的具体功能和用途。
+
 ## 开发前需要掌握的知识
 
 * [ES6](http://es6.ruanyifeng.com/)
